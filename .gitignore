@@ -3,11 +3,3 @@
 .RData
 .Ruserdata
 **Thumbs.db
-data-raw/
-**.cache/
-**__packages
-**.RData
-**.rds
-**.rdb
-**.rdx
-**.png

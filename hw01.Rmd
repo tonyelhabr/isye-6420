@@ -118,4 +118,3 @@ classifier says it was.
 Let $C$ represent correctness.
 $P(C)=52/70$, $P(X=1)=65/120$, $P(X=0)=55/120$, $P(Y=1)=70/120$, $P(Y=0)=50/120$.
 
-
