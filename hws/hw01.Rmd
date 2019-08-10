@@ -1,22 +1,13 @@
 ---
-title: "ISYE 6414: Homework 4 Peer Assessment Assignment"
-author: ""
+title: 'ISYE 6420 Homework 1'
+author: ''
 output:
   html_document:
     theme: cosmo
     highlight: haddock
     toc: true
-    toc_depth: 3
 ---
 
-```{r postprocess, include=F, echo=F, cache=F}
-.path_r <- path.expand(rstudioapi::getSourceEditorContext()$path)
-.path_sans_ext <- tools::file_path_sans_ext(.path_r)
-.path_rmd <- paste0(.path_sans_ext, ".Rmd")
-# rmarkdown::render(knitr::spin(.path_r, knit = FALSE))
-# spelling::spell_check_files(.path_rmd)
-
-```
 ```{r setup, include=F, cache=F}
 knitr::opts_knit$set(root.dir = here::here())
 knitr::opts_chunk$set(
@@ -39,9 +30,16 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r postprocess, include=F, echo=F, cache=F}
+.path_sans_ext <- file.path('hws', 'hw01')
+.path_rmd <- paste0(.path_sans_ext, '.Rmd')
+# spelling::spell_check_files(.path_rmd)
+```
+
+
 <style type="text/css">
 body, td {
-  font-size: 14px;
+  font-size: 16px;
 }
 code.r{
   font-size: 12px;
@@ -60,15 +58,32 @@ hide {
 }
 </style>
 
+```{r setup-1, include=F, echo=F, eval=T}
+library(tidyverse)
+format_num <- function(x, digits = 3) {
+  fmt <- sprintf("%%.%df", digits)
+  sprintf(fmt, x)
+}
+```
+
+
 ## 1. Circuit.
 
+
+![](hw01-circuit-01.png)
+
+Figure 1: Components $E_1,\dots E_4$ at operational at time $t$ with probabilities $e^{−t}, e^{−2t}, e^{−t/2}, e^{−t/3}$ and $e^{−t}$, respectively.
+
 <instructions>
-The system S consists of five independent elements $E_i$, $i = 1, \dots , E_5$, connected as in Figure 1. Probability that the element $E_i$ is operational at the end of time interval $[0,t]$ is given as
+The system $S$ consists of five independent elements $E_i$, $i = 1, \dots , E_5$, connected as in Figure 1. Probability that the element $E_i$ is operational at the end of time interval $[0,t]$ is given as
 </instructions>
 
 $$
-p_i(t) = e^{-\lambda_i t}, t \geq 0,
+\begin{array}{cc}
+p_i(t) = e^{-\lambda_i t}, & t \geq 0,
+\end{array}
 $$
+
 <instructions>
 for $\lambda_1 = 1, \lambda_2 = 2, \lambda_3 = 1/2, \lambda_4 = 1/3, \lambda_5 = 1$.
 </instructions>
@@ -83,25 +98,255 @@ for $\lambda_1 = 1, \lambda_2 = 2, \lambda_3 = 1/2, \lambda_4 = 1/3, \lambda_5 =
 </instructions>
 
 <instructions>
-**Hint**: If you consider (b), it is conditional probability, more precisely, a posterior probability of the hypothesis $H_1 : E_5$ operational at time $t$, given that system S is operational at t. Thus, solve part (a) as a total probability with $H1$ and $H2 = H_1^C$ as hypotheses. Under the two hypotheses the system simplifies as in Figure 2 and it is easy to find $P(S|H1)$ and $P(S|H2)$.
+Hint: If you consider (b), it is conditional probability, more precisely, a posterior probability of the hypothesis $H_1: E_5$ operational at time $t$, given that system S is operational at t. Thus, solve part (a) as a total probability with $H1$ and $H_2 = H_1^C$ as hypotheses. Under the two hypotheses the system simplifies as in Figure 2 and it is easy to find $P(S|H_1)$ and $P(S|H_2)$.
 Then (b) is just a Bayes formula.
 </instructions>
 
 
+![](hw01-circuit-02.png)
+
+Figure 2: Left: System under hypothesis $H_1 : E_5$ operational; Right: System under hypothesis $H_2 : E_5$ not operational.
+
+
 ### (a)
 
-<response>
-Using the notation of the hint, we have
+We first formulate $P(S|H_1)$ (using the notation of the hint) as follows.
 
 $$
 \begin{array}{lcl}
-P(S_{H_1}|X) & = & 1 - P(E_1 \cup E_3) & = & 1 - (1 - P(E_1)) (1 - P(E_3)) \\
-P(S_{H_2}|X) & = & 1 - P((E_1 \cap E_2 ) \cup (E_3 \cap E_4)) & = & 1 - (1 - P(E_1) P(E_2)) (1 - P(E_3) P(E_4))
+P(S|H_1) & = & 1 - P(E_1 \cup E_3) \\
+& = & 1 - (1 - P(E_1)) (1 - P(E_3)) \\
+& = & 1 - (1 - e^{-t}) (1 - e^{-t/2}) \\
+& = & 1 - (1 - e^{-t} - e^{-t/2} + e^{t^2/2}) \\
+& = & e^{-t} + e^{-t/2} - e^{-3t/2}
 \end{array}
 $$
+
+Note that we could have also started from the following formulation:
+$P(S|H_1) = P(E_1) + P(E_3) - P(E_1 \cap E_3)$
+
+```{r hw01-q01-a-1, include=F, echo=F, eval=T}
+t_x_hide <- 0.5
+f_sh1_1 <- function(t) {
+  1 - (1 - exp(-t)) * (1 - exp(-t / 2))
+}
+
+f_sh1_2 <- function(t) {
+  exp(-t) + exp(-t / 2) - exp(-3 * t / 2)
+}
+f_sh1 <- f_sh1_1
+f_sh1_1(t_x_hide)
+f_sh1_2(t_x_hide)
+f_sh1(t_x_hide)
+```
+
+Similarly, we can find $P(S|H_2)$ as follows.
+
+$$
+\begin{array}{lcl}
+P(S|H_2) & = & 1 - P((E_1 \cap E_2 ) \cup (E_3 \cap E_4)) \\
+& = & 1 - (1 - P(E_1) P(E_2)) (1 - P(E_3) P(E_4)) \\
+& = & 1 - (1 - e^{-t} e^{-2t}) (1 - e^{-t/2} e^{-t/3}) \\
+& = & 1 - (1 - e^{-3t}) (1 - e^{-5t/6}) \\
+& = & e^{-3t} + e^{-5t/6} - e^{-23t/6}
+\end{array}
+$$
+
+```{r hw01-q01-a-2, include=F, echo=F, eval=T}
+f_sh2_1 <- function(t) {
+  1 - (1 - exp(-t) * exp(-2 * t)) * (1 - exp(-t / 2) * exp(-t / 3))
+
+}
+
+f_sh2_2 <- function(t) {
+  exp(-3 * t) + exp(-5 * t / 6) - exp(-23 * t / 6)
+}
+f_sh2 <- f_sh2_1
+f_sh2_1(t_x_hide)
+f_sh2_2(t_x_hide)
+f_sh2(t_x_hide)
+```
+
+Then
+$$
+\begin{array}{lcl}
+P(S) & = & P(S|H_1) P(H_1) + P(S|H_2) P(H_2) P(H_2) \\
+& = & P(S|H_1) P(H_1) + P(S|H_2) P(H_2) (1 - P(H_1)) \\
+& = & (e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t}) \\
+\end{array}
+$$
+
+See the implementation in `R` below.
+
+```{r hw01-q01-a-3, include=T, echo=T, eval=T}
+f_sh1 <- function(t) {
+  exp(-t) + exp(-t / 2) - exp(-3 * t / 2)
+  # Or
+  # 1 - (1 - exp(-t)) * (1 - exp(-t / 2))
+}
+f_sh2 <-  function(t) {
+  exp(-3 * t) + exp(-5 * t / 6) - exp(-23 * t / 6)
+  # Or
+  # 1 - (1 - exp(-t) * exp(-2 * t)) * (1 - exp(-t / 2) * exp(-t / 3))
+}
+f_h1 <- function(t) {
+  exp(-t)
+}
+f_h2 <- function(t) {
+  1 - f_h1(t)
+}
+f_s <- function(t) {
+  f_sh1(t) * f_h1(t) + f_sh2(t) * f_h2(t)
+}
+```
+And, finally, see the calculation of the the probability that the system $S$ will be operational at time $t = `r t_x_hide`$.
+
+
+```{r hw01-q01-a-4, include=T, echo=T, eval=T}
+t_x <- 0.5
+p_s_x <- f_s(t_x)
+p_s_x
+```
+
+<response>
+We find that $P(S) = `r format_num(p_s_x)`$ at $t = `r t_x`$.
 </response>
 
+<response>
+Below is plot of this probability as a function of time $t$ for $0 \leq t \leq 10$.
+</response>
+
+```{r hw01-q01-a-5, include=T, echo=F, eval=T}
+seq_t <- seq(0, 10, by = 0.1)
+d_q1 <- tibble(t = seq_t)
+d_q1a <- d_q1 %>% mutate(p_s = f_s(t))
+d_q1a
+
+theme_custom <- function(...) {
+  theme_light() +
+    # hrbrthemes::theme_ipsum(base_family = '') +
+    # dviz.sup::theme_dviz_grid(font_family = '') +
+    theme(
+      axis.title.x = element_text(hjust = 1),
+      axis.title.y = element_text(hjust = 1),
+      ...
+    )
+}
+
+viz_q1a <-
+  d_q1a %>%
+  ggplot() +
+  aes(x = t, y = p_s) +
+  geom_line() +
+  geom_segment(
+    data = NULL, 
+    aes(x = t_x, y = 0, xend = t_x, yend = p_s_x),
+    linetype = 2,
+    size = 1.5
+  ) +
+  geom_point(data = NULL, aes(x = t_x, y = p_s_x), size = 2) +
+  theme_custom() +
+  labs(
+    # title = '',
+    x = 't',
+    y = 'P(S)'
+  )
+viz_q1a
+```
+
+
 ### (b)
+
+See the formulation for $P(H_1|S)$ below.
+
+$$
+\begin{array}{lcl}
+P(H_1|S) & = & \frac{P(S|H_1) P(H_1)}{P(S)} \\
+& = & \frac{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t})}{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t}) }  \\
+\end{array}
+$$
+
+We could implement this in `R` as follows.
+
+```{r hw01-q01-b-1, include=T, echo=T, eval=T}
+f_h1s <- function(t) {
+  f_sh1(t) * f_h1(t) / f_s(t)
+}
+p_h1s_x <- f_h1s(t_x)
+p_h1s_x
+```
+
+<response>
+We find that $P(H_1|S) = `r format_num(p_h1s_x)`$ at  at $t = `r t_x`$.
+</response>
+
+```{r hw01-q01-b-2, include=F, echo=F, eval=F}
+d_q1b <- d_q1 %>% mutate(p_h1s = f_h1s(t))
+d_q1b
+
+viz_q1b <-
+  d_q1b %>% 
+  ggplot() +
+  aes(x = t, y = p_h1s) +
+  geom_line() +
+  theme_custom() +
+  labs(
+    # title = '',
+    x = 't',
+    y = 'P(H_1|S)'
+  )
+viz_q1b
+```
+
+
+## 2. Two Batches
+
+<instructions>
+There are two batches of the same product. In one batch all products
+are conforming. The other batch contains 20% non-conforming products. A batch is selected
+at random and one randomly selected product from that batch is inspected. The inspected
+product was found conforming and was returned back to its batch.
+What is the probability that the second product, randomly selected from the same batch,
+is found non-conforming?
+</instruction>
+
+<instructions>
+Hint: This is both Bayes rule and Total Probability. The two hypotheses concern the type
+of batch. For the first draw they are equally likely (batch is selected at random), but for the
+second draw, they are updated by the information on first draw via Bayes rule. Updated
+probabilities of hypotheses are used in the total probability formula.
+</instructions>
+
+Let $B_1$ and $B_2$ represent the batch with all conforming products and the batch
+with 20% non-conforming products respectively. Also, let $C=1$ and $C=0$ denote
+conforming and non-conforming samples respectively.
+Note that the problem description suggests that
+$P_0(B_1) = P_0(B_2) = 0.5, P(C=1|B_1)=1, P(C=1|B_2)=0.8$,
+where the subscript $0$ in $P_0$ indicates that the probability is a prior probability.
+Then, we have the following. (Let $1$ in $P_1$ indicate the probability is a posterior probability.)
+
+$$
+\begin{array}{lcl}
+P_1(B_1) & = & \frac{P(C=1|B_1) P(B_1)}{P(C=1|B_1) P(B_1) + P(C=1|B_2) P_0(B_2)} \\
+& = & \frac{(1)(0.5)}{(1)(0.5)+(0.8)(0.5)} \\
+& = & \frac{0.5}{0.5+0.4} = \frac{5}{9} \approx 0.555 \\
+\end{array}
+$$
+
+Then we can calculate $P_1(C=1)$ as follows.
+
+$$
+\begin{array}{lcl}
+P_1(C=1) & = & P(C=1|B_1) P_1(B_1) + P(C=1|B_2) P_1(B_2) \\
+& = & P(C=1|B_1) P_1(B_1) + P(C=1|B_2) (1 - P_1(B_1)) \\
+& = & (1) (\frac{5}{9}) + (0.8) (1 - (\frac{5}{9})) \\
+& = & \frac{41}{45} \approx 0.911.
+\end{array}
+$$
+
+<response>
+Then $P_1(C=0) = 1 - P_1(C=1) = \frac{4}{45} \approx 0.089$.
+</response>
 
 ## 3. Classifier
 
@@ -110,10 +355,124 @@ In a machine learning classification procedure the items are classified as 1 or
 0. Based on a training sample of size 120 in which there are 65 1’s and 55 0’s, the classifier
 predicts 70 1’s and 50 0’s. Out of 70 items predicted by the classifier as 1, 52 are correctly
 classified.
+</instruction>
+
+<instructions>
 From the population of items where the proportion of 0-labels is 99% (and 1-labels 1%),
 an item is selected at random. What is the probability that the item is of label 1, if the classifier says it was.
 </instruction>
 
-Let $C$ represent correctness.
-$P(C)=52/70$, $P(X=1)=65/120$, $P(X=0)=55/120$, $P(Y=1)=70/120$, $P(Y=0)=50/120$.
+First, let $X$ represent the actual value and $Y$ represent the predicted value.
+Next, let's consider a general two-by-two
+["confusion matrix"](https://en.wikipedia.org/wiki/Confusion_matrix)
+and it's relationship to counts of 
+true positives (TP), true negatives (TN), false positives (FP),
+and false negatives (FN). 
+
+$$
+\begin{array}{cc|cc} 
+&   & \text{Predicted} & \\ 
+&   & Y=0 & Y=1 \\ \hline
+\text{Actual} & X=0 & TN & FP \\ 
+ & X=1 & FN & TP \\
+\end{array}
+$$
+
+<hide>
+True Positive Rate (TPR) = Recall = Sensitivity = TP / (TP + FN)
+Specificity = TN / (FP + TN)
+Positive predictive value (PPV) = TP / (TP + FP)
+Negative predictive value (PPV) = TN / (TN + FN)
+</hide>
+
+Given the problem setup, the cells of the table are as follows. (The instruction-provided numbers are emphasized. The other numbers represent "calculations".)
+
+$$
+\begin{array}{cc|cc|c} 
+&   & \text{Predicted} & &  \\ 
+&   & Y=0 & Y=1 & Y_{total} \\ \hline
+\text{Actual} & X=0 & 37 & 18  & \textbf{55}  \\ 
+& X=1 & 13 & \textbf{52}  & \textbf{65} \\
+\hline
+& X_{total} & \textbf{50} & \textbf{70} & \textbf{120}
+\end{array}
+$$
+
+
+```{r hw01-q3-1, include=F, echo=F, eval=F}
+sum_y_neg <- 50
+sum_y_pos <- 70
+sum_x_neg <- 55
+sum_x_pos <- 65
+tp <- 52
+
+sum_pop <- sum_x_neg + sum_x_pos
+sum_pop
+# Or...
+sum_pop <- sum_y_neg + sum_y_pos
+sum_pop
+fp <- sum_y_pos - tp
+fp
+fn <- sum_x_pos - tp
+fn
+tn <- sum_y_neg - fn
+tn
+# Or...
+tn <- sum_x_neg - fp
+tn
+sensi <- tp / (tp + fn)
+sensi
+speci <- tn / (fp + tn)
+speci
+ppv <- tp / (tp + fp)
+ppv
+npv <- tn / (tn + fn)
+npv
+```
+
+```{r hw03-q3-2, include=F, echo=F, eval=F}
+sum_x_pos_new <- 0.01 * sum_pop
+sum_x_pos_new
+sum_x_neg_new <- sum_pop - sum_x_pos_new
+sum_x_neg_new
+```
+
+We are interested in the positive predictive value (PPV) (also know as the 
+precision), which is the ratio of true positives to the sum of predicted positives.
+(i.e. $PPV = TP / (TP + FP)$). Here, $PPV = TP / (TP + FP) = \frac{52}{(52 + 18)} = \frac{26}{35} \approx 0.743$.
+
+Note that we can arrive at the same number using a more "Bayesian approach".
+
+$$
+\begin{array}{l}
+P(Y=1|X=1) = \frac{52}{65} = \frac{4}{5}, \\ P(X=1)=\frac{65}{120}=\frac{13}{24}, P(Y=1|X=0)=\frac{18}{55}, \\ P(X=0)=\frac{55}{120}=\frac{11}{24}
+\end{array}
+$$.
+
+Thus,
+
+$$
+A = P(Y=1|X=1) P(X=1) = (\frac{4}{5}) (\frac{13}{24}) =\frac{13}{30}=0.433
+$$
+
+and
+
+$$B = P(Y=1|X=0) P(X=0) = (\frac{18}{55}) (\frac{11}{24}) = \frac{3}{20}=0.15$$.
+
+Then we have the following.
+
+$$
+\begin{array}{lcl}
+P(X=1|Y=1) & = & \frac{P(Y=1|X=1) P(X=1)}{P(Y=1|X=1) P(X=1) + P(Y=1|X=0) P(Y=1|X=0))} \\
+& = & \frac{A}{A+B} \\
+& = & \frac{13/30}{13/30+3/20} \\
+& = &  \frac{26}{35} \approx 0.743 
+\end{array}
+$$
+
+<response>
+This probability stays true in the case that the proportion of 0's and 1's is
+modified, so we can say that, given that the classifiers says the item is of label 1,
+the probability that the item is truly of label 1 is 0.743.
+</response>
 
