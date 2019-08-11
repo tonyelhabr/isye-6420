@@ -1,0 +1,457 @@
+---
+title: 'ISYE 6420 Homework 2'
+author: ''
+output:
+  html_document:
+    theme: cosmo
+    highlight: haddock
+    toc: true
+---
+
+```{r setup, include=F, cache=F}
+knitr::opts_knit$set(root.dir = here::here())
+knitr::opts_chunk$set(
+  # rows.print = 25,
+  # rows.print = 25,
+  echo = TRUE,
+  # cache = FALSE,
+  cache = TRUE,
+  include = TRUE,
+  fig.show = "asis",
+  fig.align = "center",
+  fig.width = 8,
+  # size = "small",
+  fig.height = 5,
+  # fig.width = 5,
+  # out.width = 5,
+  # fig.asp = 0.75,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r postprocess, include=F, echo=F, cache=F}
+.path_sans_ext <- file.path('hws', 'hw02')
+.path_rmd <- paste0(.path_sans_ext, '.Rmd')
+# spelling::spell_check_files(.path_rmd)
+```
+
+
+<style type="text/css">
+body, td {
+  font-size: 16px;
+}
+code.r{
+  font-size: 12px;
+}
+pre {
+  font-size: 12px;
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+.emphasized {
+  font-size: 3em;
+}
+</style>
+
+```{r setup-1, include=F, echo=F, eval=T}
+library(tidyverse)
+format_num <- function(x, digits = 4) {
+  fmt <- sprintf("%%.%df", digits)
+  sprintf(fmt, x)
+}
+```
+
+# 1. Cell Clusters in 3D Petri Dishes
+
+## Instructions
+
+<instructions>
+The number of cell clusters in a 3D Petri dish has a Poisson distribution with
+mean $\lambda = 5$. Find the percentage of Petri dishes that have (a) 0
+clusters, (b) at least one cluster, (c) more than 8 clusters, and (d) between 4
+and 6 clusters inclusive.
+</instructions>
+
+## Response
+
+Let $X$ represent the number of cell clusters. The instructions indicate that
+$X \sim \operatorname{Pois}(\lambda=5)$.
+Thus the probability mass function (pmf) $f(x)$ of $X$ is as follows.
+
+$$
+f(x) = \frac{\lambda{x} e^{-\lambda}}{x!} = \frac{5^{x} e^{-5}}{x!}.
+$$
+
+Note that $f(x) = P(X = x)$.
+
+The cumulative distribution function (cdf) $F(x)$ of $X$ is as follows.
+
+$$
+F(x) = e^{-\lambda} \sum_{k=0}^{x} \frac{\lambda^k}{k!} = e^{-5} \sum_{k=0}^{x} \frac{5^k}{k!}.
+$$
+
+Note that $F(x) = P(X \leq x)$.
+
+Now we address each part of the instructions.
+
+### (a)
+
+We use the pdf to find the percentage of Petri dishes having 0 clusters.
+
+$$
+P(X = 0)=\frac{5^{0} e^{-5}}{0!} = e^{-5} = 0.0067
+$$
+
+We can check this number using `R` as follows.
+
+```{r hw02-q1-a-1, include=T, echo=T, eval=T}
+l <- 5
+p_q1a <- ppois(0, lambda = l, lower.tail = T)
+p_q1a
+```
+
+<response>
+Thus, we find that the percentage is 100 * `r format_num(p_q1a, 4)` = `r format_num(100 * p_q1a, 4)`.
+</response>
+
+
+### (b)
+
+Next, we deduce the percentage of Petri dishes having at least one cluster from
+our finding in (a).
+
+$$
+P(X \geq 1)= 1 - P(X = 0) = 1 - (e^{-5}) = 0.9933
+$$
+
+Again, we can check our number with `R`.
+
+```{r hw02-q1-b-1, include=T, echo=T, eval=T}
+1 - p_q1a
+# Or
+p_q1b <- ppois(0, lambda = l, lower.tail = F)
+p_q1b
+```
+
+<response>
+Thus, we find that the percentage is `r format_num(100 * p_q1b, 4)`%.
+</response>
+
+### (c)
+
+To find the percentage of Petri dishes having more than 8 cluster, we use the cdf.
+
+$$
+P(X > 8) = 1 - P(X \leq 8) = 1 - (e^{-5} \sum_{k=0}^{8} \frac{5^{k}}{k!}).
+$$
+
+Let's use `R` to calculate this (since writing out all of the individual terms
+in the sum would be tedious).
+
+```{r hw02-q1-c-1, include=T, echo=T, eval=T}
+p_q1c <- ppois(8, lambda = l, lower.tail = F)
+p_q1c
+```
+
+<response>
+We find that the percentage is `r format_num(100 * p_q1c, 4)`%.
+</response>
+
+### (d)
+
+Finally, to find the percentage of Petri dishes having between 4 and 6 clusters
+inclusive, we use the difference in cdfs. (Note that we must be careful with the
+lower bound 4, which we want to include.)
+
+$$
+P(4 \leq X \leq 6) = P(X \leq 6) - P(X < 3) = (e^{-5} \sum_{k=0}^{6} \frac{5^{k}}{k!}) - (e^{-5} \sum_{k=0}^{3} \frac{5^{k}}{k!}) = e^{-5} \sum_{k=4}^{6} \frac{5^{k}}{k!}.
+$$
+
+```{r hw02-q1-d-1, include=T, echo=T, eval=T}
+p_q1d <- ppois(6, lambda = l, lower.tail = T) - ppois(4 - 1, lambda = l, lower.tail = T)
+p_q1d
+```
+
+<response>
+We find that the percentage is `r format_num(100 * p_q1d, 4)`%.
+</response>
+
+# 2. Silver-Coated Nylon Fiber
+
+## Instructions
+
+<instructions>
+Silver-coated nylon fiber is used in hospitals for its anti-static electricity
+properties, as well as for antibacterial and antimycotic effects. In the
+production of silver-coated nylon fibers, the extrusion process is interrupted
+from time to time by blockages occurring in the extrusion dyes. The time in
+hours between blockages, $T$, has an exponential $\mathcal{E}$(1/10) distribution,
+where 1/10 is the rate parameter. <br/>
+Find the probabilities that </br>
+(a) a run continues for at least 10 hours,<br/>
+(b) a run lasts less than 15 hours, and<br/>
+(c) a run continues for at least 20 hours, given that it has lasted 10 hours.<br/><br/>
+If you use software, be careful about the parametrization of exponentials.
+</instructions>
+
+## Response
+
+The instructions indicate that $T \sim \mathcal{E}(1/\lambda=1/10)$.
+(Note that $\lambda$ represents a rate. It is like the inverse of 
+$\lambda$ for the Poisson distribution.)
+The probability density function (pdf) and cdf are as follows. (Note that pdf
+is appropriate for continuous distrubitons, while pmf is appropriate for discrete
+distrubitions.
+
+$$
+f(x) = \lambda e^{-\lambda x} = - \frac{1}{10} e^{-x/10}, x \geq 0.
+$$
+
+$$
+F(x) = 1 - e^{-\lambda x} = 1 - e^{-x/10}, x \geq 0.
+$$
+
+### (a)
+
+We find the probability of a run continuing for at least 10 hours as follows.
+
+$$
+P(X > 10) = 1 - P(X \leq 10) = 1 - (1 - e^{-(10)/(10)}) = e^{-1} = 0.3679.
+$$
+
+We can check this with `R`.
+
+```{r hw02-q2-a-1, include=T, echo=T, eval=T}
+exp(-1)
+# Or
+l <- 10
+r <- 1 / l
+p_q2a <- pexp(10, rate = r, lower.tail = F)
+p_q2a
+```
+
+<response>
+The probability is `r format_num(p_q2a, 4)`.
+</response>
+
+### (b)
+
+We find the probability that a run lasts less than 15 hours as follows.
+
+```{r hw02-q2-b-1, include=T, echo=T, eval=T}
+1 - pexp(15, rate = r, lower.tail = F)
+# Or
+p_q2b <- pexp(15, rate = r, lower.tail = T)
+p_q2b
+```
+
+<response>
+The probability is `r format_num(p_q2b, 4)`.
+</response>
+
+
+### (c)
+
+Note that the $\mathcal{E}$ distribution has the memoryless property, which means that 
+$P(X > (s + t) | X > s) = P(X > t)$ for $s, t > 0$.
+
+
+Now we calculate the probability that run continues for at least 20 hours, given that it has lasted 10 hours, as follows.
+
+$$
+P(X > 20 | X > 10) = P(X > 10) = e^{-10/10} = e^{-1} = 0.3679.
+$$
+
+Checking with `R`, we find the following.
+
+```{r hw02-q2-c-1, include=T, echo=T, eval=T}
+exp(-1)
+# Or 
+p_q2c <- pexp(20 - 10, rate = r, lower.tail = F)
+p_q2c
+```
+
+<response>
+The probability is `r format_num(p_q2c, 4)`.
+</response>
+
+# 3. 2-D Density Tasks
+
+<instructions>
+If
+</instructions>
+<hide>
+$$
+f(x,y) =
+\begin{cases}
+\lambda^2 e^{-\lambda y} & \quad 0 \leq x \leq y, & \lambda > 0 \\
+0, & \quad \text{else}.
+\end{cases}
+$$
+</hide>
+
+
+$$
+f(x,y) =
+\left\{
+\begin{array}{cll}
+\lambda^2 e^{-\lambda y} & \quad 0 \leq x \leq y, & \lambda > 0 \\
+0, & \quad \text{else}.
+\end{array}
+\right.
+$$
+<instructions>
+Show that:<br/>
+(a) marginal distribution $f_X(x)$ is exponential $\mathcal{E}(\lambda)$.<br/>
+(b) marginal distribution $f_Y(y)$ is Gamma $\mathcal{G}a(2,\lambda)$.<br/>
+(c) conditional distribution $f(y|x)$ is shifted exponential $f(y|x) = \lambda e^{-lambda(y-x)}$, $y \geq x$.
+(d) condition distribution $f(x|y)$ is uniform $\mathcal{U}(0,y)$.
+<instructions/>
+
+## (a)
+
+
+```{r hw02-q3-a-1, include=F, echo=F, eval=F}
+l <- 1
+f <- expression(l^2 * exp(-l * x))
+# f <- expression(exp(-x))
+d <- stats::D(f, 'x')
+d
+
+integrand <- function(x) eval(f)
+lower <- 0
+upper <- 1
+res <- integrate(f = integrand, lower = lower, upper = upper)
+res
+```
+
+<hide>
+https://www.symbolab.com/solver/integral-calculator/%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7D%20dy
+</hide>
+
+$$
+\begin{array}{lcll}
+f_X(x) & = & \int_{0}^{y} \lambda^2 e^{-\lambda y} dy \\
+& = & \lambda^2 \int_{0}^{y} e^{-\lambda y} dy \\
+& = & \lambda^2 \int_{0}^{-\lambda y} e^{u} du & \text{where }u= -\lambda y \\
+& = & \lambda^2 (\frac{1}{-\lambda} e^{u} \Big|_{0}^{-\lambda y}) \\
+& = & -\lambda (e^{-\lambda y} - 1) \\
+& = & \lambda (1 - e^{-\lambda y}) \\
+& = & \frac{\lambda  - 1}{e^{\lambda y}} \\
+\end{array}
+$$
+
+Note that the pdf of $\mathcal{E}(\lambda)$ is $f(x) = \lambda e^{-\lambda x}$.
+
+## (b)
+
+<hide>
+**FIXME**:
+https://www.symbolab.com/solver/integral-calculator/%5Cint_%7Bx%7D%5E%7B1%7D%20C%5E%7B2%7De%5E%7B-Cy%7D%20dx
+</hide>
+
+$$
+\begin{array}{lcl}
+f_Y(y) & = & \int_{x}^{?} \lambda^2 e^{-\lambda y} dx \\
+& = & \lambda^2 e^{-\lambda y} \int_{x}^{?} dx \\
+\end{array}
+$$
+
+Note that general form of the pdf of $\mathcal{G}a(\alpha,\beta)$ is as follows.
+
+$$
+f(x;\alpha,\beta) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )},\quad x, \alpha ,\beta >0
+$$
+
+Then, if we substitute $\lambda$ for $\beta$ and 2 for $\alpha$, and
+we evaluate the denominator as $\Gamma(2) = (2 - 1)! = 1$
+(given the fact that $\Gamma(n) = (n - 1)! \quad  \forall \mathbb{Z}^+$),
+then we see how the formulation above matches the distribution
+that we should see--$\mathcal{G}a(2,\lambda)$.
+
+$$
+\begin{array}{lcl}
+f(x) & = & \frac {\lambda^{2}x^{2-1}e^{-\lambda x}}{\Gamma(2)} \\
+& = & \frac {\lambda^{2} x e^{-\lambda x}}{1} \\
+& = & \lambda^{2} x e^{-\lambda x} \sim \mathcal{G}a(2,\lambda)
+\end{array}
+$$
+
+## (c)
+
+$$
+\begin{array}{lcl}
+f_{Y|X}(y|x) & = & \frac{f_{X,Y}(x,y)}{f_X(x)} \\
+& = & \frac{\lambda^2 e^{-\lambda y}}{-\lambda (e^{-\lambda y} - 1)} \\
+\end{array}
+$$
+
+(Note that we are being "verbose" by writing $X$ and $Y$ in the subscript of terms
+that involve both, e.g. $f_{X,Y}(x,y)$ instead of just $f(x,y)$.
+
+## (d)
+
+$$
+\begin{array}{lcl}
+f_{X|Y}(x|y) & = & \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
+& = &  \\
+\end{array}
+$$
+
+# 4. Nylon Fiber Continued.
+
+<instructions>
+In the Exercise 2, the times (in hours) between blockages of the 
+extrusion process, $T$, had an exponential $\mathcal{E}(\lambda)$ distribution. 
+Suppose that the rate parameter $\lambda$ is unknown, but there are three measurements of interblockage times, $T_1 = 3, T_2 = 13$, and $T_3 = 8$.<br/><br/>
+(a) How would classical statistician estimate $\lambda$?<br/>
+(b) What is the Bayes estimator of $\lambda$ if the prior is $\pi(\lambda) = \frac{1}{\sqrt{\lambda}}$, $\lambda > 0$? <br/><br/>
+Hint: In (b) the prior is not a proper distribution, but the posterior is. Identify the posterior from the product of the likelihood from (a) and the prior, no need to integrate.
+<instructions/>
+
+## a.
+
+A classical statistician would estimate $\lambda$ using the MLE, which is $\hat{\lambda}_{MLE} = \frac{1}{\overline{X}}$.
+$$
+\overline{X} = \frac{1}{n} \sum_{i=1}^n T_i = \frac{1}{3} (3 + 13 + 8) = 8.
+$$
+
+Thus,
+
+$$
+\hat{lambda}_{MLE} = \frac{1}{\overline{X}} = \frac{1}{8}.
+$$
+
+## b.
+
+The instruction indicate that we are trying to estimate the rate $T_1, \dots, T_n \sim \mathcal{E}(\lambda)$ given the prior $\pi(\lambda)$. (Here, $n = 3$.) 
+Moreover, note that Bayes formula can be written generally
+(in terms of the pdf $f$. the marginal $m$, and the prior $pi(\lambda)$
+as follows (using our notation of $T_i$, which takes on values of $t_i$ and $\lambda$).
+
+$$
+\pi(\lambda|t_1,\dots,t_n) = \frac{f(t_1,...,t_n|\lambda) \pi(\lambda)}{m(t_1,\dots,t_n)}.
+$$
+
+<hide>
+**NOTE TO SELF**: This is not right. (This question is not really analogous to the 2018F question.
+From the literature, we know that the gamma distribution $\operatorname{Gamma}(\alpha,\beta)$
+is the conjugate prior for the exponential distribution. Further, we can
+write out the posterior distribution with respect to
+the prior distribution as follows.
+
+$$
+\pi(\lambda|t_i,\dots,t_n) = \operatorname{Gamma}(\pi(\lambda),\alpha,\beta)
+$$
+
+The parameter $\alpha$ represents the number of prior observations, and the
+parameter $\beta$ represents the sum of the prior observations.
+</hide>

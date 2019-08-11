@@ -67,14 +67,14 @@ format_num <- function(x, digits = 3) {
 ```
 
 
-## 1. Circuit.
+# 1. Circuit.
 
+## Instructions
 
 ![](hw01-circuit-01.png)
 
-Figure 1: Components $E_1,\dots E_4$ at operational at time $t$ with probabilities $e^{−t}, e^{−2t}, e^{−t/2}, e^{−t/3}$ and $e^{−t}$, respectively.
-
 <instructions>
+Figure 1: Components $E_1,\dots E_4$ at operational at time $t$ with probabilities $e^{−t}, e^{−2t}, e^{−t/2}, e^{−t/3}$ and $e^{−t}$, respectively.<br/><br/>
 The system $S$ consists of five independent elements $E_i$, $i = 1, \dots , E_5$, connected as in Figure 1. Probability that the element $E_i$ is operational at the end of time interval $[0,t]$ is given as
 </instructions>
 
@@ -85,19 +85,9 @@ p_i(t) = e^{-\lambda_i t}, & t \geq 0,
 $$
 
 <instructions>
-for $\lambda_1 = 1, \lambda_2 = 2, \lambda_3 = 1/2, \lambda_4 = 1/3, \lambda_5 = 1$.
-</instructions>
-
-
-<instructions>
-(a) Find the probability that the system $S$ will be operational at time $t$. Plot this probability as a function of time $t$. What is this probability for $t = 1/2$?
-</instructions>
-
-<instructions>
-(b) Find the probability that component $E_5$ was operational at time $t = 1/2$, if the system was operational at that time.
-</instructions>
-
-<instructions>
+for $\lambda_1 = 1, \lambda_2 = 2, \lambda_3 = 1/2, \lambda_4 = 1/3, \lambda_5 = 1$.<br/>
+(a) Find the probability that the system $S$ will be operational at time $t$. Plot this probability as a function of time $t$. What is this probability for $t = 1/2$?<br/>
+(b) Find the probability that component $E_5$ was operational at time $t = 1/2$, if the system was operational at that time.<br/><br/>
 Hint: If you consider (b), it is conditional probability, more precisely, a posterior probability of the hypothesis $H_1: E_5$ operational at time $t$, given that system S is operational at t. Thus, solve part (a) as a total probability with $H1$ and $H_2 = H_1^C$ as hypotheses. Under the two hypotheses the system simplifies as in Figure 2 and it is easy to find $P(S|H_1)$ and $P(S|H_2)$.
 Then (b) is just a Bayes formula.
 </instructions>
@@ -105,8 +95,11 @@ Then (b) is just a Bayes formula.
 
 ![](hw01-circuit-02.png)
 
+<instructions>
 Figure 2: Left: System under hypothesis $H_1 : E_5$ operational; Right: System under hypothesis $H_2 : E_5$ not operational.
+</instructions>
 
+## Response
 
 ### (a)
 
@@ -118,7 +111,7 @@ P(S|H_1) & = & 1 - P(E_1 \cup E_3) \\
 & = & 1 - (1 - P(E_1)) (1 - P(E_3)) \\
 & = & 1 - (1 - e^{-t}) (1 - e^{-t/2}) \\
 & = & 1 - (1 - e^{-t} - e^{-t/2} + e^{t^2/2}) \\
-& = & e^{-t} + e^{-t/2} - e^{-3t/2}
+& = & e^{-t} + e^{-t/2} - e^{-3t/2}.
 \end{array}
 $$
 
@@ -148,7 +141,7 @@ P(S|H_2) & = & 1 - P((E_1 \cap E_2 ) \cup (E_3 \cap E_4)) \\
 & = & 1 - (1 - P(E_1) P(E_2)) (1 - P(E_3) P(E_4)) \\
 & = & 1 - (1 - e^{-t} e^{-2t}) (1 - e^{-t/2} e^{-t/3}) \\
 & = & 1 - (1 - e^{-3t}) (1 - e^{-5t/6}) \\
-& = & e^{-3t} + e^{-5t/6} - e^{-23t/6}
+& = & e^{-3t} + e^{-5t/6} - e^{-23t/6}.
 \end{array}
 $$
 
@@ -172,7 +165,7 @@ $$
 \begin{array}{lcl}
 P(S) & = & P(S|H_1) P(H_1) + P(S|H_2) P(H_2) P(H_2) \\
 & = & P(S|H_1) P(H_1) + P(S|H_2) P(H_2) (1 - P(H_1)) \\
-& = & (e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t}) \\
+& = & (e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t}).
 \end{array}
 $$
 
@@ -262,7 +255,7 @@ See the formulation for $P(H_1|S)$ below.
 $$
 \begin{array}{lcl}
 P(H_1|S) & = & \frac{P(S|H_1) P(H_1)}{P(S)} \\
-& = & \frac{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t})}{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t}) }  \\
+& = & \frac{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t})}{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t}) }.
 \end{array}
 $$
 
@@ -299,7 +292,9 @@ viz_q1b
 ```
 
 
-## 2. Two Batches
+# 2. Two Batches
+
+## Instructions
 
 <instructions>
 There are two batches of the same product. In one batch all products
@@ -307,15 +302,12 @@ are conforming. The other batch contains 20% non-conforming products. A batch is
 at random and one randomly selected product from that batch is inspected. The inspected
 product was found conforming and was returned back to its batch.
 What is the probability that the second product, randomly selected from the same batch,
-is found non-conforming?
-</instruction>
-
-<instructions>
+is found non-conforming?<br/><br/>
 Hint: This is both Bayes rule and Total Probability. The two hypotheses concern the type
-of batch. For the first draw they are equally likely (batch is selected at random), but for the
-second draw, they are updated by the information on first draw via Bayes rule. Updated
-probabilities of hypotheses are used in the total probability formula.
+of batch. For the first draw they are equally likely (batch is selected at random), but for the second draw, they are updated by the information on first draw via Bayes rule. Updated probabilities of hypotheses are used in the total probability formula.
 </instructions>
+
+## Response
 
 Let $B_1$ and $B_2$ represent the batch with all conforming products and the batch
 with 20% non-conforming products respectively. Also, let $C=1$ and $C=0$ denote
@@ -329,7 +321,7 @@ $$
 \begin{array}{lcl}
 P_1(B_1) & = & \frac{P(C=1|B_1) P(B_1)}{P(C=1|B_1) P(B_1) + P(C=1|B_2) P_0(B_2)} \\
 & = & \frac{(1)(0.5)}{(1)(0.5)+(0.8)(0.5)} \\
-& = & \frac{0.5}{0.5+0.4} = \frac{5}{9} \approx 0.555 \\
+& = & \frac{0.5}{0.5+0.4} = \frac{5}{9} \approx 0.555.
 \end{array}
 $$
 
@@ -348,19 +340,18 @@ $$
 Then $P_1(C=0) = 1 - P_1(C=1) = \frac{4}{45} \approx 0.089$.
 </response>
 
-## 3. Classifier
+# 3. Classifier
+
+## Instructions
 
 <instructions>
 In a machine learning classification procedure the items are classified as 1 or
-0. Based on a training sample of size 120 in which there are 65 1’s and 55 0’s, the classifier
-predicts 70 1’s and 50 0’s. Out of 70 items predicted by the classifier as 1, 52 are correctly
-classified.
-</instruction>
-
-<instructions>
+0. Based on a training sample of size 120 in which there are 65 1’s and 55 0’s, the classifier predicts 70 1’s and 50 0’s. Out of 70 items predicted by the classifier as 1, 52 are correctly classified.<br/><br/>
 From the population of items where the proportion of 0-labels is 99% (and 1-labels 1%),
 an item is selected at random. What is the probability that the item is of label 1, if the classifier says it was.
-</instruction>
+</instructions>
+
+## Response
 
 First, let $X$ represent the actual value and $Y$ represent the predicted value.
 Next, let's consider a general two-by-two
@@ -445,19 +436,21 @@ Note that we can arrive at the same number using a more "Bayesian approach".
 
 $$
 \begin{array}{l}
-P(Y=1|X=1) = \frac{52}{65} = \frac{4}{5}, \\ P(X=1)=\frac{65}{120}=\frac{13}{24}, P(Y=1|X=0)=\frac{18}{55}, \\ P(X=0)=\frac{55}{120}=\frac{11}{24}
+P(Y=1|X=1) = \frac{52}{65} = \frac{4}{5}, \\ P(X=1)=\frac{65}{120}=\frac{13}{24}, P(Y=1|X=0)=\frac{18}{55}, \\ P(X=0)=\frac{55}{120}=\frac{11}{24}.
 \end{array}
-$$.
+$$
 
 Thus,
 
 $$
-A = P(Y=1|X=1) P(X=1) = (\frac{4}{5}) (\frac{13}{24}) =\frac{13}{30}=0.433
+A = P(Y=1|X=1) P(X=1) = (\frac{4}{5}) (\frac{13}{24}) =\frac{13}{30}=0.433.
 $$
 
 and
 
-$$B = P(Y=1|X=0) P(X=0) = (\frac{18}{55}) (\frac{11}{24}) = \frac{3}{20}=0.15$$.
+$$
+B = P(Y=1|X=0) P(X=0) = (\frac{18}{55}) (\frac{11}{24}) = \frac{3}{20}=0.15.
+$$
 
 Then we have the following.
 
@@ -466,7 +459,7 @@ $$
 P(X=1|Y=1) & = & \frac{P(Y=1|X=1) P(X=1)}{P(Y=1|X=1) P(X=1) + P(Y=1|X=0) P(Y=1|X=0))} \\
 & = & \frac{A}{A+B} \\
 & = & \frac{13/30}{13/30+3/20} \\
-& = &  \frac{26}{35} \approx 0.743 
+& = &  \frac{26}{35} \approx 0.743.
 \end{array}
 $$
 
