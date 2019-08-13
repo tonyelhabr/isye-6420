@@ -318,6 +318,9 @@ Show that:<br/>
 
 ## (a)
 
+<hide>
+https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%203%5E%7B2%7Dexp%5Cleft(-3y%5Cright)dy
+</hide>
 
 ```{r hw02-q3-a-1, include=F, echo=F, eval=F}
 l <- 1
@@ -334,7 +337,7 @@ res
 ```
 
 <hide>
-https://www.symbolab.com/solver/integral-calculator/%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7D%20dy
+https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy
 </hide>
 
 $$
@@ -356,6 +359,11 @@ Note that the pdf of $\mathcal{E}(\lambda)$ is $f(x) = \lambda e^{-\lambda x}$.
 <hide>
 **FIXME**:
 https://www.symbolab.com/solver/integral-calculator/%5Cint_%7Bx%7D%5E%7B1%7D%20C%5E%7B2%7De%5E%7B-Cy%7D%20dx
+</hide>
+
+<hide>
+Better?
+https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx
 </hide>
 
 $$
