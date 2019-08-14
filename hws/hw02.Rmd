@@ -428,7 +428,7 @@ $$
 Thus,
 
 $$
-\hat{lambda}_{MLE} = \frac{1}{\overline{X}} = \frac{1}{8}.
+\hat{\lambda}_{MLE} = \frac{1}{\overline{X}} = \frac{1}{8}.
 $$
 
 ## b.
@@ -443,7 +443,10 @@ $$
 $$
 
 <hide>
-**NOTE TO SELF**: This is not right. (This question is not really analogous to the 2018F question.
+**NOTE TO SELF**: This is not right. (This question is not really analogous to the 2018F question.)
+</hide>
+
+
 From the literature, we know that the gamma distribution $\operatorname{Gamma}(\alpha,\beta)$
 is the conjugate prior for the exponential distribution. Further, we can
 write out the posterior distribution with respect to
