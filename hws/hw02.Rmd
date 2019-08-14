@@ -318,9 +318,6 @@ Show that:<br/>
 
 ## (a)
 
-<hide>
-https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%203%5E%7B2%7Dexp%5Cleft(-3y%5Cright)dy
-</hide>
 
 ```{r hw02-q3-a-1, include=F, echo=F, eval=F}
 l <- 1
@@ -342,34 +339,30 @@ https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cin
 
 $$
 \begin{array}{lcll}
-f_X(x) & = & \int_{0}^{y} \lambda^2 e^{-\lambda y} dy \\
-& = & \lambda^2 \int_{0}^{y} e^{-\lambda y} dy \\
-& = & \lambda^2 \int_{0}^{-\lambda y} e^{u} du & \text{where }u= -\lambda y \\
-& = & \lambda^2 (\frac{1}{-\lambda} e^{u} \Big|_{0}^{-\lambda y}) \\
-& = & -\lambda (e^{-\lambda y} - 1) \\
-& = & \lambda (1 - e^{-\lambda y}) \\
-& = & \frac{\lambda  - 1}{e^{\lambda y}} \\
+f_X(x) & = & \int_{x}^{\infty} \lambda^2 e^{-\lambda y} dy \\
+& = & \lambda^2 \int_{x}^{\infty} e^{-\lambda y} dy \\
+& = & \lambda^2 (\frac{1}{-\lambda} e^{-\lambda y} \Big|_{x}^{\infty}) \\
+& = & -\lambda (0 - e^{-\lambda x}) \\
+& = & \lambda e^{-\lambda x}
 \end{array}
 $$
 
-Note that the pdf of $\mathcal{E}(\lambda)$ is $f(x) = \lambda e^{-\lambda x}$.
+
+Note that the pdf of $\mathcal{E}(\lambda)$ is $f(x) = \lambda e^{-\lambda x}$,
+which matches the result above.
 
 ## (b)
 
 <hide>
-**FIXME**:
-https://www.symbolab.com/solver/integral-calculator/%5Cint_%7Bx%7D%5E%7B1%7D%20C%5E%7B2%7De%5E%7B-Cy%7D%20dx
-</hide>
-
-<hide>
-Better?
 https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx
 </hide>
 
 $$
 \begin{array}{lcl}
-f_Y(y) & = & \int_{x}^{?} \lambda^2 e^{-\lambda y} dx \\
-& = & \lambda^2 e^{-\lambda y} \int_{x}^{?} dx \\
+f_Y(y) & = & \int_{x0}^{y} \lambda^2 e^{-\lambda y} dx \\
+& = & \lambda^2 e^{-\lambda y} \int_{0}^{y} dx \\
+& = & \lambda^2 e^{-\lambda y} x \Big|_{0}^{y} \\
+& = &\lambda^2 e^{-\lambda y} y
 \end{array}
 $$
 
@@ -387,9 +380,9 @@ that we should see--$\mathcal{G}a(2,\lambda)$.
 
 $$
 \begin{array}{lcl}
-f(x) & = & \frac {\lambda^{2}x^{2-1}e^{-\lambda x}}{\Gamma(2)} \\
-& = & \frac {\lambda^{2} x e^{-\lambda x}}{1} \\
-& = & \lambda^{2} x e^{-\lambda x} \sim \mathcal{G}a(2,\lambda)
+f(y) & = & \frac {\lambda^{2}y^{2-1}e^{-\lambda y}}{\Gamma(2)} \\
+& = & \frac {\lambda^{2} y e^{-\lambda y}}{1} \\
+& = & \lambda^{2} y e^{-\lambda y} \sim \mathcal{G}a(2,\lambda)
 \end{array}
 $$
 
