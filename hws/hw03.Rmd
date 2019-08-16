@@ -110,7 +110,10 @@ Bayes -> 2018f-hw03-q1-iii
 ### a
 
 The expectation of a beta $\mathcal{Be}$ distribution 
-for some random variable $X$ is $\operatorname{E}[X] = \frac{\alpha}{\alpha+\beta}$. Then, given $\mu = 0.9, \mu − 2 \sigma = 0.8$, we can use algebra to find that $\alpha = 0.72, \beta = 0.25 \alpha = 0.18$.
+for some random variable $X$ is $\operatorname{E}[X] = \frac{\alpha}{\alpha+\beta}$.
+Given $\mu = 0.9, \mu − 2 \sigma = 0.8$, 
+we can use algebra (or "trial and error")
+to find that $\alpha = 0.72, \beta = 0.25 \alpha = 0.18$.
 
 <hide>
 the variance is $\operatorname{Var}(X) = \frac{\alpha \beta}{(\alpha + \beta)^2 (\alpha + \beta + 1)}$
@@ -129,33 +132,49 @@ mu_0
 ```
 
 <hide>next, dwarf plants</hide>
-Next, we deduce the likelihood has a binomial $\operatorname{Bin}$ distribution. We
-can model the likelihood distribution as follows.
+
+Given the problem statement, 
+<response>
+we deduce the likelihood follows a binomial $\mathcal{Bin}$ distribution
+We can model the likelihood distribution as follows.
+</response>
 
 $$
 \begin{array}{c}
-X \sim \operatorname{Bin}(N, p) \\
-f_x(x|p) = \left( \begin{array}{c} n \\ r \end{array} \right) p^{x} (1 - p)^{N-x}
+X \sim \mathcal{Bin}(n, k) \\
+f_x(x|p) = \left( \begin{array}{c} n \\ k \end{array} \right) p^{x} (1 - p)^{n-k}
 \end{array}
 $$
 
-Then fhe posterior distribution, $\pi (p | x)$ is proportional to the product of the likelihood, $f(x | p)$, and the prior distribution, $\pi(p$. Therefore, we have
+The posterior distribution, $\pi (p | x)$,
+is proportional to the product of the likelihood, $f_X(x|p)$, 
+and the prior distribution, $\pi(p)$. Therefore, we have
 
 $$
-\pi(p | X) \propto f(x | p) \pi(p) \propto
+\begin{array}{lcl}
+\pi(p | x) & \propto & f(x | p) \pi(p) \\
+& = & p^{x}(1-p)^{n-x}
+\end{array}
 $$
 
 <hide>next, continue dwarf plants</hide>
 
 ...
 
+<response>
 Thus, the posterior distribution looks as follows.
+</response>
 
 $$
-p|x \sim \mathcal{Be}(\alpha', \beta|) = \mathcal{Be}(x + 1, N - x +1)
+\begin{array}{lcl}
+p|x & \sim & \mathcal{Be}(\alpha', \beta') \\
+& = & \mathcal{Be}(x + 1, n - x + 1)
+\end{array}
 $$
 
-Given $N = 30$ patients and $x = 22$ who responded, we calculate the posterior to be
+<response>
+Given $n = 30$ patients and $x = 22$ who responded, we find that the posterior is
+</response>
 
 $$
 \begin{array}{lcl}
@@ -175,11 +194,11 @@ mu_1 <- compute_beta_mu(alpha_1, beta_1)
 mu_1
 ```
 
-
-
+<response>
 The Bayes estimator of the proportion is simply the expected value 
 of the parameter under the posterior distribution
-The expectation of the posterior is
+The expectation of the posterior is $\frac{21}{32} = 0.65625$.
+</response>
 
 $$
 \begin{array}{lcl}
@@ -191,20 +210,37 @@ $$
 
 ### b
 
+The 95% equitailed credible set is based on the posterior distribution.
+This means that the set $[q_{l}, q_{u}]$ contains the true
+proportion of patient who respond with 95% probability.
+
+In other words,
+
+$$
+\begin{array}{l}
+\int_{-\infty}^{q_{l}} \pi(p|x) dp \leq \frac{\alpha}{2}, 
+\int_{q_{u}}^{\infty} \pi(p|x) dp \leq \frac{\alpha}{2}
+\text{ s.t. }
+\Pr(p \in \left[q_{l}, q_{h}\right] | X) \geq 1 - \alpha
+\end{array}
+$$
+
+where $\alpha = 0.95$ here.
+
 <response>
 We can calculate the credible set using `R` as shown below.
 </response>
 
-```{r hw03-q2-b-1, include=T}
+```{r hw03-q2-b-1, include=T, echo=T, eval=T}
 compute_credible_set <- function(alpha, beta, level = 0.95) {
   stopifnot(level <= 1L)
   q_buffer <- (1 - level) / 2
-  q_upper <- level + q_buffer
-  q_lower <- (1 - level) - q_buffer
+  q_l <- (1 - level) - q_buffer
+  q_u <- level + q_buffer
   res <-
     c(
-      lo = qbeta(q_lower, shape1 = alpha, shape2 = beta),
-      hi = qbeta(q_upper, shape1 = alpha, shape2 = beta)
+      l = qbeta(q_l, shape1 = alpha, shape2 = beta),
+      u = qbeta(q_u, shape1 = alpha, shape2 = beta)
     )
 }
 
@@ -217,9 +253,47 @@ credible_set_chr_1 <- format_num(credible_set_1)
 credible_set_chr_1
 ```
 
-We find that the credible set is (`r credible_set_chr_1[1]`, `r credible_set_chr_1[2]`
-
+We find that the 95% credible set is (`r credible_set_chr_1[1]`, `r credible_set_chr_1[2]`)
 
 ### c
+
+```{r hw03-q2-c-1, include=F}
+# 2018f-hw03-q2-a
+pbeta(0.75, 137, 65) # `betacdf(3/4,137,65)` in Matlab
+# 2018f-hw03-q2-b
+qbeta(0.025, 137, 65) # `betainv(0.025,137,65)` in Matlab
+qbeta(0.975, 137, 65) # `betainv(0.975,137,65)` in Matlab
+```
+
+To test the null hypothesis $H_0 : p \geq 2/3$ (against the alternative $H_1 : p < 2/3$),
+we calculate the posterior probability of $p \geq 2/3$.
+
+$$
+\begin{array}{lcl}
+\Pr(p < 2/3) & = & \int_{0}^{2/3} \mathcal{Be}(23, 11) dp \\
+& = & \frac{\Gamma(23 + 11)}{\Gamma(23) \Gamma(11)} \int_{0}^{2/3} p^{23-1}(1-p)^{11-1} dp \\
+& = & \frac{\Gamma(34)}{\Gamma(23) \Gamma(11)} \int_{0}^{2/3} p^{22}(1-p)^{10} dp \\
+& \approx & 0.3297.
+\end{array}
+$$
+
+We can verify this result with `R`.
+
+```{r hw03-q2-c-1, include=T, echo=T, eval=T}
+p_0 <- 2 / 3
+p_h <- pbeta(p_0, alpha_1, beta_1)
+p_h
+```
+
+```{r hw03-q2-c-2, include=F, echo=F, eval=T}
+p_h_chr <- format_num(p_h, 4)
+p_h_chr
+alpha_h <- 1 - p_h
+alph_h_chr <- format_num(alpha_h, 4)
+alph_h_chr
+```
+
+Thus, at any significance level less than $\alpha \geq (1 - `r p_h_chr`) = `r alpha_h_chr`$,
+we do not reject the null hypothesis(?).
 
 
