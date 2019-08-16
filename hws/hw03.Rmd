@@ -1,0 +1,225 @@
+---
+title: 'ISYE 6420 Homework 3'
+author: ''
+output:
+  html_document:
+    theme: cosmo
+    highlight: haddock
+    toc: true
+---
+
+```{r setup, include=F, cache=F}
+knitr::opts_knit$set(root.dir = here::here())
+knitr::opts_chunk$set(
+  # rows.print = 25,
+  # rows.print = 25,
+  echo = TRUE,
+  # cache = FALSE,
+  cache = TRUE,
+  include = TRUE,
+  fig.show = "asis",
+  fig.align = "center",
+  fig.width = 8,
+  # size = "small",
+  fig.height = 5,
+  # fig.width = 5,
+  # out.width = 5,
+  # fig.asp = 0.75,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r postprocess, include=F, echo=F, cache=F}
+.path_sans_ext <- file.path('hws', 'hw02')
+.path_rmd <- paste0(.path_sans_ext, '.Rmd')
+# spelling::spell_check_files(.path_rmd)
+```
+
+
+<style type="text/css">
+body, td {
+  font-size: 16px;
+}
+code.r{
+  font-size: 12px;
+}
+pre {
+  font-size: 12px;
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+.emphasized {
+  font-size: 3em;
+}
+</style>
+
+```{r setup-1, include=F, echo=F, eval=T}
+library(tidyverse)
+format_num <- function(x, digits = 4) {
+  fmt <- sprintf("%%.%df", digits)
+  sprintf(fmt, x)
+}
+```
+
+# 1. Estimating the Precision Parameter of a Rayleigh Distribution.
+
+## Instructions
+
+<instructions>
+
+</instructions>
+
+## Response
+
+# 2. Estimating Chemotherapy Response Rates
+
+## Instructions
+
+<instructions>
+An oncologist believes that 90% of cancer patients will respond to a new chemotherapy treatment and that it is unlikely that this proportion will be below 80%. Elicit a beta prior on proportion that models the oncologist’s beliefs.<br/><br/>
+Hint: For elicitation of the prior use $\mu = 0.9, \mu − 2 \sigma = 0.8$ and expressions for $\mu$ and $\sigma$. for beta.<br/><br/>
+During the trial, in 30 patients treated, 22 responded.
+(a) What are the likelihood and posterior distributions? What is the Bayes estimator of
+the proportion?<br/>
+(b) Using Octave, R, or Python, fine 95% Credible Set for $p$. <br/>
+(c) Using Octave, R, or Python, test the hypothesis $H_0 : p \geq 2/3$ against the alternative $H_1 : p < 2/3$. <br/>
+(d) Using WinBUGS, find the Bayes estimator, Credible Set and test, and compare results
+with (a-c).
+</instructions>
+
+<hide>
+(a)
+likelihood -> 2018s-hw03-q2-a, ~2018s-hw03-q1-a
+posterior ->  2018f-hw03-q1-iii, ~2018s-hw03-q1-a, ~2018s-hw03-q2-b
+Bayes -> 2018f-hw03-q1-iii
+(b) -> 2018f-hw03-q1-iii, 2018s-hw03-q2-c
+(c) -> ~2018s-hw03-q1-c
+(d) -> 2018f-hw03-q1-iii, ~2018s-hw03-q1-d, 2018s-hw03-q2-d
+</hide>
+
+## Response
+
+### a
+
+The expectation of a beta $\mathcal{Be}$ distribution 
+for some random variable $X$ is $\operatorname{E}[X] = \frac{\alpha}{\alpha+\beta}$. Then, given $\mu = 0.9, \mu − 2 \sigma = 0.8$, we can use algebra to find that $\alpha = 0.72, \beta = 0.25 \alpha = 0.18$.
+
+<hide>
+the variance is $\operatorname{Var}(X) = \frac{\alpha \beta}{(\alpha + \beta)^2 (\alpha + \beta + 1)}$
+</hide>
+
+We can verify that these values are valid with `R`.
+
+```{r hw03-q2-a-1, include=T, echo=T, eval=T}
+alpha_0 <- 0.72
+beta_0 <- 0.18
+compute_beta_mu <- function(alpha, beta) {
+  alpha / (alpha + beta)
+}
+mu_0 <- compute_beta_mu(alpha_0, beta_0)
+mu_0
+```
+
+<hide>next, dwarf plants</hide>
+Next, we deduce the likelihood has a binomial $\operatorname{Bin}$ distribution. We
+can model the likelihood distribution as follows.
+
+$$
+\begin{array}{c}
+X \sim \operatorname{Bin}(N, p) \\
+f_x(x|p) = \left( \begin{array}{c} n \\ r \end{array} \right) p^{x} (1 - p)^{N-x}
+\end{array}
+$$
+
+Then fhe posterior distribution, $\pi (p | x)$ is proportional to the product of the likelihood, $f(x | p)$, and the prior distribution, $\pi(p$. Therefore, we have
+
+$$
+\pi(p | X) \propto f(x | p) \pi(p) \propto
+$$
+
+<hide>next, continue dwarf plants</hide>
+
+...
+
+Thus, the posterior distribution looks as follows.
+
+$$
+p|x \sim \mathcal{Be}(\alpha', \beta|) = \mathcal{Be}(x + 1, N - x +1)
+$$
+
+Given $N = 30$ patients and $x = 22$ who responded, we calculate the posterior to be
+
+$$
+\begin{array}{lcl}
+\mathcal{Be}(x + 1, N - x +1) & = & \mathcal{Be}(20 + 1, 30 - 20 + 1) \\
+& = &\mathcal{Be}(21, 11)
+\end{array}
+$$
+
+We can verify that the posterior mean $\mu_1$ is less than the prior mean $\mu_0$.
+
+```{r hw03-q2-a-2, include=T, echo=T, eval=T}
+n <- 30
+x <- 22
+alpha_1 <- x - 1
+beta_1 <- n - x + 1
+mu_1 <- compute_beta_mu(alpha_1, beta_1)
+mu_1
+```
+
+
+
+The Bayes estimator of the proportion is simply the expected value 
+of the parameter under the posterior distribution
+The expectation of the posterior is
+
+$$
+\begin{array}{lcl}
+\mathcal{Be}(21, 11) & = & \frac{(21)}{(21)+(11)} \\
+& = & \frac{21}{32} \\
+& = & 0.65625.
+\end{array}
+$$
+
+### b
+
+<response>
+We can calculate the credible set using `R` as shown below.
+</response>
+
+```{r hw03-q2-b-1, include=T}
+compute_credible_set <- function(alpha, beta, level = 0.95) {
+  stopifnot(level <= 1L)
+  q_buffer <- (1 - level) / 2
+  q_upper <- level + q_buffer
+  q_lower <- (1 - level) - q_buffer
+  res <-
+    c(
+      lo = qbeta(q_lower, shape1 = alpha, shape2 = beta),
+      hi = qbeta(q_upper, shape1 = alpha, shape2 = beta)
+    )
+}
+
+credible_set_1 <- compute_credible_set(alpha_1, beta_1)
+credible_set_1
+```
+
+```{r hw03-q2-b-2, include=F, echo=F, eval=T}
+credible_set_chr_1 <- format_num(credible_set_1)
+credible_set_chr_1
+```
+
+We find that the credible set is (`r credible_set_chr_1[1]`, `r credible_set_chr_1[2]`
+
+
+### c
+
+
