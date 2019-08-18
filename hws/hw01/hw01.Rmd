@@ -1,8 +1,9 @@
 ---
-title: 'ISYE 6420 Homework 1'
+title: 'ISYE 6420: Homework 1'
 author: ''
 output:
   html_document:
+    css: ../styles.css
     theme: cosmo
     highlight: haddock
     toc: true
@@ -36,28 +37,6 @@ knitr::opts_chunk$set(
 # spelling::spell_check_files(.path_rmd)
 ```
 
-
-<style type="text/css">
-body, td {
-  font-size: 16px;
-}
-code.r{
-  font-size: 12px;
-}
-pre {
-  font-size: 12px;
-}
-instructions {
-  font-style: italic;
-}
-response {
-  font-weight: bold;
-}
-hide {
-  display: none;
-}
-</style>
-
 ```{r setup-1, include=F, echo=F, eval=T}
 library(tidyverse)
 format_num <- function(x, digits = 3) {
@@ -67,7 +46,7 @@ format_num <- function(x, digits = 3) {
 ```
 
 
-# 1. Circuit.
+# 1. Circuit
 
 ## Instructions
 
@@ -106,8 +85,9 @@ Figure 2: Left: System under hypothesis $H_1 : E_5$ operational; Right: System u
 We first formulate $P(S|H_1)$ (using the notation of the hint) as follows.
 
 $$
-\begin{array}{lcl}
-P(S|H_1) & = & 1 - P(E_1 \cup E_3) \\
+\begin{array}{lcll}
+P(S|H_1) & = & 1 - P((E_1 \cup E_3)') & (\text{ i.e. neither } E_1 \text{ nor } E_3 \text{works}) \\
+ & = & 1 - P(E_1' \cap E_3') \\
 & = & 1 - (1 - P(E_1)) (1 - P(E_3)) \\
 & = & 1 - (1 - e^{-t}) (1 - e^{-t/2}) \\
 & = & 1 - (1 - e^{-t} - e^{-t/2} + e^{t^2/2}) \\
@@ -115,8 +95,14 @@ P(S|H_1) & = & 1 - P(E_1 \cup E_3) \\
 \end{array}
 $$
 
-Note that we could have also started from the following formulation:
-$P(S|H_1) = P(E_1) + P(E_3) - P(E_1 \cap E_3)$
+Note that $P((E_1 \cup E_3)'$ represents the probability that neither $E_1$ nor $E_3$ works,
+which can also be expressed as $P(E_1' \cap E_3')$, which, in words, represents
+the probability that both $E_1$ and $E_3$ fail. (This is just a consequence of
+[De Morgan's laws](https://en.wikipedia.org/wiki/De_Morgan%27s_laws).)
+
+Also, note that we achieved the same result more directly using the 
+[additon law of probability](https://en.wikipedia.org/wiki/Probability_axioms#Further_consequences), which corresponds to the expression
+$P(S|H_1) = P(E_1) + P(E_3) - P(E_1 \cap E_3)$ here.
 
 ```{r hw01-q01-a-1, include=F, echo=F, eval=T}
 t_x_hide <- 0.5
@@ -160,7 +146,9 @@ f_sh2_2(t_x_hide)
 f_sh2(t_x_hide)
 ```
 
-Then
+Then, by [the law of total probability](https://en.wikipedia.org/wiki/Law_of_total_probability),
+it follows that 
+
 $$
 \begin{array}{lcl}
 P(S) & = & P(S|H_1) P(H_1) + P(S|H_2) P(H_2) P(H_2) \\
@@ -169,7 +157,7 @@ P(S) & = & P(S|H_1) P(H_1) + P(S|H_2) P(H_2) P(H_2) \\
 \end{array}
 $$
 
-See the implementation in `R` below.
+We can write functions in `R` to codify these formulations.
 
 ```{r hw01-q01-a-3, include=T, echo=T, eval=T}
 f_sh1 <- function(t) {
@@ -192,7 +180,9 @@ f_s <- function(t) {
   f_sh1(t) * f_h1(t) + f_sh2(t) * f_h2(t)
 }
 ```
-And, finally, see the calculation of the the probability that the system $S$ will be operational at time $t = `r t_x_hide`$.
+
+And, finally, we can use these functions (namely, the last one defined above)
+to calculate the probability that the system $S$ will be operational at time $t = `r t_x_hide`$.
 
 
 ```{r hw01-q01-a-4, include=T, echo=T, eval=T}
@@ -209,7 +199,7 @@ We find that $P(S) = `r format_num(p_s_x)`$ at $t = `r t_x`$.
 Below is plot of this probability as a function of time $t$ for $0 \leq t \leq 10$.
 </response>
 
-```{r hw01-q01-a-5, include=T, echo=F, eval=T}
+```{r hw01-q01-a-5, include=F, echo=F, eval=T}
 seq_t <- seq(0, 10, by = 0.1)
 d_q1 <- tibble(t = seq_t)
 d_q1a <- d_q1 %>% mutate(p_s = f_s(t))
@@ -259,7 +249,7 @@ P(H_1|S) & = & \frac{P(S|H_1) P(H_1)}{P(S)} \\
 \end{array}
 $$
 
-We could implement this in `R` as follows.
+We can implement this in `R` as follows.
 
 ```{r hw01-q01-b-1, include=T, echo=T, eval=T}
 f_h1s <- function(t) {
@@ -312,20 +302,20 @@ of batch. For the first draw they are equally likely (batch is selected at rando
 Let $B_1$ and $B_2$ represent the batch with all conforming products and the batch
 with 20% non-conforming products respectively. Also, let $C=1$ and $C=0$ denote
 conforming and non-conforming samples respectively.
-Note that the problem description suggests that
-$P_0(B_1) = P_0(B_2) = 0.5, P(C=1|B_1)=1, P(C=1|B_2)=0.8$,
-where the subscript $0$ in $P_0$ indicates that the probability is a prior probability.
-Then, we have the following. (Let $1$ in $P_1$ indicate the probability is a posterior probability.)
+The problem description indicates that
+$P(B_1) = P(B_2) = 0.5, P(C=1|B_1)=1, P(C=1|B_2)=0.8$,
+where the $P(B_1), P(B_2)$ terms represent prior probabilities.
+Then, we formulate the posterior probability $P(B_1|C)$ as follows.
 
 $$
 \begin{array}{lcl}
-P_1(B_1) & = & \frac{P(C=1|B_1) P(B_1)}{P(C=1|B_1) P(B_1) + P(C=1|B_2) P_0(B_2)} \\
+P(B_1|C) & = & \frac{P(C=1|B_1) P(B_1)}{P(C=1|B_1) P(B_1) + P(C=1|B_2) P_0(B_2)} \\
 & = & \frac{(1)(0.5)}{(1)(0.5)+(0.8)(0.5)} \\
 & = & \frac{0.5}{0.5+0.4} = \frac{5}{9} \approx 0.555.
 \end{array}
 $$
 
-Then we can calculate $P_1(C=1)$ as follows.
+Then we can calculate $P(C=1)$ as follows.
 
 $$
 \begin{array}{lcl}
@@ -337,7 +327,7 @@ P_1(C=1) & = & P(C=1|B_1) P_1(B_1) + P(C=1|B_2) P_1(B_2) \\
 $$
 
 <response>
-Then $P_1(C=0) = 1 - P_1(C=1) = \frac{4}{45} \approx 0.089$.
+Finally, we find that $P(C=0) = 1 - P_1(C=1) = \frac{4}{45} \approx 0.089$.
 </response>
 
 # 3. Classifier

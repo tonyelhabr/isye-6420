@@ -1,8 +1,9 @@
 ---
-title: 'ISYE 6420 Homework 3'
+title: 'ISYE 6420: Homework 3'
 author: ''
 output:
   html_document:
+    css: ../styles.css
     theme: cosmo
     highlight: haddock
     toc: true
@@ -35,31 +36,6 @@ knitr::opts_chunk$set(
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 ```
-
-
-<style type="text/css">
-body, td {
-  font-size: 16px;
-}
-code.r{
-  font-size: 12px;
-}
-pre {
-  font-size: 12px;
-}
-instructions {
-  font-style: italic;
-}
-response {
-  font-weight: bold;
-}
-hide {
-  display: none;
-}
-.emphasized {
-  font-size: 3em;
-}
-</style>
 
 ```{r setup-1, include=F, echo=F, eval=T}
 library(tidyverse)
@@ -178,35 +154,40 @@ Given $n = 30$ patients and $x = 22$ who responded, we find that the posterior i
 
 $$
 \begin{array}{lcl}
-\mathcal{Be}(x + 1, N - x +1) & = & \mathcal{Be}(20 + 1, 30 - 20 + 1) \\
-& = &\mathcal{Be}(21, 11)
+\mathcal{Be}(x + 1, N - x +1) & = & \mathcal{Be}(22 + 1, 30 - 22 + 1) \\
+& = &\mathcal{Be}(23, 9)
 \end{array}
 $$
 
-We can verify that the posterior mean $\mu_1$ is less than the prior mean $\mu_0$.
+<response>
+The Bayes estimator of the proportion is simply the expected value 
+of the parameter under the posterior distribution, which
+is $\frac{23}{32} = 0.71875$.
+</response>
+
+$$
+\begin{array}{lcl}
+\mathcal{Be}(23, 9) & = & \frac{(23)}{(23)+(9)} \\
+& = & \frac{23}{32} \\
+& = & 0.71875.
+\end{array}
+$$
+
+We can verify the value of the posterior mean $\mu_1$ using `R`.
 
 ```{r hw03-q2-a-2, include=T, echo=T, eval=T}
 n <- 30
 x <- 22
-alpha_1 <- x - 1
+alpha_1 <- x + 1
 beta_1 <- n - x + 1
 mu_1 <- compute_beta_mu(alpha_1, beta_1)
 mu_1
 ```
 
-<response>
-The Bayes estimator of the proportion is simply the expected value 
-of the parameter under the posterior distribution
-The expectation of the posterior is $\frac{21}{32} = 0.65625$.
-</response>
-
-$$
-\begin{array}{lcl}
-\mathcal{Be}(21, 11) & = & \frac{(21)}{(21)+(11)} \\
-& = & \frac{21}{32} \\
-& = & 0.65625.
-\end{array}
-$$
+```{r hw03-q2-a-3, include=F, echo=F, eval=T}
+mu_1_chr <- format_num(mu_1, 5)
+mu_1_chr
+```
 
 ### b
 
@@ -233,7 +214,6 @@ We can calculate the credible set using `R` as shown below.
 
 ```{r hw03-q2-b-1, include=T, echo=T, eval=T}
 compute_credible_set <- function(alpha, beta, level = 0.95) {
-  stopifnot(level <= 1L)
   q_buffer <- (1 - level) / 2
   q_l <- (1 - level) - q_buffer
   q_u <- level + q_buffer
@@ -257,7 +237,7 @@ We find that the 95% credible set is (`r credible_set_chr_1[1]`, `r credible_set
 
 ### c
 
-```{r hw03-q2-c-1, include=F}
+```{r hw03-q2-c-0, include=F, echo=F, eval=F}
 # 2018f-hw03-q2-a
 pbeta(0.75, 137, 65) # `betacdf(3/4,137,65)` in Matlab
 # 2018f-hw03-q2-b
@@ -266,18 +246,7 @@ qbeta(0.975, 137, 65) # `betainv(0.975,137,65)` in Matlab
 ```
 
 To test the null hypothesis $H_0 : p \geq 2/3$ (against the alternative $H_1 : p < 2/3$),
-we calculate the posterior probability of $p \geq 2/3$.
-
-$$
-\begin{array}{lcl}
-\Pr(p < 2/3) & = & \int_{0}^{2/3} \mathcal{Be}(23, 11) dp \\
-& = & \frac{\Gamma(23 + 11)}{\Gamma(23) \Gamma(11)} \int_{0}^{2/3} p^{23-1}(1-p)^{11-1} dp \\
-& = & \frac{\Gamma(34)}{\Gamma(23) \Gamma(11)} \int_{0}^{2/3} p^{22}(1-p)^{10} dp \\
-& \approx & 0.3297.
-\end{array}
-$$
-
-We can verify this result with `R`.
+we calculate the posterior probability of $p \geq 2/3$ using `R` as follows.
 
 ```{r hw03-q2-c-1, include=T, echo=T, eval=T}
 p_0 <- 2 / 3
@@ -289,11 +258,59 @@ p_h
 p_h_chr <- format_num(p_h, 4)
 p_h_chr
 alpha_h <- 1 - p_h
-alph_h_chr <- format_num(alpha_h, 4)
-alph_h_chr
+alpha_h_chr <- format_num(alpha_h, 4)
+alpha_h_chr
 ```
+
+Analytically, the calculation looks as follows.
+
+$$
+\begin{array}{lcl}
+\Pr(p < 2/3) & = & \int_{0}^{2/3} \mathcal{Be}(23, 9) dp \\
+& = & \frac{\Gamma(23 + 9)}{\Gamma(23) \Gamma(9)} \int_{0}^{2/3} p^{23-1}(1-p)^{9-1} dp \\
+& = & \frac{\Gamma(34)}{\Gamma(23) \Gamma(9)} \int_{0}^{2/3} p^{22}(1-p)^{10} dp \\
+& \approx & `r alpha_h_chr`.
+\end{array}
+$$
 
 Thus, at any significance level less than $\alpha \geq (1 - `r p_h_chr`) = `r alpha_h_chr`$,
 we do not reject the null hypothesis(?).
+
+### d
+
+WinBUGS code to evaluate each of the following answers may look as follows.
+
+```
+model {
+	x ~ dbin(p, n)
+	p ~ dbeta(alpha, beta)
+	h_1 <- step(2/3 - p)
+}
+
+# data
+list(alpha = 0.72, beta = 0.18, x = 22, n = 30)
+```
+
+The output is 
+
+<hide>
+https://www.tablesgenerator.com/markdown_tables
+</hide>
+
+| node  | mean   | sd      | MC error | 2.5%   | median | 97.5%  | start | sample |
+|-------|--------|---------|----------|--------|--------|--------|-------|--------|
+| `h_1` | 0.1885 | 0.3911  | 0.001243 | 0.0    | 0.0    | 1.0    | 1     | 100000 |
+| `p`   | 0.7352 | 0.07807 | 2.517E-4 | 0.5693 | 0.7404 | 0.8719 | 1     | 100000 |
+
+The Bayes estimator corresponds to the mean of `p`, which is 0.7352.
+This is very close to the value that we found analytically---`r mu_1`.
+
+The 95% credible set corresponds to the 2.5% and 97.5% values for `p`, which
+are 0.5693 and 0.8719 respectively.
+These values are reasonably close to the values we found with `R`--`r credible_set_chr_1[1]` and `r credible_set_chr_1[2]`.
+
+The probability of the alternative hypothesis $H_1$ corresponds to the
+mean of the `h_1` variable---0.1885. This is relatively close to the
+value that we found with `R`---`r p_h_chr`.
 
 
