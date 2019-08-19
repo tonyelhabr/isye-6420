@@ -3,7 +3,7 @@ title: 'ISYE 6420: Homework 2'
 author: ''
 output:
   html_document:
-    styles: ../styles.css
+    css: ../styles.css
     theme: cosmo
     highlight: haddock
     toc: true
@@ -32,7 +32,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r postprocess, include=F, echo=F, cache=F}
-.path_sans_ext <- file.path('hws', 'hw02')
+.path_sans_ext <- file.path('hws', 'hw02', 'hw02')
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 ```
@@ -95,7 +95,7 @@ p_q1a
 ```
 
 <response>
-Thus, we find that the percentage is 100 * `r format_num(p_q1a, 4)` = `r format_num(100 * p_q1a, 4)`.
+Thus, we find that the percentage is 100 * `r format_num(p_q1a, 4)` = `r format_num(100 * p_q1a, 4)`%.
 </response>
 
 
@@ -123,7 +123,7 @@ Thus, we find that the percentage is `r format_num(100 * p_q1b, 4)`%.
 
 ### (c)
 
-To find the percentage of Petri dishes having more than 8 cluster, we use the cdf.
+To find the percentage of Petri dishes having more than 8 clusters, we use the cdf.
 
 $$
 P(X > 8) = 1 - P(X \leq 8) = 1 - (e^{-5} \sum_{k=0}^{8} \frac{5^{k}}{k!}).
@@ -288,8 +288,8 @@ $$
 Show that:<br/>
 (a) marginal distribution $f_X(x)$ is exponential $\mathcal{E}(\lambda)$.<br/>
 (b) marginal distribution $f_Y(y)$ is Gamma $\mathcal{G}a(2,\lambda)$.<br/>
-(c) conditional distribution $f(y|x)$ is shifted exponential $f(y|x) = \lambda e^{-lambda(y-x)}$, $y \geq x$.
-(d) condition distribution $f(x|y)$ is uniform $\mathcal{U}(0,y)$.
+(c) conditional distribution $f(y|x)$ is shifted exponential $f(y|x) = \lambda e^{-\lambda(y-x)}$, $y \geq x$.<br/>
+(d) conditional distribution $f(x|y)$ is uniform $\mathcal{U}(0,y)$.
 <instructions/>
 
 ## (a)
@@ -345,14 +345,14 @@ $$
 Note that general form of the pdf of $\mathcal{G}a(\alpha,\beta)$ is as follows.
 
 $$
-f(x;\alpha,\beta) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )},\quad x, \alpha ,\beta >0
+f(x;\alpha,\beta) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )}, x, \alpha ,\beta >0
 $$
 
 Then, if we substitute $\lambda$ for $\beta$ and 2 for $\alpha$, and
 we evaluate the denominator as $\Gamma(2) = (2 - 1)! = 1$
-(given the fact that $\Gamma(n) = (n - 1)! \quad  \forall \mathbb{Z}^+$),
+(given the fact that $\Gamma(n) = (n - 1)! \forall \mathbb{Z}^+$),
 then we see how the formulation above matches the distribution
-that we should see--$\mathcal{G}a(2,\lambda)$.
+that we should see--$\mathcal{Ga}(2,\lambda)$.
 
 $$
 \begin{array}{lcl}
@@ -362,34 +362,47 @@ f(y) & = & \frac {\lambda^{2}y^{2-1}e^{-\lambda y}}{\Gamma(2)} \\
 \end{array}
 $$
 
+
 ## (c)
+
+Showing that $f(y|x)$ is the shifted exponential $f(y|x) = \lambda e^{-\lambda(y-x)}$ 
+for $y \geq x$ follows directly from the result of (a) and the
+given PDF $f_{X,Y}(x,y)$ for $y \geq x$.
+
 
 $$
 \begin{array}{lcl}
 f_{Y|X}(y|x) & = & \frac{f_{X,Y}(x,y)}{f_X(x)} \\
-& = & \frac{\lambda^2 e^{-\lambda y}}{-\lambda (e^{-\lambda y} - 1)} \\
+& = & \frac{\lambda^2 e^{-\lambda y}}{\lambda e^{-\lambda x}} \\
+& = & \lambda e^{-\lambda (y + (-x))} \\
+& = & \lambda e^{-\lambda (y - x)}.
 \end{array}
 $$
 
 (Note that we are being "verbose" by writing $X$ and $Y$ in the subscript of terms
-that involve both, e.g. $f_{X,Y}(x,y)$ instead of just $f(x,y)$.
+that involve both, e.g. $f_{X,Y}(x,y)$ instead of just $f(x,y)$.)
 
 ## (d)
+
+We solve for $f_{X|Y}(x|y)$ using the result from (b) and the given PDF as follows.
 
 $$
 \begin{array}{lcl}
 f_{X|Y}(x|y) & = & \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
-& = &  \\
+& = &  \frac{\lambda^2 e^{-\lambda y}}{\lambda^{2} y e^{-\lambda y}} \\
+& = & \frac{1}{y}.
 \end{array}
 $$
 
-# 4. Nylon Fiber Continued.
+Note that the general form of the pdf of $\mathcal{U}(a, b)$ is $\frac{1}{b-a}$ (for $x \in [a, b]$).
+
+# 4. Nylon Fiber Continued
 
 <instructions>
 In the Exercise 2, the times (in hours) between blockages of the 
 extrusion process, $T$, had an exponential $\mathcal{E}(\lambda)$ distribution. 
 Suppose that the rate parameter $\lambda$ is unknown, but there are three measurements of interblockage times, $T_1 = 3, T_2 = 13$, and $T_3 = 8$.<br/><br/>
-(a) How would classical statistician estimate $\lambda$?<br/>
+(a) How would a classical statistician estimate $\lambda$?<br/>
 (b) What is the Bayes estimator of $\lambda$ if the prior is $\pi(\lambda) = \frac{1}{\sqrt{\lambda}}$, $\lambda > 0$? <br/><br/>
 Hint: In (b) the prior is not a proper distribution, but the posterior is. Identify the posterior from the product of the likelihood from (a) and the prior, no need to integrate.
 <instructions/>
@@ -409,10 +422,10 @@ $$
 
 ## b.
 
-The instruction indicate that we are trying to estimate the rate $T_1, \dots, T_n \sim \mathcal{E}(\lambda)$ given the prior $\pi(\lambda)$. (Here, $n = 3$.) 
-Moreover, note that Bayes formula can be written generally
-(in terms of the pdf $f$. the marginal $m$, and the prior $pi(\lambda)$
-as follows (using our notation of $T_i$, which takes on values of $t_i$ and $\lambda$).
+The instructions indicate that we are trying to estimate the rate $T_1, \dots, T_n \sim \mathcal{E}(\lambda)$ given the prior $\pi(\lambda)$. (Here, $n = 3$.) 
+Moreover, note that Bayes' formula can be written generally
+(in terms of the pdf $f$. the marginal $m$, and the prior $\pi(\lambda)$
+as follows (using our notation of $T_i$, which takes on values of $t_i$, and $\lambda$).
 
 $$
 \pi(\lambda|t_1,\dots,t_n) = \frac{f(t_1,...,t_n|\lambda) \pi(\lambda)}{m(t_1,\dots,t_n)}.

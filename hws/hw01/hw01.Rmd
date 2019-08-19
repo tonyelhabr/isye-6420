@@ -32,7 +32,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r postprocess, include=F, echo=F, cache=F}
-.path_sans_ext <- file.path('hws', 'hw01')
+.path_sans_ext <- file.path('hws', 'hw01', 'hw01')
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 ```
@@ -85,8 +85,8 @@ Figure 2: Left: System under hypothesis $H_1 : E_5$ operational; Right: System u
 We first formulate $P(S|H_1)$ (using the notation of the hint) as follows.
 
 $$
-\begin{array}{lcll}
-P(S|H_1) & = & 1 - P((E_1 \cup E_3)') & (\text{ i.e. neither } E_1 \text{ nor } E_3 \text{works}) \\
+\begin{array}{lcl}
+P(S|H_1) & = & 1 - P((E_1 \cup E_3)') \\
  & = & 1 - P(E_1' \cap E_3') \\
 & = & 1 - (1 - P(E_1)) (1 - P(E_3)) \\
 & = & 1 - (1 - e^{-t}) (1 - e^{-t/2}) \\
@@ -101,7 +101,7 @@ the probability that both $E_1$ and $E_3$ fail. (This is just a consequence of
 [De Morgan's laws](https://en.wikipedia.org/wiki/De_Morgan%27s_laws).)
 
 Also, note that we achieved the same result more directly using the 
-[additon law of probability](https://en.wikipedia.org/wiki/Probability_axioms#Further_consequences), which corresponds to the expression
+[addition law of probability](https://en.wikipedia.org/wiki/Probability_axioms#Further_consequences), which corresponds to the expression
 $P(S|H_1) = P(E_1) + P(E_3) - P(E_1 \cap E_3)$ here.
 
 ```{r hw01-q01-a-1, include=F, echo=F, eval=T}
@@ -196,14 +196,13 @@ We find that $P(S) = `r format_num(p_s_x)`$ at $t = `r t_x`$.
 </response>
 
 <response>
-Below is plot of this probability as a function of time $t$ for $0 \leq t \leq 10$.
+Below is a plot of this probability as a function of time $t$ for $0 \leq t \leq 10$.
 </response>
 
-```{r hw01-q01-a-5, include=F, echo=F, eval=T}
+```{r hw01-q01-a-5, include=T, echo=F, eval=T}
 seq_t <- seq(0, 10, by = 0.1)
 d_q1 <- tibble(t = seq_t)
 d_q1a <- d_q1 %>% mutate(p_s = f_s(t))
-d_q1a
 
 theme_custom <- function(...) {
   theme_light() +
@@ -380,26 +379,26 @@ $$
 $$
 
 
-```{r hw01-q3-1, include=F, echo=F, eval=F}
-sum_y_neg <- 50
-sum_y_pos <- 70
-sum_x_neg <- 55
-sum_x_pos <- 65
+```{r hw01-q3-1, include=F, echo=F, eval=T}
+y_neg <- 50
+y_pos <- 70
+x_neg <- 55
+x_pos <- 65
 tp <- 52
 
-sum_pop <- sum_x_neg + sum_x_pos
-sum_pop
+total <- x_neg + x_pos
+total
 # Or...
-sum_pop <- sum_y_neg + sum_y_pos
-sum_pop
-fp <- sum_y_pos - tp
+total <- y_neg + y_pos
+total
+fp <- y_pos - tp
 fp
-fn <- sum_x_pos - tp
+fn <- x_pos - tp
 fn
-tn <- sum_y_neg - fn
+tn <- y_neg - fn
 tn
 # Or...
-tn <- sum_x_neg - fp
+tn <- x_neg - fp
 tn
 sensi <- tp / (tp + fn)
 sensi
@@ -409,53 +408,102 @@ ppv <- tp / (tp + fp)
 ppv
 npv <- tn / (tn + fn)
 npv
+
+p_y1x1 <- tp / total
+p_y1x1
+p_y0x0 <- tn / total
+p_y0x0
+p_y1x0 <- fp / total
+p_y1x0
+p_y0x1 <- fn / total
+p_y0x1
+
+p_x1 <- ppv
+p_x0 <- 1 - p_x1
+a <- p_y1x1 * p_x1
+b <- p_y1x0 * p_x0
+p_x1y1 <- a / (a + b)
+p_x1y1
+
+p_x1_new <- 0.01
+p_x0_new <- 1 - p_x1_new
+a_new <- p_y1x1 * p_x1_new
+b_new <- p_y1x0 * p_x0_new
+p_x1y1_new <- a_new / (a_new + b_new)
+p_x1y1_new
 ```
 
-```{r hw03-q3-2, include=F, echo=F, eval=F}
-sum_x_pos_new <- 0.01 * sum_pop
-sum_x_pos_new
-sum_x_neg_new <- sum_pop - sum_x_pos_new
-sum_x_neg_new
-```
-
-We are interested in the positive predictive value (PPV) (also know as the 
-precision), which is the ratio of true positives to the sum of predicted positives.
-(i.e. $PPV = TP / (TP + FP)$). Here, $PPV = TP / (TP + FP) = \frac{52}{(52 + 18)} = \frac{26}{35} \approx 0.743$.
-
-Note that we can arrive at the same number using a more "Bayesian approach".
+The problem description indicates
 
 $$
 \begin{array}{l}
-P(Y=1|X=1) = \frac{52}{65} = \frac{4}{5}, \\ P(X=1)=\frac{65}{120}=\frac{13}{24}, P(Y=1|X=0)=\frac{18}{55}, \\ P(X=0)=\frac{55}{120}=\frac{11}{24}.
+P(X=0)=0.99, \\
+P(X=1)=0.01.
 \end{array}
 $$
 
-Thus,
+(Note that we would define
 
 $$
-A = P(Y=1|X=1) P(X=1) = (\frac{4}{5}) (\frac{13}{24}) =\frac{13}{30}=0.433.
+\begin{array}{l}
+P(X=0)=\frac{55}{120}=\frac{11}{24}, \\
+P(X=1)=\frac{65}{120}=\frac{13}{24}
+\end{array}
+$$
+
+if we were to use the "original" population.)
+
+Additionally, we identify the following.
+
+$$
+\begin{array}{l}
+P(Y=1|X=1) = \frac{52}{65} = \frac{4}{5}, \\
+P(Y=1|X=0)=\frac{18}{55}.
+\end{array}
+$$
+
+Next, let's create "placeholder" expressions $A, B$ (to simplify notation) as follows.
+
+$$
+A = P(Y=1|X=1) P(X=1) = (\frac{4}{5}) (0.01) = 0.008.
 $$
 
 and
 
 $$
-B = P(Y=1|X=0) P(X=0) = (\frac{18}{55}) (\frac{11}{24}) = \frac{3}{20}=0.15.
+B = P(Y=1|X=0) P(X=0) = (\frac{18}{55}) (0.99) = 0.324.
 $$
 
-Then we have the following.
+Then, using Bayes' formula, we have the following.
 
 $$
 \begin{array}{lcl}
 P(X=1|Y=1) & = & \frac{P(Y=1|X=1) P(X=1)}{P(Y=1|X=1) P(X=1) + P(Y=1|X=0) P(Y=1|X=0))} \\
 & = & \frac{A}{A+B} \\
-& = & \frac{13/30}{13/30+3/20} \\
-& = &  \frac{26}{35} \approx 0.743.
+& = & \frac{(0.008)}{(0.008)+(0.324)} \\
+& \approx & 0.02410.
 \end{array}
 $$
 
 <response>
-This probability stays true in the case that the proportion of 0's and 1's is
-modified, so we can say that, given that the classifiers says the item is of label 1,
-the probability that the item is truly of label 1 is 0.743.
+Thus, we have found that the probability that the item is of label 1 if the classifier 
+indicates that it is 1 is 0.02410.
 </response>
 
+Note that if we had used the "original" ratio of 0's and 1's, we would have found a very
+different answer.
+
+$$
+A = P(Y=1|X=1) P(X=1) = (\frac{4}{5}) (\frac{13}{24}) = \frac{13}{30}.
+$$
+
+$$
+B = P(Y=1|X=0) P(X=0) = (\frac{18}{55}) (\frac{11}{24}) = \frac{3}{30}.
+$$
+
+$$
+\begin{array}{lcl}
+P(X=1|Y=1) & = & \frac{A}{A+B} \\
+& \approx & 0.8125.
+\end{array}
+$$
