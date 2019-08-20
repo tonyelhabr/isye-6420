@@ -50,7 +50,31 @@ format_num <- function(x, digits = 4) {
 ## Instructions
 
 <instructions>
+If two random variables $X$ and $Y$ are independent of each other and 
+normally distributed with variances equal to $\sigma^2$, then 
+the variable $R = \sqrt{X^2+Y^2}$ follows the Rayleigh distribution.
+Parameterized with precision parameter $\xi = \frac{1}{\sigma^2}$, 
+the Rayleigh random variable $R$ has a density
+</instructions>
 
+$$
+\begin{align}{c}
+f(r) = \xi r \text{ exp } \{ \frac{-\xi r^2}{2} \}, \quad r \geq 0, \xi > 0.
+\end{align}
+$$
+
+<instructions>
+An example of such random variable would be the distance of darts from the target center
+in a dart-throwing game where the deviations in the two dimensions of the target plane are
+independent and normally distributed.<br/>
+(a) Assume that the prior on $\xi$ is exponential with the rate parameter $\lambda$.
+Show that the posterior is gamm $\mathcal{Ga}(2, \lambda+\frac{r^2}{2})$.<br/>
+(b) Assume that $R_1 = 3, R_2 = 4, R_3 = 2, and R_4 = 5$ are Rayleigh-distributed
+random observations representing the distance of a dart from the center. Find the posterior
+in this case for the same prior form (a), and give a Bayesian estimate of $\xi$.
+(c) Numerically find 95% Credible Set for $\xi$.
+Hint: In (b) show that if $R_1, R_2, \dots, r_n$ are observed, and the prior on $\xi$ is exponential $\mathcal{E}(\lambda)$,
+the the posterior is gamma $\mathcal{Ga}(n+1, \lambda+\frac{1}{2}\sum_{i=1}^{n} r_i^2)$.
 </instructions>
 
 ## Response
@@ -60,8 +84,11 @@ format_num <- function(x, digits = 4) {
 ## Instructions
 
 <instructions>
-An oncologist believes that 90% of cancer patients will respond to a new chemotherapy treatment and that it is unlikely that this proportion will be below 80%. Elicit a beta prior on proportion that models the oncologist’s beliefs.<br/><br/>
-Hint: For elicitation of the prior use $\mu = 0.9, \mu − 2 \sigma = 0.8$ and expressions for $\mu$ and $\sigma$. for beta.<br/><br/>
+An oncologist believes that 90% of cancer patients will respond to a new chemotherapy treatment 
+and that it is unlikely that this proportion will be below 80%. 
+Elicit a beta prior on proportion that models the oncologist’s beliefs.<br/><br/>
+Hint: For elicitation of the prior use $\mu = 0.9, \mu − 2 \sigma = 0.8$ 
+and expressions for $\mu$ and $\sigma$. for beta.<br/><br/>
 During the trial, in 30 patients treated, 22 responded.
 (a) What are the likelihood and posterior distributions? What is the Bayes estimator of
 the proportion?<br/>

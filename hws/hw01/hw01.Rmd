@@ -80,7 +80,21 @@ Figure 2: Left: System under hypothesis $H_1 : E_5$ operational; Right: System u
 
 ## Response
 
+<hide>
+Reference(s):
++ Exercises35: Cross-linked System
++ 2018f-hw01-q1
++ 2019s-hw01-q1
+</hide>
+
+
 ### (a)
+
+<hide>
+Reference(s):
++ 2018f-hw01-q1: Circuit
++ 2019s-hw01-q1-a: Circuit
+</hide>
 
 We first formulate $P(S|H_1)$ (using the notation of the hint) as follows.
 
@@ -239,12 +253,17 @@ viz_q1a
 
 ### (b)
 
+<hide>
+Reference(s):
++ 2019s-hw01-q1-b: Circuit
+</hide>
+
 See the formulation for $P(H_1|S)$ below.
 
 $$
 \begin{array}{lcl}
 P(H_1|S) & = & \frac{P(S|H_1) P(H_1)}{P(S)} \\
-& = & \frac{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t})}{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t}) }.
+& = & \frac{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t})}{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t})}.
 \end{array}
 $$
 
@@ -280,7 +299,6 @@ viz_q1b <-
 viz_q1b
 ```
 
-
 # 2. Two Batches
 
 ## Instructions
@@ -293,7 +311,9 @@ product was found conforming and was returned back to its batch.
 What is the probability that the second product, randomly selected from the same batch,
 is found non-conforming?<br/><br/>
 Hint: This is both Bayes rule and Total Probability. The two hypotheses concern the type
-of batch. For the first draw they are equally likely (batch is selected at random), but for the second draw, they are updated by the information on first draw via Bayes rule. Updated probabilities of hypotheses are used in the total probability formula.
+of batch. For the first draw they are equally likely (batch is selected at random), 
+but for the second draw, they are updated by the information on first draw via Bayes rule. 
+Updated probabilities of hypotheses are used in the total probability formula.
 </instructions>
 
 ## Response
@@ -342,6 +362,11 @@ an item is selected at random. What is the probability that the item is of label
 
 ## Response
 
+<hide>
+Reference(s):
++ Exercises35: Alzheimer’s
+</hide>
+
 First, let $X$ represent the actual value and $Y$ represent the predicted value.
 Next, let's consider a general two-by-two
 ["confusion matrix"](https://en.wikipedia.org/wiki/Confusion_matrix)
@@ -365,7 +390,8 @@ Positive predictive value (PPV) = TP / (TP + FP)
 Negative predictive value (PPV) = TN / (TN + FN)
 </hide>
 
-Given the problem setup, the cells of the table are as follows. (The instruction-provided numbers are emphasized. The other numbers represent "calculations".)
+Given the problem setup, the cells of the table are as follows.
+(The instruction-provided numbers are emphasized. The other numbers represent "calculations".)
 
 $$
 \begin{array}{cc|cc|c} 

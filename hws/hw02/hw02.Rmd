@@ -60,7 +60,8 @@ and 6 clusters inclusive.
 
 <hide>
 Reference(s):
-+ 
++ 2018f-hw02-q1: Cell Clusters in 3D Petri Dishes
++ Also, 2019s-hw02-q1: Left-Handed Twins
 </hide>
 
 Let $X$ represent the number of cell clusters. The instructions indicate that
@@ -187,7 +188,7 @@ If you use software, be careful about the parametrization of exponentials.
 
 <hide>
 Reference(s):
-+ 
++ self
 </hide>
 
 The instructions indicate that $T \sim \mathcal{E}(1/\lambda=1/10)$.
@@ -195,7 +196,7 @@ The instructions indicate that $T \sim \mathcal{E}(1/\lambda=1/10)$.
 $\lambda$ for the Poisson distribution.)
 The probability density function (pdf) and cdf are as follows. (Note that pdf
 is appropriate for continuous distrubitons, while pmf is appropriate for discrete
-distrubitions.
+distrubitions.)
 
 $$
 f(x) = \lambda e^{-\lambda x} = - \frac{1}{10} e^{-x/10}, x \geq 0.
@@ -278,6 +279,7 @@ The probability is `r format_num(p_q2c, 4)`.
 <instructions>
 If
 </instructions>
+
 <hide>
 $$
 f(x,y) =
@@ -288,7 +290,6 @@ f(x,y) =
 $$
 </hide>
 
-
 $$
 f(x,y) =
 \left\{
@@ -298,6 +299,7 @@ f(x,y) =
 \end{array}
 \right.
 $$
+
 <instructions>
 Show that:<br/>
 (a) marginal distribution $f_X(x)$ is exponential $\mathcal{E}(\lambda)$.<br/>
@@ -322,7 +324,6 @@ f_X(x) & = & \int_{x}^{\infty} \lambda^2 e^{-\lambda y} dy \\
 & = & \lambda e^{-\lambda x}
 \end{array}
 $$
-
 
 Note that the pdf of $\mathcal{E}(\lambda)$ is $f(x) = \lambda e^{-\lambda x}$,
 which matches the result above.
@@ -450,7 +451,10 @@ Note that $n = 3$ here. Also, note that this prior is known as the Jeffrey's pri
 
 <hide>
 Reference(s):
-+ Exercises48: Histompatibility
++ 2018f-hw02-q3: Exponential Lifetimes?
++ 2019s-hw02-q3: Weibull Lifetimes?
++ Exercises48: Histompatibility?
++ Exercises43 Bayes and Bats?
 </hide>
 
 
@@ -463,8 +467,9 @@ $$
 f(x;\alpha,\beta) = P(x=X) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )} \quad x, \alpha ,\beta > 0.
 \end{array}
 $$
-
 </hide>
+
+**FIXME**
 
 We can infer that the posterior $\pi(\lambda|x)$ = follows a $\mathcal{Ga}$ distribution
 because the likelihood $f(x|\lambda)$ and the prior $\pi(\lambda)$ are $\mathcal{Poi}$, and
