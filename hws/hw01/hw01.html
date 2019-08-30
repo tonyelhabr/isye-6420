@@ -10,7 +10,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content />
+<meta name="author" content="aelhabr3" />
 
 
 <title>ISYE 6420: Homework 1</title>
@@ -435,28 +435,10 @@ summary {
 
 
 <h1 class="title toc-ignore">ISYE 6420: Homework 1</h1>
+<h4 class="author">aelhabr3</h4>
 
 </div>
 
-<div id="TOC">
-<ul>
-<li><a href="#circuit">1. Circuit</a><ul>
-<li><a href="#instructions">Instructions</a></li>
-<li><a href="#response">Response</a><ul>
-<li><a href="#a">(a)</a></li>
-<li><a href="#b">(b)</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#two-batches">2. Two Batches</a><ul>
-<li><a href="#instructions-1">Instructions</a></li>
-<li><a href="#response-1">Response</a></li>
-</ul></li>
-<li><a href="#classifier">3. Classifier</a><ul>
-<li><a href="#instructions-2">Instructions</a></li>
-<li><a href="#response-2">Response</a></li>
-</ul></li>
-</ul>
-</div>
 
 <div id="circuit" class="section level1">
 <h1>1. Circuit</h1>
@@ -475,12 +457,14 @@ p_i(t) = e^{-\lambda_i t}, &amp; t \geq 0,
 </div>
 <div id="response" class="section level2">
 <h2>Response</h2>
+<p><hide> Reference(s): + Exercises35: Cross-linked System + 2018f-hw01-q1 + 2019s-hw01-q1 </hide></p>
 <div id="a" class="section level3">
 <h3>(a)</h3>
+<p><hide> Reference(s): + 2018f-hw01-q1: Circuit + 2019s-hw01-q1-a: Circuit </hide></p>
 <p>We first formulate <span class="math inline">\(P(S|H_1)\)</span> (using the notation of the hint) as follows.</p>
 <p><span class="math display">\[
-\begin{array}{lcll}
-P(S|H_1) &amp; = &amp; 1 - P((E_1 \cup E_3)') &amp; (\text{ i.e. neither } E_1 \text{ nor } E_3 \text{works}) \\
+\begin{array}{lcl}
+P(S|H_1) &amp; = &amp; 1 - P((E_1 \cup E_3)') \\
  &amp; = &amp; 1 - P(E_1' \cap E_3') \\
 &amp; = &amp; 1 - (1 - P(E_1)) (1 - P(E_3)) \\
 &amp; = &amp; 1 - (1 - e^{-t}) (1 - e^{-t/2}) \\
@@ -539,11 +523,12 @@ P(S) &amp; = &amp; P(S|H_1) P(H_1) + P(S|H_2) P(H_2) P(H_2) \\
 </div>
 <div id="b" class="section level3">
 <h3>(b)</h3>
+<p><hide> Reference(s): + 2019s-hw01-q1-b: Circuit </hide></p>
 <p>See the formulation for <span class="math inline">\(P(H_1|S)\)</span> below.</p>
 <p><span class="math display">\[
 \begin{array}{lcl}
 P(H_1|S) &amp; = &amp; \frac{P(S|H_1) P(H_1)}{P(S)} \\
-&amp; = &amp; \frac{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t})}{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t}) }.
+&amp; = &amp; \frac{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t})}{(e^{-t} + e^{-t/2} - e^{-3t/2}) (e^{-t}) + (e^{-3t} + e^{-5t/6} - e^{-23t/6}) (1 - e^{-t})}.
 \end{array}
 \]</span></p>
 <p>We can implement this in <code>R</code> as follows.</p>
@@ -593,6 +578,7 @@ P_1(C=1) &amp; = &amp; P(C=1|B_1) P_1(B_1) + P(C=1|B_2) P_1(B_2) \\
 </div>
 <div id="response-2" class="section level2">
 <h2>Response</h2>
+<p><hide> Reference(s): + Exercises35: Alzheimer’s </hide></p>
 <p>First, let <span class="math inline">\(X\)</span> represent the actual value and <span class="math inline">\(Y\)</span> represent the predicted value. Next, let’s consider a general two-by-two <a href="https://en.wikipedia.org/wiki/Confusion_matrix">“confusion matrix”</a> and it’s relationship to counts of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN).</p>
 <p><span class="math display">\[
 \begin{array}{cc|cc} 

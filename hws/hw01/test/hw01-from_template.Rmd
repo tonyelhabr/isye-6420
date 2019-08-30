@@ -1,0 +1,21 @@
+---
+title: ""
+output:
+  pdf_document:
+    latex_engine: xelatex
+    keep_tex: false
+    template: template-hw01.tex
+---
+
+
+
+# 1. Circuit
+
+## Instructions
+
+![](hw01-circuit-01.png)
+
+<instructions>
+Figure 1: Components $E_1,\dots E_4$ at operational at time $t$ with probabilities $e^{−t}, e^{−2t}, e^{−t/2}, e^{−t/3}$ and $e^{−t}$, respectively.<br/><br/>
+The system $S$ consists of five independent elements $E_i$, $i = 1, \dots , E_5$, connected as in Figure 1. Probability that the element $E_i$ is operational at the end of time interval $[0,t]$ is given as
+</instructions>
