@@ -1,12 +1,12 @@
 ---
 title: 'ISYE 6420: Homework 2'
-author: ''
+author: 'aelhabr3'
 output:
   html_document:
     css: ../styles.css
     theme: cosmo
     highlight: haddock
-    toc: true
+    toc: false
 ---
 
 ```{r setup, include=F, cache=F}
