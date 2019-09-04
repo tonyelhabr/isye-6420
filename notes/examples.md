@@ -9,33 +9,9 @@ output:
     toc_depth: 5
 ---
 
-```{r setup, include=F, cache=F}
-knitr::opts_knit$set(root.dir = here::here())
-knitr::opts_chunk$set(
-  # rows.print = 25,
-  # rows.print = 25,
-  echo = TRUE,
-  # cache = FALSE,
-  cache = TRUE,
-  include = TRUE,
-  fig.show = 'asis',
-  fig.align = 'center',
-  # fig.width = 8,
-  # size = "small",
-  # fig.height = 5,
-  # fig.width = 5,
-  # out.width = 5,
-  # fig.asp = 0.75,
-  warning = FALSE,
-  message = FALSE
-)
-```
 
-```{r postprocess, include=F, echo=F, cache=F}
-.path_sans_ext <- file.path('notes', 'examples')
-.path_rmd <- paste0(.path_sans_ext, '.Rmd')
-# spelling::spell_check_files(.path_rmd)
-```
+
+
 
 <style type="text/css">
 body, td {
@@ -322,7 +298,8 @@ for NFL seasons from 2009 to 2017.
 </ref>
 
 
-```{r}
+
+```r
 # Load the tidyverse
 # install.packages("tidyverse")
 library(tidyverse)
@@ -342,7 +319,8 @@ team_summary_df <- get_season_summary(2009:2017)
 Before going into the regression example with a predictor, it’s worthwhile to first demonstrate quadratic approximation by just modeling the score differential with a Gaussian.
 </ref>
 
-```{r}
+
+```r
 # Create a histogram displaying the score differential distribution using
 # the the density instead so it's consistent for later: (also why I'm assigning
 # it to a variable name, so we can add our approximated posterior layer later)
@@ -363,6 +341,8 @@ score_diff_hist <- team_summary_df %>%
 # Display the plot
 score_diff_hist
 ```
+
+<img src="examples_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" />
 
 <ref>
 "From this histogram we have support for using a Gaussian, since it’s roughly symmetric and unimodal.<br/><br/>
@@ -391,7 +371,8 @@ $$
 "This is a really naive model, just to demonstrate Laplace approximation. Next we’ll implement the [some] code ... which uses the `optim()` function in R to find the mode of the posterior and also returns the Hessian matrix for the curvature (following the observed information definition above). For ease, we’ll ... [use] the `{mvtnorm}` package for sampling from the approximated posterior. (This sampling isn’t really necessary but it’s good practice to start sampling from the posterior). We’re working with two parameters here, so the resulting posterior approximation is a multivariate Gaussian, hence why we use the `rmvnorm()` function since we’re not only working with each parameter’s mean and variance, but their covariance as well. (In this example the covariance is essentially 0, but that won’t typically be the case).
 </ref>
 
-```{r}
+
+```r
 # Function to perform simple Laplace approximation
 # @param log_posterior_n Function that returns the log posterior given a vector
 # of parameter values and observed data.
@@ -449,7 +430,8 @@ score_diff_model <- function(params, score_diff_values) {
 "With these functions we’ll now approximate the posterior, considering very naive starting values for our optimization with $\mu = 200$ and $\sigma = 10$. (This is just to demonstrate, I have no reason for choosing these values).
 </ref>
 
-```{r}
+
+```r
 init_samples <- laplace_approx(log_posterior_fn = score_diff_model,
                                init_points = c(mu = 200, sigma = 10),
                                n_samples = 10000,
@@ -462,7 +444,8 @@ init_samples <- laplace_approx(log_posterior_fn = score_diff_model,
 "We can easily view the joint distribution of our posterior samples with their respective marginals on the side.
 </ref>
 
-```{r}
+
+```r
 # install.packages("cowplot")
 library(cowplot)
 
@@ -496,13 +479,16 @@ joint_plot_2 <- insert_yaxis_grob(joint_plot_1, sigma_dens,
 ggdraw(joint_plot_2)
 ```
 
+<img src="examples_files/figure-html/unnamed-chunk-5-1.png" style="display: block; margin: auto;" />
+
 
 <ref>
 "From this we can clearly see the Gaussian approximations for both of our parameters with the distribution of 
 $\mu$ centered around 0 and the distribution for $\sigma$ centered around 100. Remember this represents the distributions for the parameters of our score differential model. So sampling from this posterior means we are generating different Gaussian distributions for the score differential. ... [T]he code below uses these 10000 values from `init_samples()` for each parameter, and then samples 10000 values from distributions using these combinations of values to give us our approximate score differential distribution.
 </ref>
  
-```{r}
+
+```r
 # R is vectorized so can just give it the vector of values for the Gaussian
 # distribution parameters to create the simulated score-diff distribution:
 sim_score_diff_data <- data.frame(Total_Score_Diff = 
@@ -514,6 +500,8 @@ score_diff_hist + geom_density(data = sim_score_diff_data,
                                aes(x = Total_Score_Diff), 
                                fill = NA, color = "darkblue")
 ```
+
+<img src="examples_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
 
 <ref>
 "Not bad, but then again this was a pretty easy example. You could also use the grid approximation from the last post to accomplish the same task but it starts to be annoying to work with even with just two parameters, quickly becoming unbearable with more and more parameters.
