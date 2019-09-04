@@ -3,10 +3,9 @@ title: 'ISYE 6420: Homework 3'
 author: ''
 output:
   html_document:
-    css: ../styles.css
     theme: cosmo
     highlight: haddock
-    toc: true
+    toc: false
 ---
 
 ```{r setup, include=F, cache=F}
@@ -44,6 +43,31 @@ format_num <- function(x, digits = 4) {
   sprintf(fmt, x)
 }
 ```
+
+<style type="text/css">
+body, td {
+  font-size: 14px;
+}
+code.r {
+  font-size: 12px;
+}
+/* General customization. */
+pre {
+  font-size: 12px;
+}
+ref {
+  font-style: italic;
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+</style>
 
 # 1. Estimating the Precision Parameter of a Rayleigh Distribution.
 

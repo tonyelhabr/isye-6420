@@ -1,0 +1,43 @@
+
+/* Don't know exactly how these work with `rmdformats::html_docco`. */ 
+body, td {
+  font-size: 14px;
+}
+code.r {
+  font-size: 12px;
+}
+/* General customization. */
+pre {
+  font-size: 12px;
+}
+ref {
+  font-style: italic;
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+/* These are specific for `rmdformats::html_docco`. */ 
+img.image-thumb {
+  max-width: 100%;
+}
+.main-container {
+  max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+  text-transform: none;
+  font-size: 1.25em;
+}
+h1.title {
+  text-align: left
+}
+/* Note that .page is used for font size for `rmdformats::html_docco`, 
+but not for `html_clean()`. (It's just .body.) */
+.page {
+  font-size: 14px
+}

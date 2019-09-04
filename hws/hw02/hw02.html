@@ -7,10 +7,9 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content />
+<meta name="author" content="aelhabr3" />
 
 
 <title>ISYE 6420: Homework 2</title>
@@ -229,7 +228,7 @@ a.sourceLine { text-indent: -1em; padding-left: 1em; }
 pre.numberSource a.sourceLine
   { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+  { content: attr(title);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
     border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
@@ -283,7 +282,7 @@ code span.wa { color: #008000; font-weight: bold; } /* Warning */
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -325,9 +324,10 @@ h6 {
 }
 </style>
 
-<style type="text/css">body, td {font-size: 16px;}code.r {font-size: 12px;}pre {font-size: 12px;}instructions {font-style: italic;}response {font-weight: bold;}hide {display: none;}.table {width: auto}</style>
 
+</head>
 
+<body>
 
 <style type="text/css">
 .main-container {
@@ -358,6 +358,8 @@ summary {
 </style>
 
 
+
+<div class="container-fluid main-container">
 
 <!-- tabsets -->
 
@@ -415,17 +417,20 @@ summary {
 }
 </style>
 
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
 <!-- code folding -->
 
-
-
-
-</head>
-
-<body>
-
-
-<div class="container-fluid main-container">
 
 
 
@@ -435,41 +440,35 @@ summary {
 
 
 <h1 class="title toc-ignore">ISYE 6420: Homework 2</h1>
+<h4 class="author"><em>aelhabr3</em></h4>
 
 </div>
 
-<div id="TOC">
-<ul>
-<li><a href="#cell-clusters-in-3d-petri-dishes">1. Cell Clusters in 3D Petri Dishes</a><ul>
-<li><a href="#instructions">Instructions</a></li>
-<li><a href="#response">Response</a><ul>
-<li><a href="#a">(a)</a></li>
-<li><a href="#b">(b)</a></li>
-<li><a href="#c">(c)</a></li>
-<li><a href="#d">(d)</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#silver-coated-nylon-fiber">2. Silver-Coated Nylon Fiber</a><ul>
-<li><a href="#instructions-1">Instructions</a></li>
-<li><a href="#response-1">Response</a><ul>
-<li><a href="#a-1">(a)</a></li>
-<li><a href="#b-1">(b)</a></li>
-<li><a href="#c-1">(c)</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#d-density-tasks">3. 2-D Density Tasks</a><ul>
-<li><a href="#a-2">(a)</a></li>
-<li><a href="#b-2">(b)</a></li>
-<li><a href="#c-2">(c)</a></li>
-<li><a href="#d-1">(d)</a></li>
-</ul></li>
-<li><a href="#nylon-fiber-continued.">4. Nylon Fiber Continued.</a><ul>
-<li><a href="#a.">a.</a></li>
-<li><a href="#b.">b.</a></li>
-</ul></li>
-</ul>
-</div>
 
+<style type="text/css">
+body, td {
+  font-size: 14px;
+}
+code.r {
+  font-size: 12px;
+}
+/* General customization. */
+pre {
+  font-size: 12px;
+}
+ref {
+  font-style: italic;
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+</style>
 <div id="cell-clusters-in-3d-petri-dishes" class="section level1">
 <h1>1. Cell Clusters in 3D Petri Dishes</h1>
 <div id="instructions" class="section level2">
@@ -478,6 +477,7 @@ summary {
 </div>
 <div id="response" class="section level2">
 <h2>Response</h2>
+<p><hide> Reference(s): + 2018f-hw02-q1: Cell Clusters in 3D Petri Dishes + Also, 2019s-hw02-q1: Left-Handed Twins </hide></p>
 <p>Let <span class="math inline">\(X\)</span> represent the number of cell clusters. The instructions indicate that <span class="math inline">\(X \sim \operatorname{Pois}(\lambda=5)\)</span>. Thus the probability mass function (pmf) <span class="math inline">\(f(x)\)</span> of <span class="math inline">\(X\)</span> is as follows.</p>
 <p><span class="math display">\[
 f(x) = \frac{\lambda{x} e^{-\lambda}}{x!} = \frac{5^{x} e^{-5}}{x!}.
@@ -496,11 +496,11 @@ F(x) = e^{-\lambda} \sum_{k=0}^{x} \frac{\lambda^k}{k!} = e^{-5} \sum_{k=0}^{x} 
 P(X = 0)=\frac{5^{0} e^{-5}}{0!} = e^{-5} = 0.0067
 \]</span></p>
 <p>We can check this number using <code>R</code> as follows.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">l &lt;-<span class="st"> </span><span class="dv">5</span></a>
-<a class="sourceLine" id="cb1-2" data-line-number="2">p_q1a &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">0</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T)</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3">p_q1a</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">l &lt;-<span class="st"> </span><span class="dv">5</span></a>
+<a class="sourceLine" id="cb1-2" title="2">p_q1a &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">0</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T)</a>
+<a class="sourceLine" id="cb1-3" title="3">p_q1a</a></code></pre></div>
 <pre><code>## [1] 0.006737947</code></pre>
-<p><response> Thus, we find that the percentage is 100 * 0.0067 = 0.6738. </response></p>
+<p><response> Thus, we find that the percentage is 100 * 0.0067 = 0.6738%. </response></p>
 </div>
 <div id="b" class="section level3">
 <h3>(b)</h3>
@@ -509,23 +509,23 @@ P(X = 0)=\frac{5^{0} e^{-5}}{0!} = e^{-5} = 0.0067
 P(X \geq 1)= 1 - P(X = 0) = 1 - (e^{-5}) = 0.9933
 \]</span></p>
 <p>Again, we can check our number with <code>R</code>.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>p_q1a</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>p_q1a</a></code></pre></div>
 <pre><code>## [1] 0.9932621</code></pre>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co"># Or</span></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">p_q1b &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">0</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> F)</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3">p_q1b</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="co"># Or</span></a>
+<a class="sourceLine" id="cb5-2" title="2">p_q1b &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">0</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> F)</a>
+<a class="sourceLine" id="cb5-3" title="3">p_q1b</a></code></pre></div>
 <pre><code>## [1] 0.9932621</code></pre>
 <p><response> Thus, we find that the percentage is 99.3262%. </response></p>
 </div>
 <div id="c" class="section level3">
 <h3>(c)</h3>
-<p>To find the percentage of Petri dishes having more than 8 cluster, we use the cdf.</p>
+<p>To find the percentage of Petri dishes having more than 8 clusters, we use the cdf.</p>
 <p><span class="math display">\[
 P(X &gt; 8) = 1 - P(X \leq 8) = 1 - (e^{-5} \sum_{k=0}^{8} \frac{5^{k}}{k!}).
 \]</span></p>
 <p>Let’s use <code>R</code> to calculate this (since writing out all of the individual terms in the sum would be tedious).</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">p_q1c &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">8</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> F)</a>
-<a class="sourceLine" id="cb7-2" data-line-number="2">p_q1c</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">p_q1c &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">8</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> F)</a>
+<a class="sourceLine" id="cb7-2" title="2">p_q1c</a></code></pre></div>
 <pre><code>## [1] 0.06809363</code></pre>
 <p><response> We find that the percentage is 6.8094%. </response></p>
 </div>
@@ -535,8 +535,8 @@ P(X &gt; 8) = 1 - P(X \leq 8) = 1 - (e^{-5} \sum_{k=0}^{8} \frac{5^{k}}{k!}).
 <p><span class="math display">\[
 P(4 \leq X \leq 6) = P(X \leq 6) - P(X &lt; 3) = (e^{-5} \sum_{k=0}^{6} \frac{5^{k}}{k!}) - (e^{-5} \sum_{k=0}^{3} \frac{5^{k}}{k!}) = e^{-5} \sum_{k=4}^{6} \frac{5^{k}}{k!}.
 \]</span></p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">p_q1d &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">6</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T) <span class="op">-</span><span class="st"> </span><span class="kw">ppois</span>(<span class="dv">4</span> <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T)</a>
-<a class="sourceLine" id="cb9-2" data-line-number="2">p_q1d</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">p_q1d &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">6</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T) <span class="op">-</span><span class="st"> </span><span class="kw">ppois</span>(<span class="dv">4</span> <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T)</a>
+<a class="sourceLine" id="cb9-2" title="2">p_q1d</a></code></pre></div>
 <pre><code>## [1] 0.4971575</code></pre>
 <p><response> We find that the percentage is 49.7158%. </response></p>
 </div>
@@ -550,7 +550,8 @@ P(4 \leq X \leq 6) = P(X \leq 6) - P(X &lt; 3) = (e^{-5} \sum_{k=0}^{6} \frac{5^
 </div>
 <div id="response-1" class="section level2">
 <h2>Response</h2>
-<p>The instructions indicate that <span class="math inline">\(T \sim \mathcal{E}(1/\lambda=1/10)\)</span>. (Note that <span class="math inline">\(\lambda\)</span> represents a rate. It is like the inverse of <span class="math inline">\(\lambda\)</span> for the Poisson distribution.) The probability density function (pdf) and cdf are as follows. (Note that pdf is appropriate for continuous distrubitons, while pmf is appropriate for discrete distrubitions.</p>
+<p><hide> Reference(s): + self </hide></p>
+<p>The instructions indicate that <span class="math inline">\(T \sim \mathcal{E}(1/\lambda=1/10)\)</span>. (Note that <span class="math inline">\(\lambda\)</span> represents a rate. It is like the inverse of <span class="math inline">\(\lambda\)</span> for the Poisson distribution.) The probability density function (pdf) and cdf are as follows. (Note that pdf is appropriate for continuous distrubitons, while pmf is appropriate for discrete distrubitions.)</p>
 <p><span class="math display">\[
 f(x) = \lambda e^{-\lambda x} = - \frac{1}{10} e^{-x/10}, x \geq 0.
 \]</span></p>
@@ -564,40 +565,41 @@ F(x) = 1 - e^{-\lambda x} = 1 - e^{-x/10}, x \geq 0.
 P(X &gt; 10) = 1 - P(X \leq 10) = 1 - (1 - e^{-(10)/(10)}) = e^{-1} = 0.3679.
 \]</span></p>
 <p>We can check this with <code>R</code>.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="kw">exp</span>(<span class="op">-</span><span class="dv">1</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">exp</span>(<span class="op">-</span><span class="dv">1</span>)</a></code></pre></div>
 <pre><code>## [1] 0.3678794</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="co"># Or</span></a>
-<a class="sourceLine" id="cb13-2" data-line-number="2">l &lt;-<span class="st"> </span><span class="dv">10</span></a>
-<a class="sourceLine" id="cb13-3" data-line-number="3">r &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">/</span><span class="st"> </span>l</a>
-<a class="sourceLine" id="cb13-4" data-line-number="4">p_q2a &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">10</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a>
-<a class="sourceLine" id="cb13-5" data-line-number="5">p_q2a</a></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="co"># Or</span></a>
+<a class="sourceLine" id="cb13-2" title="2">l &lt;-<span class="st"> </span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb13-3" title="3">r &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">/</span><span class="st"> </span>l</a>
+<a class="sourceLine" id="cb13-4" title="4">p_q2a &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">10</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a>
+<a class="sourceLine" id="cb13-5" title="5">p_q2a</a></code></pre></div>
 <pre><code>## [1] 0.3678794</code></pre>
 <p><response> The probability is 0.3679. </response></p>
 </div>
 <div id="b-1" class="section level3">
 <h3>(b)</h3>
 <p>We find the probability that a run lasts less than 15 hours as follows.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pexp</span>(<span class="dv">15</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pexp</span>(<span class="dv">15</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a></code></pre></div>
 <pre><code>## [1] 0.7768698</code></pre>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="co"># Or</span></a>
-<a class="sourceLine" id="cb17-2" data-line-number="2">p_q2b &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">15</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> T)</a>
-<a class="sourceLine" id="cb17-3" data-line-number="3">p_q2b</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="co"># Or</span></a>
+<a class="sourceLine" id="cb17-2" title="2">p_q2b &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">15</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> T)</a>
+<a class="sourceLine" id="cb17-3" title="3">p_q2b</a></code></pre></div>
 <pre><code>## [1] 0.7768698</code></pre>
 <p><response> The probability is 0.7769. </response></p>
 </div>
 <div id="c-1" class="section level3">
 <h3>(c)</h3>
+<p><hide> Reference(s): + Simulation, Unit 2 </hide></p>
 <p>Note that the <span class="math inline">\(\mathcal{E}\)</span> distribution has the memoryless property, which means that <span class="math inline">\(P(X &gt; (s + t) | X &gt; s) = P(X &gt; t)\)</span> for <span class="math inline">\(s, t &gt; 0\)</span>.</p>
 <p>Now we calculate the probability that run continues for at least 20 hours, given that it has lasted 10 hours, as follows.</p>
 <p><span class="math display">\[
 P(X &gt; 20 | X &gt; 10) = P(X &gt; 10) = e^{-10/10} = e^{-1} = 0.3679.
 \]</span></p>
 <p>Checking with <code>R</code>, we find the following.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="kw">exp</span>(<span class="op">-</span><span class="dv">1</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1"><span class="kw">exp</span>(<span class="op">-</span><span class="dv">1</span>)</a></code></pre></div>
 <pre><code>## [1] 0.3678794</code></pre>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="co"># Or </span></a>
-<a class="sourceLine" id="cb21-2" data-line-number="2">p_q2c &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">20</span> <span class="op">-</span><span class="st"> </span><span class="dv">10</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a>
-<a class="sourceLine" id="cb21-3" data-line-number="3">p_q2c</a></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" title="1"><span class="co"># Or </span></a>
+<a class="sourceLine" id="cb21-2" title="2">p_q2c &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">20</span> <span class="op">-</span><span class="st"> </span><span class="dv">10</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a>
+<a class="sourceLine" id="cb21-3" title="3">p_q2c</a></code></pre></div>
 <pre><code>## [1] 0.3678794</code></pre>
 <p><response> The probability is 0.3679. </response></p>
 </div>
@@ -605,7 +607,8 @@ P(X &gt; 20 | X &gt; 10) = P(X &gt; 10) = e^{-10/10} = e^{-1} = 0.3679.
 </div>
 <div id="d-density-tasks" class="section level1">
 <h1>3. 2-D Density Tasks</h1>
-<p><instructions> If </instructions> <hide> <span class="math display">\[
+<p><instructions> If </instructions></p>
+<p><hide> <span class="math display">\[
 f(x,y) =
 \begin{cases}
 \lambda^2 e^{-\lambda y} &amp; \quad 0 \leq x \leq y, &amp; \lambda &gt; 0 \\
@@ -620,10 +623,11 @@ f(x,y) =
 0, &amp; \quad \text{else}.
 \end{array}
 \right.
-\]</span> <instructions> Show that:<br /> (a) marginal distribution <span class="math inline">\(f_X(x)\)</span> is exponential <span class="math inline">\(\mathcal{E}(\lambda)\)</span>.<br /> (b) marginal distribution <span class="math inline">\(f_Y(y)\)</span> is Gamma <span class="math inline">\(\mathcal{G}a(2,\lambda)\)</span>.<br /> (c) conditional distribution <span class="math inline">\(f(y|x)\)</span> is shifted exponential <span class="math inline">\(f(y|x) = \lambda e^{-lambda(y-x)}\)</span>, <span class="math inline">\(y \geq x\)</span>. (d) condition distribution <span class="math inline">\(f(x|y)\)</span> is uniform <span class="math inline">\(\mathcal{U}(0,y)\)</span>. <instructions></instructions></p>
+\]</span></p>
+<p><instructions> Show that:<br /> (a) marginal distribution <span class="math inline">\(f_X(x)\)</span> is exponential <span class="math inline">\(\mathcal{E}(\lambda)\)</span>.<br /> (b) marginal distribution <span class="math inline">\(f_Y(y)\)</span> is Gamma <span class="math inline">\(\mathcal{G}a(2,\lambda)\)</span>.<br /> (c) conditional distribution <span class="math inline">\(f(y|x)\)</span> is shifted exponential <span class="math inline">\(f(y|x) = \lambda e^{-\lambda(y-x)}\)</span>, <span class="math inline">\(y \geq x\)</span>.<br /> (d) conditional distribution <span class="math inline">\(f(x|y)\)</span> is uniform <span class="math inline">\(\mathcal{U}(0,y)\)</span>. <instructions></instructions></p>
 <div id="a-2" class="section level2">
 <h2>(a)</h2>
-<p><hide> <a href="https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy">https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy</a> </hide></p>
+<p><hide> Reference(s): + <a href="https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy" class="uri">https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy</a> </hide></p>
 <p><span class="math display">\[
 \begin{array}{lcll}
 f_X(x) &amp; = &amp; \int_{x}^{\infty} \lambda^2 e^{-\lambda y} dy \\
@@ -637,7 +641,7 @@ f_X(x) &amp; = &amp; \int_{x}^{\infty} \lambda^2 e^{-\lambda y} dy \\
 </div>
 <div id="b-2" class="section level2">
 <h2>(b)</h2>
-<p><hide> <a href="https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx">https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx</a> </hide></p>
+<p><hide> Reference(s): + <a href="https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx" class="uri">https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx</a> </hide></p>
 <p><span class="math display">\[
 \begin{array}{lcl}
 f_Y(y) &amp; = &amp; \int_{x0}^{y} \lambda^2 e^{-\lambda y} dx \\
@@ -648,9 +652,11 @@ f_Y(y) &amp; = &amp; \int_{x0}^{y} \lambda^2 e^{-\lambda y} dx \\
 \]</span></p>
 <p>Note that general form of the pdf of <span class="math inline">\(\mathcal{G}a(\alpha,\beta)\)</span> is as follows.</p>
 <p><span class="math display">\[
-f(x;\alpha,\beta) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )},\quad x, \alpha ,\beta &gt;0
+\begin{array}{l}
+f(x;\alpha,\beta) = P(x=X) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )} \quad x, \alpha ,\beta &gt; 0.
+\end{array}
 \]</span></p>
-<p>Then, if we substitute <span class="math inline">\(\lambda\)</span> for <span class="math inline">\(\beta\)</span> and 2 for <span class="math inline">\(\alpha\)</span>, and we evaluate the denominator as <span class="math inline">\(\Gamma(2) = (2 - 1)! = 1\)</span> (given the fact that <span class="math inline">\(\Gamma(n) = (n - 1)! \quad \forall \mathbb{Z}^+\)</span>), then we see how the formulation above matches the distribution that we should see–<span class="math inline">\(\mathcal{G}a(2,\lambda)\)</span>.</p>
+<p>Then, if we substitute <span class="math inline">\(\lambda\)</span> for <span class="math inline">\(\beta\)</span> and 2 for <span class="math inline">\(\alpha\)</span>, and we evaluate the denominator as <span class="math inline">\(\Gamma(2) = (2 - 1)! = 1\)</span> (given the fact that <span class="math inline">\(\Gamma(n) = (n - 1)! \forall \mathbb{Z}^+\)</span>), then we see how the formulation above matches the distribution that we should see–<span class="math inline">\(\mathcal{Ga}(2,\lambda)\)</span>.</p>
 <p><span class="math display">\[
 \begin{array}{lcl}
 f(y) &amp; = &amp; \frac {\lambda^{2}y^{2-1}e^{-\lambda y}}{\Gamma(2)} \\
@@ -661,30 +667,40 @@ f(y) &amp; = &amp; \frac {\lambda^{2}y^{2-1}e^{-\lambda y}}{\Gamma(2)} \\
 </div>
 <div id="c-2" class="section level2">
 <h2>(c)</h2>
+<p><hide> Reference(s): + Exercises43: Joint, Marginals and Conditionals #1. </hide></p>
+<p>Showing that <span class="math inline">\(f(y|x)\)</span> is the shifted exponential <span class="math inline">\(f(y|x) = \lambda e^{-\lambda(y-x)}\)</span> for <span class="math inline">\(y \geq x\)</span> follows directly from the result of (a) and the given PDF <span class="math inline">\(f_{X,Y}(x,y)\)</span> for <span class="math inline">\(y \geq x\)</span>.</p>
 <p><span class="math display">\[
 \begin{array}{lcl}
 f_{Y|X}(y|x) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_X(x)} \\
-&amp; = &amp; \frac{\lambda^2 e^{-\lambda y}}{-\lambda (e^{-\lambda y} - 1)} \\
+&amp; = &amp; \frac{\lambda^2 e^{-\lambda y}}{\lambda e^{-\lambda x}} \\
+&amp; = &amp; \lambda e^{-\lambda (y + (-x))} \\
+&amp; = &amp; \lambda e^{-\lambda (y - x)}.
 \end{array}
 \]</span></p>
-<p>(Note that we are being “verbose” by writing <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> in the subscript of terms that involve both, e.g. <span class="math inline">\(f_{X,Y}(x,y)\)</span> instead of just <span class="math inline">\(f(x,y)\)</span>.</p>
+<p>(Note that we are being “verbose” by writing <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> in the subscript of terms that involve both, e.g. <span class="math inline">\(f_{X,Y}(x,y)\)</span> instead of just <span class="math inline">\(f(x,y)\)</span>.)</p>
 </div>
 <div id="d-1" class="section level2">
 <h2>(d)</h2>
+<p><hide> Reference(s): + Exercises43: Joint, Marginals and Conditionals #1. </hide></p>
+<p>We solve for <span class="math inline">\(f_{X|Y}(x|y)\)</span> using the result from (b) and the given PDF as follows.</p>
 <p><span class="math display">\[
 \begin{array}{lcl}
 f_{X|Y}(x|y) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
-&amp; = &amp;  \\
+&amp; = &amp;  \frac{\lambda^2 e^{-\lambda y}}{\lambda^{2} y e^{-\lambda y}} \\
+&amp; = &amp; \frac{1}{y}.
 \end{array}
 \]</span></p>
+<p>Note that the general form of the pdf of <span class="math inline">\(\mathcal{U}(a, b)\)</span> is <span class="math inline">\(\frac{1}{b-a}\)</span> (for <span class="math inline">\(x \in [a, b]\)</span>).</p>
 </div>
 </div>
-<div id="nylon-fiber-continued." class="section level1">
-<h1>4. Nylon Fiber Continued.</h1>
-<p><instructions> In the Exercise 2, the times (in hours) between blockages of the extrusion process, <span class="math inline">\(T\)</span>, had an exponential <span class="math inline">\(\mathcal{E}(\lambda)\)</span> distribution. Suppose that the rate parameter <span class="math inline">\(\lambda\)</span> is unknown, but there are three measurements of interblockage times, <span class="math inline">\(T_1 = 3, T_2 = 13\)</span>, and <span class="math inline">\(T_3 = 8\)</span>.<br /><br /> (a) How would classical statistician estimate <span class="math inline">\(\lambda\)</span>?<br /> (b) What is the Bayes estimator of <span class="math inline">\(\lambda\)</span> if the prior is <span class="math inline">\(\pi(\lambda) = \frac{1}{\sqrt{\lambda}}\)</span>, <span class="math inline">\(\lambda &gt; 0\)</span>? <br /><br /> Hint: In (b) the prior is not a proper distribution, but the posterior is. Identify the posterior from the product of the likelihood from (a) and the prior, no need to integrate. <instructions></instructions></p>
+<div id="nylon-fiber-continued" class="section level1">
+<h1>4. Nylon Fiber Continued</h1>
+<p><instructions> In the Exercise 2, the times (in hours) between blockages of the extrusion process, <span class="math inline">\(T\)</span>, had an exponential <span class="math inline">\(\mathcal{E}(\lambda)\)</span> distribution. Suppose that the rate parameter <span class="math inline">\(\lambda\)</span> is unknown, but there are three measurements of interblockage times, <span class="math inline">\(T_1 = 3, T_2 = 13\)</span>, and <span class="math inline">\(T_3 = 8\)</span>.<br /><br /> (a) How would a classical statistician estimate <span class="math inline">\(\lambda\)</span>?<br /> (b) What is the Bayes estimator of <span class="math inline">\(\lambda\)</span> if the prior is <span class="math inline">\(\pi(\lambda) = \frac{1}{\sqrt{\lambda}}\)</span>, <span class="math inline">\(\lambda &gt; 0\)</span>? <br /><br /> Hint: In (b) the prior is not a proper distribution, but the posterior is. Identify the posterior from the product of the likelihood from (a) and the prior, no need to integrate. <instructions></instructions></p>
 <div id="a." class="section level2">
 <h2>a.</h2>
-<p>A classical statistician would estimate <span class="math inline">\(\lambda\)</span> using the MLE, which is <span class="math inline">\(\hat{\lambda}_{MLE} = \frac{1}{\overline{X}}\)</span>. <span class="math display">\[
+<p><hide> Reference(s): + self </hide></p>
+<p>A classical statistician would estimate <span class="math inline">\(\lambda\)</span> using the MLE, which is <span class="math inline">\(\hat{\lambda}_{MLE} = \frac{1}{\overline{X}}\)</span>.</p>
+<p><span class="math display">\[
 \overline{X} = \frac{1}{n} \sum_{i=1}^n T_i = \frac{1}{3} (3 + 13 + 8) = 8.
 \]</span></p>
 <p>Thus,</p>
@@ -694,16 +710,30 @@ f_{X|Y}(x|y) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
 </div>
 <div id="b." class="section level2">
 <h2>b.</h2>
-<p>The instruction indicate that we are trying to estimate the rate <span class="math inline">\(T_1, \dots, T_n \sim \mathcal{E}(\lambda)\)</span> given the prior <span class="math inline">\(\pi(\lambda)\)</span>. (Here, <span class="math inline">\(n = 3\)</span>.) Moreover, note that Bayes formula can be written generally (in terms of the pdf <span class="math inline">\(f\)</span>. the marginal <span class="math inline">\(m\)</span>, and the prior <span class="math inline">\(pi(\lambda)\)</span> as follows (using our notation of <span class="math inline">\(T_i\)</span>, which takes on values of <span class="math inline">\(t_i\)</span> and <span class="math inline">\(\lambda\)</span>).</p>
+<p>The instructions indicate that we are trying to estimate the rate <span class="math inline">\(T_1, \dots, T_n \sim \mathcal{E}(\lambda)\)</span> given the prior <span class="math inline">\(\pi(\lambda) = \frac{1}{\sqrt{\lambda}}, \lambda &gt; 0\)</span>. Note that <span class="math inline">\(n = 3\)</span> here. Also, note that this prior is known as the Jeffrey’s prior in the literature.</p>
+<p><hide> Reference(s): + 2018f-hw02-q3: Exponential Lifetimes? + 2019s-hw02-q3: Weibull Lifetimes? + Exercises48: Histompatibility? + Exercises43 Bayes and Bats? </hide></p>
+<p><hide> We can infer that the posterior follows a <span class="math inline">\(\mathcal{Ga}\)</span> distribution, which can be expressed generally as follows.</p>
 <p><span class="math display">\[
-\pi(\lambda|t_1,\dots,t_n) = \frac{f(t_1,...,t_n|\lambda) \pi(\lambda)}{m(t_1,\dots,t_n)}.
-\]</span></p>
-<p><hide> <strong>NOTE TO SELF</strong>: This is not right. (This question is not really analogous to the 2018F question.) </hide></p>
-<p>From the literature, we know that the gamma distribution <span class="math inline">\(\operatorname{Gamma}(\alpha,\beta)\)</span> is the conjugate prior for the exponential distribution. Further, we can write out the posterior distribution with respect to the prior distribution as follows.</p>
+\begin{array}{l}
+f(x;\alpha,\beta) = P(x=X) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )} \quad x, \alpha ,\beta &gt; 0.
+\end{array}
+\]</span> </hide></p>
+<p><strong>FIXME</strong></p>
+<p>We can infer that the posterior <span class="math inline">\(\pi(\lambda|x)\)</span> = follows a <span class="math inline">\(\mathcal{Ga}\)</span> distribution because the likelihood <span class="math inline">\(f(x|\lambda)\)</span> and the prior <span class="math inline">\(\pi(\lambda)\)</span> are <span class="math inline">\(\mathcal{Poi}\)</span>, and their product looks is proportional to a <span class="math inline">\(\mathcal{Ga}\)</span> distribution.</p>
 <p><span class="math display">\[
-\pi(\lambda|t_i,\dots,t_n) = \operatorname{Gamma}(\pi(\lambda),\alpha,\beta)
+\begin{array}{l}
+\pi(\lambda) = \frac{\lambda^{x}}{x!} (e^{-\lambda}) \\
+f(x|\lambda) = \frac{\lambda^{\sum_{i=1}^{3} X_i}}{x!} (e^{-3\lambda})
+\end{array}
 \]</span></p>
-<p>The parameter <span class="math inline">\(\alpha\)</span> represents the number of prior observations, and the parameter <span class="math inline">\(\beta\)</span> represents the sum of the prior observations. </hide></p>
+<p><span class="math display">\[
+\begin{array}{lcl}
+\pi(\lambda|x) &amp; \propto &amp; f(x|\lambda) \pi(\lambda) \\
+&amp; = &amp; (\lambda e^{-\lambda})
+\end{array}
+\]</span></p>
+<p>The</p>
+<p>The Bayes estimator is equivalent to the posterior mean, which is <span class="math inline">\(\operatorname{E}[X] = \frac{\alpha}{\beta}\)</span>.</p>
 </div>
 </div>
 
@@ -724,23 +754,6 @@ $(document).ready(function () {
 
 
 </script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
-<!-- code folding -->
-
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

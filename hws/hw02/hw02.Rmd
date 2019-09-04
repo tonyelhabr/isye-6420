@@ -3,7 +3,6 @@ title: 'ISYE 6420: Homework 2'
 author: 'aelhabr3'
 output:
   html_document:
-    css: ../styles.css
     theme: cosmo
     highlight: haddock
     toc: false
@@ -32,7 +31,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r postprocess, include=F, echo=F, cache=F}
-.path_sans_ext <- file.path('hws', 'hw02', 'hw02')
+.path_sans_ext <- file.path('hw02')
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 ```
@@ -44,6 +43,31 @@ format_num <- function(x, digits = 4) {
   sprintf(fmt, x)
 }
 ```
+
+<style type="text/css">
+body, td {
+  font-size: 14px;
+}
+code.r {
+  font-size: 12px;
+}
+/* General customization. */
+pre {
+  font-size: 12px;
+}
+ref {
+  font-style: italic;
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+</style>
 
 # 1. Cell Clusters in 3D Petri Dishes
 
@@ -66,7 +90,7 @@ Reference(s):
 
 Let $X$ represent the number of cell clusters. The instructions indicate that
 $X \sim \operatorname{Pois}(\lambda=5)$.
-Thus the probability mass function (pmf) $f(x)$ of $X$ is as follows.
+Thus the probability mass function (PMF) $f(x)$ of $X$ is as follows.
 
 $$
 f(x) = \frac{\lambda{x} e^{-\lambda}}{x!} = \frac{5^{x} e^{-5}}{x!}.
@@ -74,7 +98,7 @@ $$
 
 Note that $f(x) = P(X = x)$.
 
-The cumulative distribution function (cdf) $F(x)$ of $X$ is as follows.
+The cumulative distribution function (CDF) $F(x)$ of $X$ is as follows.
 
 $$
 F(x) = e^{-\lambda} \sum_{k=0}^{x} \frac{\lambda^k}{k!} = e^{-5} \sum_{k=0}^{x} \frac{5^k}{k!}.
@@ -86,7 +110,7 @@ Now we address each part of the instructions.
 
 ### (a)
 
-We use the pdf to find the percentage of Petri dishes having 0 clusters.
+We use the PDF to find the percentage of Petri dishes having 0 clusters.
 
 $$
 P(X = 0)=\frac{5^{0} e^{-5}}{0!} = e^{-5} = 0.0067
@@ -129,7 +153,7 @@ Thus, we find that the percentage is `r format_num(100 * p_q1b, 4)`%.
 
 ### (c)
 
-To find the percentage of Petri dishes having more than 8 clusters, we use the cdf.
+To find the percentage of Petri dishes having more than 8 clusters, we use the CDF.
 
 $$
 P(X > 8) = 1 - P(X \leq 8) = 1 - (e^{-5} \sum_{k=0}^{8} \frac{5^{k}}{k!}).
@@ -150,7 +174,7 @@ We find that the percentage is `r format_num(100 * p_q1c, 4)`%.
 ### (d)
 
 Finally, to find the percentage of Petri dishes having between 4 and 6 clusters
-inclusive, we use the difference in cdfs. (Note that we must be careful with the
+inclusive, we use the difference in CDFs. (Note that we must be careful with the
 lower bound 4, which we want to include.)
 
 $$
@@ -194,9 +218,9 @@ Reference(s):
 The instructions indicate that $T \sim \mathcal{E}(1/\lambda=1/10)$.
 (Note that $\lambda$ represents a rate. It is like the inverse of 
 $\lambda$ for the Poisson distribution.)
-The probability density function (pdf) and cdf are as follows. (Note that pdf
-is appropriate for continuous distrubitons, while pmf is appropriate for discrete
-distrubitions.)
+The probability density function (PDF) and CDF are as follows.
+(Note that the PDF is appropriate for continuous distributions,
+while the PMF is appropriate for discrete distributions.)
 
 $$
 f(x) = \lambda e^{-\lambda x} = - \frac{1}{10} e^{-x/10}, x \geq 0.
@@ -325,7 +349,7 @@ f_X(x) & = & \int_{x}^{\infty} \lambda^2 e^{-\lambda y} dy \\
 \end{array}
 $$
 
-Note that the pdf of $\mathcal{E}(\lambda)$ is $f(x) = \lambda e^{-\lambda x}$,
+Note that the PDF of $\mathcal{E}(\lambda)$ is $f(x) = \lambda e^{-\lambda x}$,
 which matches the result above.
 
 ## (b)
@@ -344,7 +368,7 @@ f_Y(y) & = & \int_{x0}^{y} \lambda^2 e^{-\lambda y} dx \\
 \end{array}
 $$
 
-Note that general form of the pdf of $\mathcal{G}a(\alpha,\beta)$ is as follows.
+Note that general form of the PDF of $\mathcal{G}a(\alpha,\beta)$ is as follows.
 
 $$
 \begin{array}{l}
@@ -354,7 +378,7 @@ $$
 
 Then, if we substitute $\lambda$ for $\beta$ and 2 for $\alpha$, and
 we evaluate the denominator as $\Gamma(2) = (2 - 1)! = 1$
-(given the fact that $\Gamma(n) = (n - 1)! \forall \mathbb{Z}^+$),
+(given the fact that $\Gamma(n) = (n - 1)! \quad \forall \mathbb{Z}^+$),
 then we see how the formulation above matches the distribution
 that we should see--$\mathcal{Ga}(2,\lambda)$.
 
@@ -409,7 +433,7 @@ f_{X|Y}(x|y) & = & \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
 \end{array}
 $$
 
-Note that the general form of the pdf of $\mathcal{U}(a, b)$ is $\frac{1}{b-a}$ (for $x \in [a, b]$).
+Note that the general form of the PDF of $\mathcal{U}(a, b)$ is $\frac{1}{b-a}$ (for $x \in [a, b]$), which matches the result above (if we substitute $b=y$ and $a=0$).
 
 # 4. Nylon Fiber Continued
 

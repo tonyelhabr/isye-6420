@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="" />
+
+
+<title>Bayesian Theory and Examples</title>
+
+<script src="crashcourse_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="crashcourse_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="crashcourse_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="crashcourse_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="crashcourse_files/navigation-1.1/tabsets.js"></script>
+<script src="crashcourse_files/navigation-1.1/codefolding.js"></script>
+<link href="crashcourse_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="crashcourse_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="crashcourse_files/docco-0.1/docco.css" rel="stylesheet" />
+<script src="crashcourse_files/docco-0.1/docco.js"></script>
+
+
+
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+</style>
+<div class="container-fluid main-container">
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1 page">
+
+
+
+<div id="header">
+<h1 class="title">Bayesian Theory and Examples</h1>
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#theory">Theory</a><ul>
+<li><a href="#probability-distribution">Probability Distribution</a><ul>
+<li><a href="#binomial">Binomial</a></li>
+<li><a href="#uniform">Uniform</a></li>
+<li><a href="#normal">Normal</a></li>
+<li><a href="#gamma">Gamma</a></li>
+<li><a href="#beta">Beta</a></li>
+</ul></li>
+<li><a href="#bayes-theorem">Bayes’ Theorem</a></li>
+<li><a href="#bayesian-vs.-frequentist-2">Bayesian vs. Frequentist </a></li>
+<li><a href="#conjugacy">Conjugacy</a><ul>
+<li><a href="#beta-binomial">Beta-Binomial</a><ul>
+<li><a href="#example">Example</a></li>
+</ul></li>
+<li><a href="#normal-normal">Normal-Normal</a><ul>
+<li><a href="#example-1">Example</a></li>
+</ul></li>
+<li><a href="#normal-gamma">Normal-Gamma</a></li>
+</ul></li>
+<li><a href="#general-bayes-computation">General Bayes Computation</a><ul>
+<li><a href="#bayesian-linear-regression">Bayesian Linear Regression</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="content">
+<style type="text/css">
+/* Don't know exactly how these work with `rmdformats::html_docco`. */ 
+body, td {
+  font-size: 14px;
+}
+code.r {
+  font-size: 12px;
+}
+/* General customization. */
+pre {
+  font-size: 12px;
+}
+ref {
+  font-style: italic;
+}
+note {
+  font-style: italic;
+  color: rgb(0,0,255);
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+/* These are specific for `rmdformats::html_docco`. */ 
+img.image-thumb {
+  max-width: 100%;
+}
+.main-container {
+  max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+  text-transform: none;
+  font-size: 1.25em;
+}
+h1.title {
+  text-align: left
+}
+/* Note that .page is used for font size for `rmdformats::html_docco`, 
+but not for `html_clean()`. (It's just .body.) */
+.page {
+  font-size: 14px
+}
+</style>
+<div id="theory" class="section level2">
+<h2>Theory</h2>
+<note>
+A note about notation: In general, we use capital letters to note a random variable (RV) that has not yet taken on a value, and a lower-case letter to indicate an “instatiation” or “manifestation” of the RV.
+</note>
+<div id="probability-distribution" class="section level3">
+<h3>Probability Distribution</h3>
+<p>These aren’t all of the distributions, but these are brought up in the examples that follow. (Note that <span class="math inline">\(f(x)\)</span> represents the <a href="https://en.wikipedia.org/wiki/Probability_mass_function">probability mass function</a> (PMF) for discrete distribution and the <a href="https://en.wikipedia.org/wiki/Probability_density_function">probability density function</a> (PDF) for continuous distribution</p>
+<div id="binomial" class="section level4">
+<h4>Binomial</h4>
+<p><span class="math display">\[
+\begin{array}{c}
+X \sim \mathcal{Bin}(n, p) \\
+f(x)=\left(\begin{array}{l}{n} \\ 
+{k}\end{array}\right) p^{X} q^{n-X}, k=0,1, \ldots, n \\
+\operatorname{E}[X]=n p, \\
+\operatorname{Var}(X)=n p q.
+\end{array}
+\]</span></p>
+<p>This is used to model the number of successes <span class="math inline">\(x\)</span> in <span class="math inline">\(n\)</span> trials, where the probability of success is <span class="math inline">\(p\)</span>. (It’s a generalization of the Bernoulli distribution, which is limited to just 1 trial.)</p>
+</div>
+<div id="uniform" class="section level4">
+<h4>Uniform</h4>
+<p><span class="math display">\[
+\begin{array}{c}
+X \sim \mathcal{U}(a, b) \\
+f(x)=\frac{1}{b-a}, a \leq x \leq b, \\
+\operatorname{E}[X]=\frac{a+b}{2}, \\
+\operatorname{Var}(X)=\frac{(b-a)^{2}}{12}.
+\end{array}
+\]</span></p>
+<p>This is commonly used if we only really know the upper and lower bounds of a distribution, and not much else.</p>
+</div>
+<div id="normal" class="section level4">
+<h4>Normal</h4>
+<p><span class="math display">\[
+\begin{array}{c}
+X \sim \mathcal{N}(\mu, \sigma^2) \\
+f(x)=\frac{1}{\sqrt{2 \pi \sigma^{2}}} \exp \left[\frac{-(x-\mu)^{2}}{2 \sigma^{2}}\right] \\
+\operatorname{E}[X]=\mu, \\
+\operatorname{Var}(X)=\sigma^{2}.
+\end{array}
+\]</span></p>
+<p>This is the “mother” of all distributions. The sum of the values coming from any distribution will eventually (approximately) follow the normal distribution. (See the Central Limit Theorem.)</p>
+</div>
+<div id="gamma" class="section level4">
+<h4>Gamma</h4>
+<p><span class="math display">\[
+\begin{array}{c}
+X \sim \mathcal{Ga}(\alpha, \beta) \\
+f(x)=\frac{\beta^{\alpha} x^{\alpha-1} e^{-\beta x}}{\Gamma(\alpha)}, x \geq 0 \\
+\operatorname{E}[X]=\frac{\alpha}{\beta}, \\
+\operatorname{Var}(X)=\frac{\alpha}{\beta^{2}}.
+\end{array}
+\]</span></p>
+<p>Note that <span class="math inline">\(\Gamma(\alpha) = \int_{0}^{\infty} t^{\alpha-1} e^{-t} dt.\)</span></p>
+<p>The Gamma distribution is a generalization of two other well-known distributions—the exponential and chi-squared distributions (which themselves draw upon attributes of other distributions). It shows up in a couple of conjugate pairs (to be discussed).</p>
+</div>
+<div id="beta" class="section level4">
+<h4>Beta</h4>
+<p><span class="math display">\[
+\begin{array}{c}
+X \sim \mathcal{Be}(\alpha, \beta) \\
+f(x)=\frac{1}{\operatorname{B}(\alpha,\beta)} x^{\alpha - 1} (1-x)^{\beta-1}, 0 \leq x \leq 1, \alpha, \beta &gt; 0. \\
+\operatorname{E}[X]= \frac{\alpha}{\alpha + \beta}, \\
+\operatorname{Var}(X)=\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}
+\end{array}
+\]</span></p>
+<p>Note that <span class="math inline">\(\operatorname{B}(\alpha,\beta) = \frac{\Gamma(\alpha) \Gamma(\beta)}{\Gamma(\alpha + \beta)}\)</span>.</p>
+<p>The Beta distribution is a generalization of the Gamma distribution. This distribution is probably the best distribution for modeling other distributions.</p>
+</div>
+</div>
+<div id="bayes-theorem" class="section level3">
+<h3>Bayes’ Theorem</h3>
+<p><ref> “Bayesian probability is an interpretation of the concept of probability, in which … probability is interpreted … as quantification of a personal belief.” <a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> </ref></p>
+<p>Although there is a “formula” for Bayes’ theorem (see below), Bayes statistics is more about the “mentality”. (See the Bayesian vs. Frequentist section below.)</p>
+<p><span class="math display">\[
+\begin{array}{ccc}
+\text{ Posterior Probability } &amp; = &amp; \frac{(\text{ Likelihood })(\text{ Prior Probability })}{\text{ Marginal Likelihood } } \\
+P(H|E) &amp; = &amp; \frac{P(E|H) P(H)}{P(E)}
+\end{array}
+\]</span></p>
+<p><i> Note the notation: We use <span class="math inline">\(H\)</span> to indicate “hypothesis” and <span class="math inline">\(E\)</span> to indicate evidence. Sometimes evidence is also referred to as “data” (<span class="math inline">\(D\)</span>) in the literature. </i></p>
+<p>Also, note that the Bayes’ formula is really just a different way of stating the conditional probability of events. (i.e. The probability of <span class="math inline">\(A\)</span> given <span class="math inline">\(B\)</span> is <span class="math inline">\(P(A|B) = \frac{P(B|A) P(B)}{P(A)}\)</span>.)</p>
+<p>Regarding the components of Bayes’ formula:</p>
+<ul>
+<li><p>The prior <span class="math inline">\(P(H)\)</span> is the probability of <span class="math inline">\(H\)</span> before observing the data. Referring back to the definition of Bayes probability, it is the “personal” component. It is “elicited” by the person observing the data/performing the experiment, and its reliability is dependent on the knowledge of this person.</p></li>
+<li><p>The likelihood <span class="math inline">\(P(E|H)\)</span> is the evidence about <span class="math inline">\(H\)</span> provided by the data.</p></li>
+<li><p>The marginal <span class="math inline">\(P(E)\)</span> (i.e. the “normalizing constant”) is the probability of the observing the data, accounting for all possibile hypotheses. It is usually what causes difficulty in calculations. We can avoid difficulty in calculations if our problem can be modeled with conjugate pairs (to be discussed). Also, note that the marginal may also be referred to as the predictive prior. A more in-depth discussion of this discussion would clarify why this is.</p></li>
+<li><p>The posterior <span class="math inline">\(P(H|E)\)</span> is the probability that <span class="math inline">\(H\)</span> is true after the data is considered.</p></li>
+</ul>
+</div>
+<div id="bayesian-vs.-frequentist-2" class="section level3">
+<h3>Bayesian vs. Frequentist <a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></h3>
+<p><ref> "Disagreements are in the nature of (1) model parameters and (2) use of conditioning: </ref></p>
+<ul>
+<li><p><ref>Frequentists: (1) Parameters are <b>fixed numbers</b>. (2) Inference involves <b>optimization.</b></ref></p></li>
+<li><p><ref>Bayesians: Parameters are <b>random variables</b>. (2) Inference involves <b>integration</b>."</ref></p></li>
+</ul>
+<p>(See the Beta-Binomial example below.)</p>
+</div>
+<div id="conjugacy" class="section level3">
+<h3>Conjugacy</h3>
+<p><ref> “Conjugacy occurs when the posterior distribution is in the same family of probability density functions as the prior belief, but with new parameter values, which have been updated to reflect what we have learned from the data.” <a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a> </ref></p>
+<div id="beta-binomial" class="section level4">
+<h4>Beta-Binomial</h4>
+<p><ref> “Suppose we perform an experiment and estimate that the data comes from a binomial distribution <span class="math inline">\(\mathcal{Bin}(n, p)\)</span> with <b>known</b> <span class="math inline">\(n\)</span> (number of trials) and <b>unknown</b> <span class="math inline">\(p\)</span> (probability). (This is the likelihood.) Let’s say that we have a prior belief that <span class="math inline">\(p\)</span> can be modeled with the Beta distribution <span class="math inline">\(\mathcal{Be}(\alpha, \beta)\)</span> (with <span class="math inline">\(\alpha, \beta\)</span> that we choose, presumably with our”expertise“). (This is the prior.) In the experiment we observed <span class="math inline">\(x\)</span> successes in <span class="math inline">\(n\)</span> trials. Then Bayes’ rule implies that our new belief about the probability density of <span class="math inline">\(p\)</span>—the posterior distribution, of <span class="math inline">\(p | x\)</span>—is also the Beta distribution, with”updated" parameters." <a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a> </ref></p>
+<p><span class="math display">\[
+\begin{array}{c}
+p | x \sim \mathcal{Be}(\alpha + x, \beta + n - x).
+\end{array}
+\]</span></p>
+<p>We can formalize this problem set-up as follows.</p>
+<p><span class="math display">\[
+\begin{array}{rclcl}
+\text{ Likelihood } &amp; : &amp; x | p &amp; \sim &amp; \mathcal{Bin}(n, p) \\
+\text{ Prior } &amp; : &amp; p &amp; \sim &amp; \mathcal{Be}(\alpha, \beta) \\
+\text{ Posterior } &amp; : &amp; p | x &amp; \sim &amp; \mathcal{Be}(\alpha + x, \beta + n - x)
+\end{array}
+\]</span></p>
+<p><i> Note that it is common to “simplify” notation, e.g. <span class="math inline">\(P(p|x)\)</span> is express simply as <span class="math inline">\(p|x\)</span>. </i></p>
+<p>The posterior mean reflects an “update” to the prior mean given <span class="math inline">\(x\)</span> and <span class="math inline">\(n\)</span>.</p>
+<p><span class="math display">\[
+\begin{array}{rcl}
+\operatorname{E}[X] &amp; \rightarrow &amp; \operatorname{E}[p|X] \\
+\frac{\alpha}{\alpha + \beta} &amp; \rightarrow &amp; \frac{\alpha + x}{\alpha + \beta + n}.
+\end{array}
+\]</span></p>
+<div id="example" class="section level5">
+<h5>Example</h5>
+<p>We want to estimate the probability <span class="math inline">\(p\)</span> that a coin falls heads up. After <span class="math inline">\(n = 10\)</span> flips, we observe <span class="math inline">\(X = 0\)</span> heads. we can model the likelihood as a <span class="math inline">\(\mathcal{Bin}(n = 10, p)\)</span> (where <span class="math inline">\(p\)</span> is unknown). A “flat” prior for this kind of experiment is a <span class="math inline">\(\mathcal{U}(0, 1)\)</span> distribution, which happens to be equivalent to <span class="math inline">\(\mathcal{Be}(1, 1)\)</span>. What does the Beta-Binomial conjugate pair lead us to conclude about <span class="math inline">\(p\)</span>?</p>
+<p>Using <span class="math inline">\(\alpha=1, \beta=1\)</span> for our prior distribution, the posterior probability is <span class="math inline">\(\mathcal{Be}(1 + (0), 1 + (10) - (0)) = \mathcal{Be}(1, 11)\)</span>. Then the posterior mean (i.e. average or expectation) is <span class="math inline">\(\hat{p} = \frac{(1)}{(1)+(11)} = \frac{1}{12}\)</span> (because the expectation of the <span class="math inline">\(\mathcal{Be}\)</span> distribution is <span class="math inline">\(\operatorname{E}[X] = \frac{\alpha}{\alpha+\beta}\)</span>.) Note that</p>
+<p>If we had taken the Frequentist approach (which does not incorporate priors), then we would have concluded that <span class="math inline">\(\hat{p} = \frac{X}{n} = \frac{0}{10} = 0\)</span>.</p>
+<p>Note that the Bayes estimation of the posterior mean would be much closer to <span class="math inline">\(p = 0.5\)</span> if we had used a stronger prior (which is more realistic for something like coin flips, where it is physically very difficult to create a “rigged” coin). For example, if we had used the prior <span class="math inline">\(\mathcal{Be}(1000, 1000)\)</span>, then our posterior estimate of the mean would have been <span class="math inline">\(\hat{p} = \frac{(10000)}{(10000) + (11)} \approx 0.5\)</span>.</p>
+</div>
+</div>
+<div id="normal-normal" class="section level4">
+<h4>Normal-Normal</h4>
+<p>For the Normal-Normal conjugate pair, we assume that the data comes from a normal distribution with <b>known</b> variance <span class="math inline">\(\sigma^2\)</span> and <b>unknown</b> mean <span class="math inline">\(\mu\)</span>, which we want to estimate. Also, we must “elicit” value for mean <span class="math inline">\(\mu_0\)</span> and variance <span class="math inline">\(\sigma_0^2\)</span> for the prior distribution (which is itself normal). (This is like how we choose <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> for the prior for the Beta-Binomial conjugate pair.)</p>
+<p><span class="math display">\[
+\begin{array}{rclcl}
+\text{ Likelihood } &amp; : &amp; x | \mu &amp; \sim &amp; \mathcal{N}(\mu, \sigma^2) \\
+\text{ Prior } &amp; : &amp; \mu &amp; \sim &amp; \mathcal{N}(\mu_0, \sigma_0^2) \\
+\text{ Posterior } &amp; : &amp; \mu | x &amp; \sim &amp; \mathcal{N}(\frac{\mu_0 \sigma^2 + n x \sigma_0^2}{\sigma^2 + n \sigma_0^2}, \frac{\sigma^2 \sigma_0^2}{\sigma^2 + n \sigma_0^2})
+\end{array}
+\]</span></p>
+<p>If you look closely, you’ll see that the posterior mean <span class="math inline">\(\mu\)</span> is actually a weighted average of the prior mean <span class="math inline">\(\mu_0\)</span> and the observed mean <span class="math inline">\(\frac{x}{n}\)</span>.</p>
+<p>Note that this conjugate pair can also be used if assuming a known prior mean and an unknown prior variance.</p>
+<div id="example-1" class="section level5">
+<h5>Example</h5>
+<p>Joe models his IQ as <span class="math inline">\(X \sim \mathcal{N}(\mu, 80)\)</span>. The distribution of IQs of students at Joe’s university is <span class="math inline">\(\mathcal{N}(110, 120)\)</span>. Joe takes a single IQ test and scores <span class="math inline">\(98\)</span>.</p>
+<p><span class="math display">\[
+\begin{array}{rclcl}
+\text{ Likelihood } &amp; : &amp; x | \mu &amp; \sim &amp; \mathcal{N}(\mu, 80) \\
+\text{ Prior } &amp; : &amp; \mu &amp; \sim &amp; \mathcal{N}(110, 120) \\
+\text{ Posterior } &amp; : &amp; \mu | x &amp; \sim &amp; \mathcal{N}(\frac{(110) (80) + (1) (98) (120)}{(80) + (1) (120)}, \frac{(80) (120)}{(80 + (1) (120)}) \approx \mathcal{N}(102.8, 48)
+\end{array}
+\]</span></p>
+</div>
+</div>
+<div id="normal-gamma" class="section level4">
+<h4>Normal-Gamma</h4>
+<p>The Normal-Gamma conjugate is used to estimate two unknown parameters—mean <span class="math inline">\(\mu\)</span> and variance <span class="math inline">\(\sigma^2\)</span>. In may be thought of as a more “complex” extension of the Normal-Normal conjugate pair. It is more applicable to more real-world contexts, where both the mean and variance are <b>unknown</b> (but the posterior is assumed to be normal). As you can imagine, the math gets more complicated…</p>
+</div>
+</div>
+<div id="general-bayes-computation" class="section level3">
+<h3>General Bayes Computation</h3>
+<p>So we have seen how posterior distributions for parameters can be generated via conjugacy. Unfortunately, very few settings can be modeled “well” with conjugate pairs–which are nice because they have analytical, closed form solutions. Probably the first “computational” approach to try is a grid approximation. (In fact, this approach is useful for verifying closed-form problems.) However, this approach tends to be too simplistic and is usually not very “useful”.</p>
+<p>Going a step beyond grid approximation would be Laplace approximation, which is also known as quadratic approximation. It represents an improvement over simple grid approximation, but it’s not the most popular approach.</p>
+<p>The most popular computation approach–and one that is used a lot in practice–is <a href="https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo">Markov chain Monte Carlo</a> (MCMC). One of the terms you’ll see commonly used with MCMC is <a href="https://en.wikipedia.org/wiki/Gibbs_sampling">“Gibbs sampling”</a>—this is just one of many approaches to implement MCMC. Also, MCMC is where “specialized” Bayesian software that you may have heard about (e.g. OpenBUGS, JAGS, Stan) comes into play. However, these are not “native” to <code>R</code>. (There are <code>R</code> packages that “wrap” the functionality of these software, but I wouldn’t consider this “native”.)</p>
+<p>In the end, no matter which of these approaches you use, each is just the first step towards implementing “Bayesian linear regression”, which can be thought of as “typical” linear regression with approximate parameters. Grid approximation, Laplace approximation, and MCMC are just methods for performing Bayesian estimation. They do not do inference</p>
+<div id="bayesian-linear-regression" class="section level5">
+<h5>Bayesian Linear Regression</h5>
+<p>The best package I’ve found for implementing Bayesian linear regression with pure <code>R</code> is the <a href="https://cran.r-project.org/web/packages/BAS/vignettes/BAS-vignette.html"><code>{BAS}</code> package</a>. It provides an interface similar to the canonical <code>lm()</code>, but with additional functionality to implement the Bayesian approach. (Most notably, you can specify <code>prior</code>s for the coefficients.)</p>
+<hr />
+</div>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p><a href="https://en.wikipedia.org/wiki/Bayesian_probability" class="uri">https://en.wikipedia.org/wiki/Bayesian_probability</a>.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p>Tony’s Bayes Statistics class.<a href="#fnref2" class="footnote-back">↩</a></p></li>
+<li id="fn3"><p><a href="https://statswithr.github.io/book/bayesian-inference.html#conjugacy" class="uri">https://statswithr.github.io/book/bayesian-inference.html#conjugacy</a><a href="#fnref3" class="footnote-back">↩</a></p></li>
+<li id="fn4"><p><a href="https://statswithr.github.io/book/bayesian-inference.html#conjugacy" class="uri">https://statswithr.github.io/book/bayesian-inference.html#conjugacy</a><a href="#fnref4" class="footnote-back">↩</a></p></li>
+</ol>
+</div>
+</div>
+
+
+    </div>
+  </div>
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+$(document).ready(function () {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+});
+
+</script>
+
+<script>
+$(document).ready(function () {
+ 	 	$('#content img')
+ 	  .addClass("image-thumb");
+      $('#content img')
+ 	  .addClass("image-lb");
+  $('#content').magnificPopup({
+	      type:'image',
+	      closeOnContentClick: false,
+	      closeBtnInside: false,
+	      delegate: 'img',
+	      gallery: {enabled: false },
+	      image: {
+	        verticalFit: true,
+          titleSrc: 'alt'
+	      }
+ 	    });
+ 	});
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

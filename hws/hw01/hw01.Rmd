@@ -3,7 +3,6 @@ title: 'ISYE 6420: Homework 1'
 author: 'aelhabr3'
 output:
   html_document:
-    css: ../styles.css
     theme: cosmo
     highlight: haddock
     toc: false
@@ -45,6 +44,30 @@ format_num <- function(x, digits = 3) {
 }
 ```
 
+<style type="text/css">
+body, td {
+  font-size: 14px;
+}
+code.r {
+  font-size: 12px;
+}
+/* General customization. */
+pre {
+  font-size: 12px;
+}
+ref {
+  font-style: italic;
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+</style>
 
 # 1. Circuit
 
@@ -69,6 +92,8 @@ for $\lambda_1 = 1, \lambda_2 = 2, \lambda_3 = 1/2, \lambda_4 = 1/3, \lambda_5 =
 (b) Find the probability that component $E_5$ was operational at time $t = 1/2$, if the system was operational at that time.<br/><br/>
 Hint: If you consider (b), it is conditional probability, more precisely, a posterior probability of the hypothesis $H_1: E_5$ operational at time $t$, given that system S is operational at t. Thus, solve part (a) as a total probability with $H1$ and $H_2 = H_1^C$ as hypotheses. Under the two hypotheses the system simplifies as in Figure 2 and it is easy to find $P(S|H_1)$ and $P(S|H_2)$.
 Then (b) is just a Bayes formula.
+The results for arbitrary t will be messy - do not simplify.
+For plotting in part (a) take some reasonable interval for time $t$, say $[0, 4]$.
 </instructions>
 
 
@@ -210,24 +235,13 @@ We find that $P(S) = `r format_num(p_s_x)`$ at $t = `r t_x`$.
 </response>
 
 <response>
-Below is a plot of this probability as a function of time $t$ for $0 \leq t \leq 10$.
+Below is a plot of this probability as a function of time $t$ for $0 \leq t \leq 4$.
 </response>
 
 ```{r hw01-q01-a-5, include=T, echo=F, eval=T}
-seq_t <- seq(0, 10, by = 0.1)
+seq_t <- seq(0, 4, by = 0.1)
 d_q1 <- tibble(t = seq_t)
 d_q1a <- d_q1 %>% mutate(p_s = f_s(t))
-
-theme_custom <- function(...) {
-  theme_light() +
-    # hrbrthemes::theme_ipsum(base_family = '') +
-    # dviz.sup::theme_dviz_grid(font_family = '') +
-    theme(
-      axis.title.x = element_text(hjust = 1),
-      axis.title.y = element_text(hjust = 1),
-      ...
-    )
-}
 
 viz_q1a <-
   d_q1a %>%
@@ -241,15 +255,36 @@ viz_q1a <-
     size = 1.5
   ) +
   geom_point(data = NULL, aes(x = t_x, y = p_s_x), size = 2) +
-  theme_custom() +
+  theme_light() +
+  # hrbrthemes::theme_ipsum(base_family = '') +
+  # dviz.sup::theme_dviz_grid(font_family = '') +
+  theme(
+    axis.title.x = element_text(hjust = 1),
+    axis.title.y = element_text(hjust = 1)
+  ) +
   labs(
     # title = '',
     x = 't',
     y = 'P(S)'
   )
+```
+
+```{r hw01-q01-a-6, include=T, echo=F, eval=F, fig.width=8, fig.height=5}
 viz_q1a
 ```
 
+
+![](output/viz_q1a.png)
+
+```{r hw01-q01-a-7, include=F, echo=F, eval=F}
+teproj::export_ext_png(
+  viz_q1a,
+  dir = 'output',
+  units = 'in',
+  width = 8,
+  height = 5
+)
+```
 
 ### (b)
 
@@ -310,10 +345,11 @@ at random and one randomly selected product from that batch is inspected. The in
 product was found conforming and was returned back to its batch.
 What is the probability that the second product, randomly selected from the same batch,
 is found non-conforming?<br/><br/>
-Hint: This is both Bayes rule and Total Probability. The two hypotheses concern the type
-of batch. For the first draw they are equally likely (batch is selected at random), 
-but for the second draw, they are updated by the information on first draw via Bayes rule. 
-Updated probabilities of hypotheses are used in the total probability formula.
+Hint: This problem uses both Bayes' rule and Total Probability. The two hypotheses
+concern the type of batch. For the first draw the hypotheses are equally likely (the batch is
+selected at random), but for the second draw, the probabilities of hypotheses are updated
+by the information on the result of the first draw via Bayes rule. Updated probabilities of
+hypotheses are then used in the Total Probability Formula for the second draw.
 </instructions>
 
 ## Response
@@ -324,22 +360,46 @@ conforming and non-conforming samples respectively.
 The problem description indicates that
 $P(B_1) = P(B_2) = 0.5, P(C=1|B_1)=1, P(C=1|B_2)=0.8$,
 where the $P(B_1), P(B_2)$ terms represent prior probabilities.
-Then, we formulate the posterior probability $P(B_1|C)$ as follows.
+
+The prior probability $P(C=1)$ is as follows.
 
 $$
 \begin{array}{lcl}
-P(B_1|C) & = & \frac{P(C=1|B_1) P(B_1)}{P(C=1|B_1) P(B_1) + P(C=1|B_2) P_0(B_2)} \\
+P(C=1) & = & P(C=1|B_1) P(B_1) + P(C=1|B_2) P(B_2) \\
+& = & (1) (\frac{1}{2}) + (0.8) (\frac{1}{2}) \\
+& = & 0.5 + 0.4 \\
+& = & 0.9.
+\end{array}
+$$
+
+After we see that $C=1$ for the first selection,
+we formulate the posterior probability $P(B_1|C=1)$ as follows.
+
+
+<hide>
+$$
+\begin{array}{lcl}
+P(B_1|C=1) & = & \frac{P(C=1|B_1) P(B_1)}{P(C=1|B_1) P(B_1) + P(C=1|B_2) P(B_2)} \\
 & = & \frac{(1)(0.5)}{(1)(0.5)+(0.8)(0.5)} \\
 & = & \frac{0.5}{0.5+0.4} = \frac{5}{9} \approx 0.555.
 \end{array}
 $$
-
-Then we can calculate $P(C=1)$ as follows.
+</hide>
 
 $$
 \begin{array}{lcl}
-P_1(C=1) & = & P(C=1|B_1) P_1(B_1) + P(C=1|B_2) P_1(B_2) \\
-& = & P(C=1|B_1) P_1(B_1) + P(C=1|B_2) (1 - P_1(B_1)) \\
+P(B_1|C=1) & = & \frac{P(C=1|B_1) P(B_1)}{P(C=1)} \\
+& = & \frac{(1)(0.5)}{0.9} \\
+& \approx & 0.555.
+\end{array}
+$$
+
+Then we can update $P(C=1)$ as follows.
+
+$$
+\begin{array}{lcl}
+P(C=1) & = & P(C=1|B_1) P(B_1) + P(C=1|B_2) P(B_2) \\
+& = & P(C=1|B_1) P(B_1) + P(C=1|B_2) (1 - P(B_1)) \\
 & = & (1) (\frac{5}{9}) + (0.8) (1 - (\frac{5}{9})) \\
 & = & \frac{41}{45} \approx 0.911.
 \end{array}
@@ -347,6 +407,9 @@ $$
 
 <response>
 Finally, we find that $P(C=0) = 1 - P_1(C=1) = \frac{4}{45} \approx 0.089$.
+This the updated probability that a product is found non-conforming
+(i.e. the probability that the second product is found non-conforming given
+that the first product is found conforming).
 </response>
 
 # 3. Classifier
@@ -357,7 +420,10 @@ Finally, we find that $P(C=0) = 1 - P_1(C=1) = \frac{4}{45} \approx 0.089$.
 In a machine learning classification procedure the items are classified as 1 or
 0. Based on a training sample of size 120 in which there are 65 1’s and 55 0’s, the classifier predicts 70 1’s and 50 0’s. Out of 70 items predicted by the classifier as 1, 52 are correctly classified.<br/><br/>
 From the population of items where the proportion of 0-labels is 99% (and 1-labels 1%),
-an item is selected at random. What is the probability that the item is of label 1, if the classifier says it was.
+an item is selected at random. What is the probability that the item is of label 1, if the classifier says it was.<br/><br/>
+Hint: Think about the following interpretation. If **$1$** is a specific disease present, **$0$** no
+disease present, and the classifier is a medical test for the disease, then you are asked to find a positive predictive value of a test for a subject coming from population where the
+prevalence of the disease is 1%.
 </instructions>
 
 ## Response
@@ -384,14 +450,14 @@ $$
 $$
 
 <hide>
-True Positive Rate (TPR) = Recall = Sensitivity = TP / (TP + FN)
-Specificity = TN / (FP + TN)
+Sensitivity = True Positive Rate (TPR) = TP / (TP + FN)
+Specificity = True Negative rate (TNR) = TN / (FP + TN)
 Positive predictive value (PPV) = TP / (TP + FP)
 Negative predictive value (PPV) = TN / (TN + FN)
 </hide>
 
 Given the problem setup, the cells of the table are as follows.
-(The instruction-provided numbers are emphasized. The other numbers represent "calculations".)
+(The instruction-provided numbers are emphasized. The other values represent numbers derived from the instruction-provided values.)
 
 $$
 \begin{array}{cc|cc|c} 
@@ -444,6 +510,10 @@ p_y1x0
 p_y0x1 <- fn / total
 p_y0x1
 
+acc <- sum(p_y1x1, p_y0x0)
+acc_inv <- sum(p_y1x0, p_y0x1)
+stopifnot(acc + acc_inv == 1)
+
 p_x1 <- ppv
 p_x0 <- 1 - p_x1
 a <- p_y1x1 * p_x1
@@ -463,12 +533,14 @@ The problem description indicates
 
 $$
 \begin{array}{l}
-P(X=0)=0.99, \\
-P(X=1)=0.01.
+P_{new}(X=0)=0.99, \\
+P_{new}(X=1)=0.01.
 \end{array}
 $$
 
-(Note that we would define
+We use the $_{new}$ subscript to indicate that the sample is the one where the prevalence of the disease is 1% (and don't use a subscript for the "original" population).
+
+Note that we would define
 
 $$
 \begin{array}{l}
@@ -477,9 +549,9 @@ P(X=1)=\frac{65}{120}=\frac{13}{24}
 \end{array}
 $$
 
-if we were to use the "original" population.)
+if we were to use the original population.
 
-Additionally, we identify the following.
+Additionally, we identify the following from the original population
 
 $$
 \begin{array}{l}
@@ -491,21 +563,21 @@ $$
 Next, let's create "placeholder" expressions $A, B$ (to simplify notation) as follows.
 
 $$
-A = P(Y=1|X=1) P(X=1) = (\frac{4}{5}) (0.01) = 0.008.
+A_{new} = P(Y=1|X=1) P_{new}(X=1) = (\frac{4}{5}) (0.01) = 0.008.
 $$
 
 and
 
 $$
-B = P(Y=1|X=0) P(X=0) = (\frac{18}{55}) (0.99) = 0.324.
+B_{new} = P(Y=1|X=0) P_{new}(X=0) = (\frac{18}{55}) (0.99) = 0.324.
 $$
 
 Then, using Bayes' formula, we have the following.
 
 $$
 \begin{array}{lcl}
-P(X=1|Y=1) & = & \frac{P(Y=1|X=1) P(X=1)}{P(Y=1|X=1) P(X=1) + P(Y=1|X=0) P(Y=1|X=0))} \\
-& = & \frac{A}{A+B} \\
+P_{new}(X=1|Y=1) & = & \frac{P(Y=1|X=1) P_{new}(X=1)}{P(Y=1|X=1) P_{new}(X=1) + P(Y=1|X=0) P_{new}(X=0))} \\
+& = & \frac{A_{new}}{A_{new}+B_{new}} \\
 & = & \frac{(0.008)}{(0.008)+(0.324)} \\
 & \approx & 0.02410.
 \end{array}
@@ -516,20 +588,30 @@ Thus, we have found that the probability that the item is of label 1 if the clas
 indicates that it is 1 is 0.02410.
 </response>
 
-Note that if we had used the "original" ratio of 0's and 1's, we would have found a very
-different answer.
+Note that if we had used the original sample, 
+we would have found a very different answer.
 
 $$
 A = P(Y=1|X=1) P(X=1) = (\frac{4}{5}) (\frac{13}{24}) = \frac{13}{30}.
 $$
 
 $$
-B = P(Y=1|X=0) P(X=0) = (\frac{18}{55}) (\frac{11}{24}) = \frac{3}{30}.
+B = P(Y=1|X=0) P(X=0) = (\frac{18}{55}) (\frac{11}{24}) = \frac{3}{20}.
 $$
 
 $$
 \begin{array}{lcl}
 P(X=1|Y=1) & = & \frac{A}{A+B} \\
-& \approx & 0.8125.
+& \approx & 0.7429.
 \end{array}
 $$
+
+This is equivalent to the positive predictive value (PPV), which can be
+calculated directly from the original table.
+
+$$
+PPV = TP / (TP + FP) = (52) / ((52 + 18)) = 52 / 70 \approx 0.7429.
+$$
+
+
+
