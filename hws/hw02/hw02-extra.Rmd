@@ -1,6 +1,22 @@
 
 <hide>
-Note that $n = 3$ here. Also, note that this prior is known as the Jeffrey's prior in the literature.
+$$
+\begin{array}{c}
+T_1, T_2, T_3 \sim \mathcal{E}(\lambda)
+\end{array}
+$$
+</hide>
+
+<hide>
+First, we note that the sum of exponentials can be modeled as a $\mathcal{Ga}$ distribution.
+
+$$
+\begin{array}{c}
+\sum_{i=1}^{n} T_i \sim \mathcal{Ga}(n, \lambda)
+\end{array}
+$$
+
+Note that $n = 3$ here.
 </hide>
 
 <hide>

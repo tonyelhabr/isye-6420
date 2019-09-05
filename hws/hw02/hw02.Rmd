@@ -468,6 +468,10 @@ $$
 
 ## b.
 
+<hide>
+Best reference:
++ PDF page 50 of http://springer.bme.gatech.edu/solbook.pdf
+</hide
 
 <hide>
 Reference(s):
@@ -478,26 +482,43 @@ Reference(s):
 
 
 The instructions indicate that we are trying to estimate the rate 
-$T_1, \dots, T_n \sim \mathcal{E}(\lambda)$ given the prior 
-$\pi(\lambda) = \frac{1}{\sqrt{\lambda}}, \lambda > 0$. 
+$T_1, \dots, T_n \sim \mathcal{E}(\theta)$ given the prior 
+$\pi(\lambda) = \theta = \frac{1}{\sqrt{\lambda}} = \lambda^{-0.5}, \lambda > 0$. 
+
+
+Thus, we have the following problem setup.
 
 $$
-\begin{array}{c}
-X_1, X_2, X_3 \sim \mathcal{E}(\lambda)
+\begin{array}{rcccc}
+\text{ Likelihood } & : & f(t|\theta) & \sim & \theta^n e^{-\theta\sum_{i=1}^{n} x_i} \\
+\text{ Prior } & : & \pi(\lambda) = \theta & \sim & \lambda^{-1/2} \\
 \end{array}
 $$
 
+Then, 
+
 $$
-\begin{array}{c}
-\sum_{i=1}^{n=3} X_i \sim \mathcal{Ga}(n=3, \lambda)
+\begin{array}{ccccc}
+\text{ Posterior } & \propto & \text{ Likelihood } & \times & \text{ Prior } \\
+\pi(\theta|t) & \propto & f(t|\theta) & \times &  \theta \\
+& \propto & \theta^n e^{-\theta \sum_{i=1}^{n=3} t_i} & \times & \lambda^{-0.5} \\
+& \propto & \lambda^{n-0.5} e^{-\theta \sum_{i=1}^{n} t_i} \\
+& \propto & \lambda^{(n+0.5)-1} e^{-\theta \sum_{i=1}^{n} t_i}.
 \end{array}
 $$
 
 
+Thus, we see that the posterior follows a $\mathcal{Ga}{\alpha, \beta)$ distribution
+with $\alpha=n+0.5, \beta=\sum_{i=1}^{n} t_i$. Given that $n=3$ and $\sum_{i=1}^{n} t_i = 24$, we can say that posterior is $\mathcal{Ga}(3.5, 24)$.
+
+We can go further with this result and calculate the posterior mean and variance.
+
 $$
-\begin{array}{rclcl}
-\text{ Likelihood } & : & x | \lambda & \sim & \lambda^n e^{-\lambda \sum_{i=1}^{n=3} x_i} \\
-\text{ Prior } & : & \lambda & \sim & \frac{1}{\sqrt{\lambda}} \\
-\text{ Posterior } & : & \lambda | x & \sim & 
+\begin{array}{rcl}
+\operatorname{E}[T|\alpha, \beta] & = & \frac{\alpha}{\beta} = \frac{3.5}{24} = \frac{7}{48} \approx 0.1458. \\
+\operatorname{Var}(T|\alpha, \beta) & = & \frac{\alpha}{\beta^2} = \frac{3.5}{24^2} \approx 0.0061.
 \end{array}
 $$
+
+We note that the posterior mean is relatively close to the MLE estimate $\frac{1}{8}$.
+

@@ -82,9 +82,9 @@ the Rayleigh random variable $R$ has a density
 </instructions>
 
 $$
-\begin{align}{c}
+\begin{array}{c}
 f(r) = \xi r \text{ exp } \{ \frac{-\xi r^2}{2} \}, \quad r \geq 0, \xi > 0.
-\end{align}
+\end{array}
 $$
 
 <instructions>
@@ -95,13 +95,40 @@ independent and normally distributed.<br/>
 Show that the posterior is gamma $\mathcal{Ga}(2, \lambda+\frac{r^2}{2})$.<br/>
 (b) Assume that $R_1 = 3, R_2 = 4, R_3 = 2, and R_4 = 5$ are Rayleigh-distributed
 random observations representing the distance of a dart from the center. Find the posterior
-in this case for the same prior form (a), and give a Bayesian estimate of $\xi$.
+in this case for the same prior from (a), and give a Bayesian estimate of $\xi$.
 (c) Numerically find 95% Credible Set for $\xi$.
 Hint: In (b) show that if $R_1, R_2, \dots, r_n$ are observed, and the prior on $\xi$ is exponential $\mathcal{E}(\lambda)$,
 the the posterior is gamma $\mathcal{Ga}(n+1, \lambda+\frac{1}{2}\sum_{i=1}^{n} r_i^2)$.
 </instructions>
 
 ## Response
+
+### a
+
+$$
+\begin{array}{rcccc}
+\text{ Likelihood } & : & f(r|\xi) & \sim & \xi r e^{-(\xi r^2)/2} \\
+\text{ Prior } & : & \xi & \sim & \lambda e^{-\lambda} \\
+\end{array}
+$$
+
+Then, 
+
+
+$$
+\begin{array}{ccccc}
+\text{ Posterior } & \propto & \text{ Likelihood } & \times & \text{ Prior } \\
+\pi(\theta|t) & \propto & f(r|\xi) & \times &  \xi \\
+& \propto & \xi r e^{-(\xi r^2)/2} & \times & \lambda e^{-\lambda} \\
+& \propto & \lambda \xi e^{-(((\xi r^2)/2) + \lambda)} 
+\end{array}
+$$
+
+
+
+
+
+
 
 # 2. Estimating Chemotherapy Response Rates
 

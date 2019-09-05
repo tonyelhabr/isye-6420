@@ -478,12 +478,12 @@ hide {
 <div id="response" class="section level2">
 <h2>Response</h2>
 <p><hide> Reference(s): + 2018f-hw02-q1: Cell Clusters in 3D Petri Dishes + Also, 2019s-hw02-q1: Left-Handed Twins </hide></p>
-<p>Let <span class="math inline">\(X\)</span> represent the number of cell clusters. The instructions indicate that <span class="math inline">\(X \sim \operatorname{Pois}(\lambda=5)\)</span>. Thus the probability mass function (pmf) <span class="math inline">\(f(x)\)</span> of <span class="math inline">\(X\)</span> is as follows.</p>
+<p>Let <span class="math inline">\(X\)</span> represent the number of cell clusters. The instructions indicate that <span class="math inline">\(X \sim \operatorname{Pois}(\lambda=5)\)</span>. Thus the probability mass function (PMF) <span class="math inline">\(f(x)\)</span> of <span class="math inline">\(X\)</span> is as follows.</p>
 <p><span class="math display">\[
 f(x) = \frac{\lambda{x} e^{-\lambda}}{x!} = \frac{5^{x} e^{-5}}{x!}.
 \]</span></p>
 <p>Note that <span class="math inline">\(f(x) = P(X = x)\)</span>.</p>
-<p>The cumulative distribution function (cdf) <span class="math inline">\(F(x)\)</span> of <span class="math inline">\(X\)</span> is as follows.</p>
+<p>The cumulative distribution function (CDF) <span class="math inline">\(F(x)\)</span> of <span class="math inline">\(X\)</span> is as follows.</p>
 <p><span class="math display">\[
 F(x) = e^{-\lambda} \sum_{k=0}^{x} \frac{\lambda^k}{k!} = e^{-5} \sum_{k=0}^{x} \frac{5^k}{k!}.
 \]</span></p>
@@ -491,7 +491,7 @@ F(x) = e^{-\lambda} \sum_{k=0}^{x} \frac{\lambda^k}{k!} = e^{-5} \sum_{k=0}^{x} 
 <p>Now we address each part of the instructions.</p>
 <div id="a" class="section level3">
 <h3>(a)</h3>
-<p>We use the pdf to find the percentage of Petri dishes having 0 clusters.</p>
+<p>We use the PDF to find the percentage of Petri dishes having 0 clusters.</p>
 <p><span class="math display">\[
 P(X = 0)=\frac{5^{0} e^{-5}}{0!} = e^{-5} = 0.0067
 \]</span></p>
@@ -519,7 +519,7 @@ P(X \geq 1)= 1 - P(X = 0) = 1 - (e^{-5}) = 0.9933
 </div>
 <div id="c" class="section level3">
 <h3>(c)</h3>
-<p>To find the percentage of Petri dishes having more than 8 clusters, we use the cdf.</p>
+<p>To find the percentage of Petri dishes having more than 8 clusters, we use the CDF.</p>
 <p><span class="math display">\[
 P(X &gt; 8) = 1 - P(X \leq 8) = 1 - (e^{-5} \sum_{k=0}^{8} \frac{5^{k}}{k!}).
 \]</span></p>
@@ -531,7 +531,7 @@ P(X &gt; 8) = 1 - P(X \leq 8) = 1 - (e^{-5} \sum_{k=0}^{8} \frac{5^{k}}{k!}).
 </div>
 <div id="d" class="section level3">
 <h3>(d)</h3>
-<p>Finally, to find the percentage of Petri dishes having between 4 and 6 clusters inclusive, we use the difference in cdfs. (Note that we must be careful with the lower bound 4, which we want to include.)</p>
+<p>Finally, to find the percentage of Petri dishes having between 4 and 6 clusters inclusive, we use the difference in CDFs. (Note that we must be careful with the lower bound 4, which we want to include.)</p>
 <p><span class="math display">\[
 P(4 \leq X \leq 6) = P(X \leq 6) - P(X &lt; 3) = (e^{-5} \sum_{k=0}^{6} \frac{5^{k}}{k!}) - (e^{-5} \sum_{k=0}^{3} \frac{5^{k}}{k!}) = e^{-5} \sum_{k=4}^{6} \frac{5^{k}}{k!}.
 \]</span></p>
@@ -551,7 +551,7 @@ P(4 \leq X \leq 6) = P(X \leq 6) - P(X &lt; 3) = (e^{-5} \sum_{k=0}^{6} \frac{5^
 <div id="response-1" class="section level2">
 <h2>Response</h2>
 <p><hide> Reference(s): + self </hide></p>
-<p>The instructions indicate that <span class="math inline">\(T \sim \mathcal{E}(1/\lambda=1/10)\)</span>. (Note that <span class="math inline">\(\lambda\)</span> represents a rate. It is like the inverse of <span class="math inline">\(\lambda\)</span> for the Poisson distribution.) The probability density function (pdf) and cdf are as follows. (Note that pdf is appropriate for continuous distrubitons, while pmf is appropriate for discrete distrubitions.)</p>
+<p>The instructions indicate that <span class="math inline">\(T \sim \mathcal{E}(1/\lambda=1/10)\)</span>. (Note that <span class="math inline">\(\lambda\)</span> represents a rate. It is like the inverse of <span class="math inline">\(\lambda\)</span> for the Poisson distribution.) The probability density function (PDF) and CDF are as follows. (Note that the PDF is appropriate for continuous distributions, while the PMF is appropriate for discrete distributions.)</p>
 <p><span class="math display">\[
 f(x) = \lambda e^{-\lambda x} = - \frac{1}{10} e^{-x/10}, x \geq 0.
 \]</span></p>
@@ -637,7 +637,7 @@ f_X(x) &amp; = &amp; \int_{x}^{\infty} \lambda^2 e^{-\lambda y} dy \\
 &amp; = &amp; \lambda e^{-\lambda x}
 \end{array}
 \]</span></p>
-<p>Note that the pdf of <span class="math inline">\(\mathcal{E}(\lambda)\)</span> is <span class="math inline">\(f(x) = \lambda e^{-\lambda x}\)</span>, which matches the result above.</p>
+<p>Note that the PDF of <span class="math inline">\(\mathcal{E}(\lambda)\)</span> is <span class="math inline">\(f(x) = \lambda e^{-\lambda x}\)</span>, which matches the result above.</p>
 </div>
 <div id="b-2" class="section level2">
 <h2>(b)</h2>
@@ -650,13 +650,13 @@ f_Y(y) &amp; = &amp; \int_{x0}^{y} \lambda^2 e^{-\lambda y} dx \\
 &amp; = &amp;\lambda^2 e^{-\lambda y} y
 \end{array}
 \]</span></p>
-<p>Note that general form of the pdf of <span class="math inline">\(\mathcal{G}a(\alpha,\beta)\)</span> is as follows.</p>
+<p>Note that general form of the PDF of <span class="math inline">\(\mathcal{G}a(\alpha,\beta)\)</span> is as follows.</p>
 <p><span class="math display">\[
 \begin{array}{l}
 f(x;\alpha,\beta) = P(x=X) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )} \quad x, \alpha ,\beta &gt; 0.
 \end{array}
 \]</span></p>
-<p>Then, if we substitute <span class="math inline">\(\lambda\)</span> for <span class="math inline">\(\beta\)</span> and 2 for <span class="math inline">\(\alpha\)</span>, and we evaluate the denominator as <span class="math inline">\(\Gamma(2) = (2 - 1)! = 1\)</span> (given the fact that <span class="math inline">\(\Gamma(n) = (n - 1)! \forall \mathbb{Z}^+\)</span>), then we see how the formulation above matches the distribution that we should see–<span class="math inline">\(\mathcal{Ga}(2,\lambda)\)</span>.</p>
+<p>Then, if we substitute <span class="math inline">\(\lambda\)</span> for <span class="math inline">\(\beta\)</span> and 2 for <span class="math inline">\(\alpha\)</span>, and we evaluate the denominator as <span class="math inline">\(\Gamma(2) = (2 - 1)! = 1\)</span> (given the fact that <span class="math inline">\(\Gamma(n) = (n - 1)! \quad \forall \mathbb{Z}^+\)</span>), then we see how the formulation above matches the distribution that we should see–<span class="math inline">\(\mathcal{Ga}(2,\lambda)\)</span>.</p>
 <p><span class="math display">\[
 \begin{array}{lcl}
 f(y) &amp; = &amp; \frac {\lambda^{2}y^{2-1}e^{-\lambda y}}{\Gamma(2)} \\
@@ -690,7 +690,7 @@ f_{X|Y}(x|y) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
 &amp; = &amp; \frac{1}{y}.
 \end{array}
 \]</span></p>
-<p>Note that the general form of the pdf of <span class="math inline">\(\mathcal{U}(a, b)\)</span> is <span class="math inline">\(\frac{1}{b-a}\)</span> (for <span class="math inline">\(x \in [a, b]\)</span>).</p>
+<p>Note that the general form of the PDF of <span class="math inline">\(\mathcal{U}(a, b)\)</span> is <span class="math inline">\(\frac{1}{b-a}\)</span> (for <span class="math inline">\(x \in [a, b]\)</span>), which matches the result above (if we substitute <span class="math inline">\(b=y\)</span> and <span class="math inline">\(a=0\)</span>).</p>
 </div>
 </div>
 <div id="nylon-fiber-continued" class="section level1">
@@ -710,30 +710,34 @@ f_{X|Y}(x|y) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
 </div>
 <div id="b." class="section level2">
 <h2>b.</h2>
-<p>The instructions indicate that we are trying to estimate the rate <span class="math inline">\(T_1, \dots, T_n \sim \mathcal{E}(\lambda)\)</span> given the prior <span class="math inline">\(\pi(\lambda) = \frac{1}{\sqrt{\lambda}}, \lambda &gt; 0\)</span>. Note that <span class="math inline">\(n = 3\)</span> here. Also, note that this prior is known as the Jeffrey’s prior in the literature.</p>
-<p><hide> Reference(s): + 2018f-hw02-q3: Exponential Lifetimes? + 2019s-hw02-q3: Weibull Lifetimes? + Exercises48: Histompatibility? + Exercises43 Bayes and Bats? </hide></p>
-<p><hide> We can infer that the posterior follows a <span class="math inline">\(\mathcal{Ga}\)</span> distribution, which can be expressed generally as follows.</p>
+<p><hide> Best reference: + PDF page 50 of <a href="http://springer.bme.gatech.edu/solbook.pdf" class="uri">http://springer.bme.gatech.edu/solbook.pdf</a> </hide> Reference(s): + 2018f-hw02-q3: Exponential Lifetimes? + 2019s-hw02-q3: Weibull Lifetimes? + Exercises48: Histompatibility? </hide></p>
+<p>The instructions indicate that we are trying to estimate the rate <span class="math inline">\(T_1, \dots, T_n \sim \mathcal{E}(\theta)\)</span> given the prior <span class="math inline">\(\pi(\lambda) = \theta = \frac{1}{\sqrt{\lambda}} = \lambda^{-0.5}, \lambda &gt; 0\)</span>.</p>
+<p>Thus, we have the following problem setup.</p>
 <p><span class="math display">\[
-\begin{array}{l}
-f(x;\alpha,\beta) = P(x=X) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )} \quad x, \alpha ,\beta &gt; 0.
-\end{array}
-\]</span> </hide></p>
-<p><strong>FIXME</strong></p>
-<p>We can infer that the posterior <span class="math inline">\(\pi(\lambda|x)\)</span> = follows a <span class="math inline">\(\mathcal{Ga}\)</span> distribution because the likelihood <span class="math inline">\(f(x|\lambda)\)</span> and the prior <span class="math inline">\(\pi(\lambda)\)</span> are <span class="math inline">\(\mathcal{Poi}\)</span>, and their product looks is proportional to a <span class="math inline">\(\mathcal{Ga}\)</span> distribution.</p>
-<p><span class="math display">\[
-\begin{array}{l}
-\pi(\lambda) = \frac{\lambda^{x}}{x!} (e^{-\lambda}) \\
-f(x|\lambda) = \frac{\lambda^{\sum_{i=1}^{3} X_i}}{x!} (e^{-3\lambda})
+\begin{array}{rcccc}
+\text{ Likelihood } &amp; : &amp; f(t|\theta) &amp; \sim &amp; \theta^n e^{-\theta\sum_{i=1}^{n} x_i} \\
+\text{ Prior } &amp; : &amp; \pi(\lambda) = \theta &amp; \sim &amp; \lambda^{-1/2} \\
 \end{array}
 \]</span></p>
+<p>Then,</p>
 <p><span class="math display">\[
-\begin{array}{lcl}
-\pi(\lambda|x) &amp; \propto &amp; f(x|\lambda) \pi(\lambda) \\
-&amp; = &amp; (\lambda e^{-\lambda})
+\begin{array}{ccccc}
+\text{ Posterior } &amp; \propto &amp; \text{ Likelihood } &amp; \times &amp; \text{ Prior } \\
+\pi(\theta|t) &amp; \propto &amp; f(t|\theta) &amp; \times &amp;  \theta \\
+&amp; \propto &amp; \theta^n e^{-\theta \sum_{i=1}^{n=3} t_i} &amp; \times &amp; \lambda^{-0.5} \\
+&amp; \propto &amp; \lambda^{n-0.5} e^{-\theta \sum_{i=1}^{n} t_i} \\
+&amp; \propto &amp; \lambda^{(n+0.5)-1} e^{-\theta \sum_{i=1}^{n} t_i}.
 \end{array}
 \]</span></p>
-<p>The</p>
-<p>The Bayes estimator is equivalent to the posterior mean, which is <span class="math inline">\(\operatorname{E}[X] = \frac{\alpha}{\beta}\)</span>.</p>
+<p>Thus, we see that the posterior follows a <span class="math inline">\(\mathcal{Ga}{\alpha, \beta)\)</span> distribution with <span class="math inline">\(\alpha=n+0.5, \beta=\sum_{i=1}^{n} t_i\)</span>. Given that <span class="math inline">\(n=3\)</span> and <span class="math inline">\(\sum_{i=1}^{n} t_i = 24\)</span>, we can say that posterior is <span class="math inline">\(\mathcal{Ga}(3.5, 24)\)</span>.</p>
+<p>We can go further with this result and calculate the posterior mean and variance.</p>
+<p><span class="math display">\[
+\begin{array}{rcl}
+\operatorname{E}[T|\alpha, \beta] &amp; = &amp; \frac{\alpha}{\beta} = \frac{3.5}{24} = \frac{7}{48} \approx 0.1458. \\
+\operatorname{Var}(T|\alpha, \beta) &amp; = &amp; \frac{\alpha}{\beta^2} = \frac{3.5}{24^2} \approx 0.0061.
+\end{array}
+\]</span></p>
+<p>We note that the posterior mean is relatively close to the MLE estimate <span class="math inline">\(\frac{1}{8}\)</span>.</p>
 </div>
 </div>
 
