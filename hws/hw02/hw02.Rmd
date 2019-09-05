@@ -468,57 +468,36 @@ $$
 
 ## b.
 
-The instructions indicate that we are trying to estimate the rate 
-$T_1, \dots, T_n \sim \mathcal{E}(\lambda)$ given the prior 
-$\pi(\lambda) = \frac{1}{\sqrt{\lambda}}, \lambda > 0$. 
-Note that $n = 3$ here. Also, note that this prior is known as the Jeffrey's prior in the literature.
 
 <hide>
 Reference(s):
 + 2018f-hw02-q3: Exponential Lifetimes?
 + 2019s-hw02-q3: Weibull Lifetimes?
 + Exercises48: Histompatibility?
-+ Exercises43 Bayes and Bats?
 </hide>
 
 
-<hide>
-We can infer that the posterior follows a $\mathcal{Ga}$ distribution,
-which can be expressed generally as follows.
+The instructions indicate that we are trying to estimate the rate 
+$T_1, \dots, T_n \sim \mathcal{E}(\lambda)$ given the prior 
+$\pi(\lambda) = \frac{1}{\sqrt{\lambda}}, \lambda > 0$. 
 
 $$
-\begin{array}{l}
-f(x;\alpha,\beta) = P(x=X) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )} \quad x, \alpha ,\beta > 0.
-\end{array}
-$$
-</hide>
-
-**FIXME**
-
-We can infer that the posterior $\pi(\lambda|x)$ = follows a $\mathcal{Ga}$ distribution
-because the likelihood $f(x|\lambda)$ and the prior $\pi(\lambda)$ are $\mathcal{Poi}$, and
-their product looks is proportional to a $\mathcal{Ga}$ distribution.
-
-$$
-\begin{array}{l}
-\pi(\lambda) = \frac{\lambda^{x}}{x!} (e^{-\lambda}) \\
-f(x|\lambda) = \frac{\lambda^{\sum_{i=1}^{3} X_i}}{x!} (e^{-3\lambda})
+\begin{array}{c}
+X_1, X_2, X_3 \sim \mathcal{E}(\lambda)
 \end{array}
 $$
 
 $$
-\begin{array}{lcl}
-\pi(\lambda|x) & \propto & f(x|\lambda) \pi(\lambda) \\
-& = & (\lambda e^{-\lambda})
+\begin{array}{c}
+\sum_{i=1}^{n=3} X_i \sim \mathcal{Ga}(n=3, \lambda)
 \end{array}
 $$
 
 
-The
-
-The Bayes estimator is equivalent to the posterior mean, which is
-$\operatorname{E}[X] = \frac{\alpha}{\beta}$.
-
-
-
-
+$$
+\begin{array}{rclcl}
+\text{ Likelihood } & : & x | \lambda & \sim & \lambda^n e^{-\lambda \sum_{i=1}^{n=3} x_i} \\
+\text{ Prior } & : & \lambda & \sim & \frac{1}{\sqrt{\lambda}} \\
+\text{ Posterior } & : & \lambda | x & \sim & 
+\end{array}
+$$

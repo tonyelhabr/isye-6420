@@ -1,0 +1,57 @@
+
+<hide>
+Note that $n = 3$ here. Also, note that this prior is known as the Jeffrey's prior in the literature.
+</hide>
+
+<hide>
+We first note that the $\mathcal{E}(\lambda)$ distribution can be written 
+as a $\mathcal{Ga}(\alpha, \beta)$ distribution
+with $\alpha=1, \beta=\lambda$.
+$$
+\begin{array}{l}
+f(\alpha,\beta) =\frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )} \quad x, \alpha ,\beta > 0.
+\end{array}
+$$
+</hide>
+
+<hide>
+We can infer that the posterior follows a $\mathcal{Ga}$ distribution.
+The PDF of the $\mathcal{Ga}$ distribution
+can be expressed generally as follows.
+
+$$
+\begin{array}{l}
+f(x;\alpha,\beta) = P(x=X) = \frac{\beta^{\alpha }x^{\alpha -1}e^{-\beta x}}{\Gamma(\alpha )} \quad x, \alpha ,\beta > 0.
+\end{array}
+$$
+
+Above $\alpha$ represents the shape parameter 
+and $\beta$ represents the rate parameter.
+
+</hide>
+
+**FIXME**
+
+We can infer that the posterior $\pi(\lambda|x)$ follows a $\mathcal{Ga}$ distribution
+because the likelihood $f(x|\lambda)$ and the prior $\pi(\lambda)$ are $\mathcal{Poi}$, and
+their product looks is proportional to a $\mathcal{Ga}$ distribution.
+
+$$
+\begin{array}{l}
+\pi(\lambda) = \frac{\lambda^{x}}{x!} (e^{-\lambda}) \\
+f(x|\lambda) = \frac{\lambda^{\sum_{i=1}^{3} X_i}}{x!} (e^{-3\lambda})
+\end{array}
+$$
+
+$$
+\begin{array}{lcl}
+\pi(\lambda|x) & \propto & f(x|\lambda) \pi(\lambda) \\
+& = & (\lambda e^{-\lambda})
+\end{array}
+$$
+
+
+The
+
+The Bayes estimator is equivalent to the posterior mean, which is
+$\operatorname{E}[X] = \frac{\alpha}{\beta}$.
