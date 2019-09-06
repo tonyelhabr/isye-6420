@@ -1,0 +1,5 @@
+model {
+	x ~ dbin(p, n)
+	p ~ dbeta(alpha, beta)
+	h_1 <- step(2/3 - p)
+}

@@ -470,14 +470,14 @@ $$
 
 <hide>
 Best reference:
-+ PDF page 50 of http://springer.bme.gatech.edu/solbook.pdf
++ PDF page ~58 (PRBLEM 8.3) of http://springer.bme.gatech.edu/solbook.pdf
 </hide
 
 <hide>
 Reference(s):
 + 2018f-hw02-q3: Exponential Lifetimes?
 + 2019s-hw02-q3: Weibull Lifetimes?
-+ Exercises48: Histompatibility?
++ Exercises48: Histcoompatibility?
 </hide>
 
 
@@ -502,23 +502,22 @@ $$
 \text{ Posterior } & \propto & \text{ Likelihood } & \times & \text{ Prior } \\
 \pi(\theta|t) & \propto & f(t|\theta) & \times &  \theta \\
 & \propto & \theta^n e^{-\theta \sum_{i=1}^{n=3} t_i} & \times & \lambda^{-0.5} \\
-& \propto & \lambda^{n-0.5} e^{-\theta \sum_{i=1}^{n} t_i} \\
-& \propto & \lambda^{(n+0.5)-1} e^{-\theta \sum_{i=1}^{n} t_i}.
+& \propto & \lambda^{n-0.5} \theta^n e^{-\theta \sum_{i=1}^{n} t_i} \\
+& \propto & \lambda^{(n+0.5)-1} \theta^n e^{-\theta \sum_{i=1}^{n} t_i}.
 \end{array}
 $$
 
 
-Thus, we see that the posterior follows a $\mathcal{Ga}{\alpha, \beta)$ distribution
+Thus, we see that the posterior follows a $\mathcal{Ga}(\alpha, \beta)$ distribution
 with $\alpha=n+0.5, \beta=\sum_{i=1}^{n} t_i$. Given that $n=3$ and $\sum_{i=1}^{n} t_i = 24$, we can say that posterior is $\mathcal{Ga}(3.5, 24)$.
 
-We can go further with this result and calculate the posterior mean and variance.
+We can go further with this result and calculate the posterior mean.
 
 $$
 \begin{array}{rcl}
-\operatorname{E}[T|\alpha, \beta] & = & \frac{\alpha}{\beta} = \frac{3.5}{24} = \frac{7}{48} \approx 0.1458. \\
-\operatorname{Var}(T|\alpha, \beta) & = & \frac{\alpha}{\beta^2} = \frac{3.5}{24^2} \approx 0.0061.
+\operatorname{E}[T|\alpha, \beta] & = & \frac{\alpha}{\beta} = \frac{3.5}{24} = \frac{7}{48} \approx 0.1458.
 \end{array}
 $$
 
-We note that the posterior mean is relatively close to the MLE estimate $\frac{1}{8}$.
+We note that the posterior mean is relatively close to the MLE estimate $\frac{1}{8} = 0.125$.
 

@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="aelhabr3" />
@@ -228,7 +229,7 @@ a.sourceLine { text-indent: -1em; padding-left: 1em; }
 pre.numberSource a.sourceLine
   { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(title);
+  { content: attr(data-line-number);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
     border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
@@ -282,7 +283,7 @@ code span.wa { color: #008000; font-weight: bold; } /* Warning */
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -325,9 +326,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type="text/css">
 .main-container {
@@ -358,8 +357,6 @@ summary {
 </style>
 
 
-
-<div class="container-fluid main-container">
 
 <!-- tabsets -->
 
@@ -417,20 +414,17 @@ summary {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
 
 
 
@@ -440,7 +434,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">ISYE 6420: Homework 2</h1>
-<h4 class="author"><em>aelhabr3</em></h4>
+<h4 class="author">aelhabr3</h4>
 
 </div>
 
@@ -496,9 +490,9 @@ F(x) = e^{-\lambda} \sum_{k=0}^{x} \frac{\lambda^k}{k!} = e^{-5} \sum_{k=0}^{x} 
 P(X = 0)=\frac{5^{0} e^{-5}}{0!} = e^{-5} = 0.0067
 \]</span></p>
 <p>We can check this number using <code>R</code> as follows.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">l &lt;-<span class="st"> </span><span class="dv">5</span></a>
-<a class="sourceLine" id="cb1-2" title="2">p_q1a &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">0</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T)</a>
-<a class="sourceLine" id="cb1-3" title="3">p_q1a</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">l &lt;-<span class="st"> </span><span class="dv">5</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">p_q1a &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">0</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">p_q1a</a></code></pre></div>
 <pre><code>## [1] 0.006737947</code></pre>
 <p><response> Thus, we find that the percentage is 100 * 0.0067 = 0.6738%. </response></p>
 </div>
@@ -509,11 +503,11 @@ P(X = 0)=\frac{5^{0} e^{-5}}{0!} = e^{-5} = 0.0067
 P(X \geq 1)= 1 - P(X = 0) = 1 - (e^{-5}) = 0.9933
 \]</span></p>
 <p>Again, we can check our number with <code>R</code>.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>p_q1a</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>p_q1a</a></code></pre></div>
 <pre><code>## [1] 0.9932621</code></pre>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="co"># Or</span></a>
-<a class="sourceLine" id="cb5-2" title="2">p_q1b &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">0</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> F)</a>
-<a class="sourceLine" id="cb5-3" title="3">p_q1b</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co"># Or</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">p_q1b &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">0</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> F)</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">p_q1b</a></code></pre></div>
 <pre><code>## [1] 0.9932621</code></pre>
 <p><response> Thus, we find that the percentage is 99.3262%. </response></p>
 </div>
@@ -524,8 +518,8 @@ P(X \geq 1)= 1 - P(X = 0) = 1 - (e^{-5}) = 0.9933
 P(X &gt; 8) = 1 - P(X \leq 8) = 1 - (e^{-5} \sum_{k=0}^{8} \frac{5^{k}}{k!}).
 \]</span></p>
 <p>Let’s use <code>R</code> to calculate this (since writing out all of the individual terms in the sum would be tedious).</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">p_q1c &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">8</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> F)</a>
-<a class="sourceLine" id="cb7-2" title="2">p_q1c</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">p_q1c &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">8</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> F)</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">p_q1c</a></code></pre></div>
 <pre><code>## [1] 0.06809363</code></pre>
 <p><response> We find that the percentage is 6.8094%. </response></p>
 </div>
@@ -535,8 +529,8 @@ P(X &gt; 8) = 1 - P(X \leq 8) = 1 - (e^{-5} \sum_{k=0}^{8} \frac{5^{k}}{k!}).
 <p><span class="math display">\[
 P(4 \leq X \leq 6) = P(X \leq 6) - P(X &lt; 3) = (e^{-5} \sum_{k=0}^{6} \frac{5^{k}}{k!}) - (e^{-5} \sum_{k=0}^{3} \frac{5^{k}}{k!}) = e^{-5} \sum_{k=4}^{6} \frac{5^{k}}{k!}.
 \]</span></p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">p_q1d &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">6</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T) <span class="op">-</span><span class="st"> </span><span class="kw">ppois</span>(<span class="dv">4</span> <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T)</a>
-<a class="sourceLine" id="cb9-2" title="2">p_q1d</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">p_q1d &lt;-<span class="st"> </span><span class="kw">ppois</span>(<span class="dv">6</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T) <span class="op">-</span><span class="st"> </span><span class="kw">ppois</span>(<span class="dv">4</span> <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">lambda =</span> l, <span class="dt">lower.tail =</span> T)</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">p_q1d</a></code></pre></div>
 <pre><code>## [1] 0.4971575</code></pre>
 <p><response> We find that the percentage is 49.7158%. </response></p>
 </div>
@@ -565,24 +559,24 @@ F(x) = 1 - e^{-\lambda x} = 1 - e^{-x/10}, x \geq 0.
 P(X &gt; 10) = 1 - P(X \leq 10) = 1 - (1 - e^{-(10)/(10)}) = e^{-1} = 0.3679.
 \]</span></p>
 <p>We can check this with <code>R</code>.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">exp</span>(<span class="op">-</span><span class="dv">1</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="kw">exp</span>(<span class="op">-</span><span class="dv">1</span>)</a></code></pre></div>
 <pre><code>## [1] 0.3678794</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="co"># Or</span></a>
-<a class="sourceLine" id="cb13-2" title="2">l &lt;-<span class="st"> </span><span class="dv">10</span></a>
-<a class="sourceLine" id="cb13-3" title="3">r &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">/</span><span class="st"> </span>l</a>
-<a class="sourceLine" id="cb13-4" title="4">p_q2a &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">10</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a>
-<a class="sourceLine" id="cb13-5" title="5">p_q2a</a></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="co"># Or</span></a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">l &lt;-<span class="st"> </span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">r &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">/</span><span class="st"> </span>l</a>
+<a class="sourceLine" id="cb13-4" data-line-number="4">p_q2a &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">10</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a>
+<a class="sourceLine" id="cb13-5" data-line-number="5">p_q2a</a></code></pre></div>
 <pre><code>## [1] 0.3678794</code></pre>
 <p><response> The probability is 0.3679. </response></p>
 </div>
 <div id="b-1" class="section level3">
 <h3>(b)</h3>
 <p>We find the probability that a run lasts less than 15 hours as follows.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pexp</span>(<span class="dv">15</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pexp</span>(<span class="dv">15</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a></code></pre></div>
 <pre><code>## [1] 0.7768698</code></pre>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="co"># Or</span></a>
-<a class="sourceLine" id="cb17-2" title="2">p_q2b &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">15</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> T)</a>
-<a class="sourceLine" id="cb17-3" title="3">p_q2b</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="co"># Or</span></a>
+<a class="sourceLine" id="cb17-2" data-line-number="2">p_q2b &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">15</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> T)</a>
+<a class="sourceLine" id="cb17-3" data-line-number="3">p_q2b</a></code></pre></div>
 <pre><code>## [1] 0.7768698</code></pre>
 <p><response> The probability is 0.7769. </response></p>
 </div>
@@ -595,11 +589,11 @@ P(X &gt; 10) = 1 - P(X \leq 10) = 1 - (1 - e^{-(10)/(10)}) = e^{-1} = 0.3679.
 P(X &gt; 20 | X &gt; 10) = P(X &gt; 10) = e^{-10/10} = e^{-1} = 0.3679.
 \]</span></p>
 <p>Checking with <code>R</code>, we find the following.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1"><span class="kw">exp</span>(<span class="op">-</span><span class="dv">1</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="kw">exp</span>(<span class="op">-</span><span class="dv">1</span>)</a></code></pre></div>
 <pre><code>## [1] 0.3678794</code></pre>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" title="1"><span class="co"># Or </span></a>
-<a class="sourceLine" id="cb21-2" title="2">p_q2c &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">20</span> <span class="op">-</span><span class="st"> </span><span class="dv">10</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a>
-<a class="sourceLine" id="cb21-3" title="3">p_q2c</a></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="co"># Or </span></a>
+<a class="sourceLine" id="cb21-2" data-line-number="2">p_q2c &lt;-<span class="st"> </span><span class="kw">pexp</span>(<span class="dv">20</span> <span class="op">-</span><span class="st"> </span><span class="dv">10</span>, <span class="dt">rate =</span> r, <span class="dt">lower.tail =</span> F)</a>
+<a class="sourceLine" id="cb21-3" data-line-number="3">p_q2c</a></code></pre></div>
 <pre><code>## [1] 0.3678794</code></pre>
 <p><response> The probability is 0.3679. </response></p>
 </div>
@@ -627,7 +621,7 @@ f(x,y) =
 <p><instructions> Show that:<br /> (a) marginal distribution <span class="math inline">\(f_X(x)\)</span> is exponential <span class="math inline">\(\mathcal{E}(\lambda)\)</span>.<br /> (b) marginal distribution <span class="math inline">\(f_Y(y)\)</span> is Gamma <span class="math inline">\(\mathcal{G}a(2,\lambda)\)</span>.<br /> (c) conditional distribution <span class="math inline">\(f(y|x)\)</span> is shifted exponential <span class="math inline">\(f(y|x) = \lambda e^{-\lambda(y-x)}\)</span>, <span class="math inline">\(y \geq x\)</span>.<br /> (d) conditional distribution <span class="math inline">\(f(x|y)\)</span> is uniform <span class="math inline">\(\mathcal{U}(0,y)\)</span>. <instructions></instructions></p>
 <div id="a-2" class="section level2">
 <h2>(a)</h2>
-<p><hide> Reference(s): + <a href="https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy" class="uri">https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy</a> </hide></p>
+<p><hide> Reference(s): + <a href="https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy">https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy</a> </hide></p>
 <p><span class="math display">\[
 \begin{array}{lcll}
 f_X(x) &amp; = &amp; \int_{x}^{\infty} \lambda^2 e^{-\lambda y} dy \\
@@ -641,7 +635,7 @@ f_X(x) &amp; = &amp; \int_{x}^{\infty} \lambda^2 e^{-\lambda y} dy \\
 </div>
 <div id="b-2" class="section level2">
 <h2>(b)</h2>
-<p><hide> Reference(s): + <a href="https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx" class="uri">https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx</a> </hide></p>
+<p><hide> Reference(s): + <a href="https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx">https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7B0%7D%5E%7By%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddx</a> </hide></p>
 <p><span class="math display">\[
 \begin{array}{lcl}
 f_Y(y) &amp; = &amp; \int_{x0}^{y} \lambda^2 e^{-\lambda y} dx \\
@@ -677,7 +671,7 @@ f_{Y|X}(y|x) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_X(x)} \\
 &amp; = &amp; \lambda e^{-\lambda (y - x)}.
 \end{array}
 \]</span></p>
-<p>(Note that we are being “verbose” by writing <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> in the subscript of terms that involve both, e.g. <span class="math inline">\(f_{X,Y}(x,y)\)</span> instead of just <span class="math inline">\(f(x,y)\)</span>.)</p>
+<p>(Note that we are being “verbose” by writing <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> in the subscript of terms that involve both, e.g. <span class="math inline">\(f_{X,Y}(x,y)\)</span> instead of just <span class="math inline">\(f(x,y)\)</span>.)</p>
 </div>
 <div id="d-1" class="section level2">
 <h2>(d)</h2>
@@ -710,7 +704,7 @@ f_{X|Y}(x|y) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
 </div>
 <div id="b." class="section level2">
 <h2>b.</h2>
-<p><hide> Best reference: + PDF page 50 of <a href="http://springer.bme.gatech.edu/solbook.pdf" class="uri">http://springer.bme.gatech.edu/solbook.pdf</a> </hide> Reference(s): + 2018f-hw02-q3: Exponential Lifetimes? + 2019s-hw02-q3: Weibull Lifetimes? + Exercises48: Histompatibility? </hide></p>
+<p><hide> Best reference: + PDF page ~58 (PRBLEM 8.3) of <a href="http://springer.bme.gatech.edu/solbook.pdf" class="uri">http://springer.bme.gatech.edu/solbook.pdf</a> </hide> Reference(s): + 2018f-hw02-q3: Exponential Lifetimes? + 2019s-hw02-q3: Weibull Lifetimes? + Exercises48: Histcoompatibility? </hide></p>
 <p>The instructions indicate that we are trying to estimate the rate <span class="math inline">\(T_1, \dots, T_n \sim \mathcal{E}(\theta)\)</span> given the prior <span class="math inline">\(\pi(\lambda) = \theta = \frac{1}{\sqrt{\lambda}} = \lambda^{-0.5}, \lambda &gt; 0\)</span>.</p>
 <p>Thus, we have the following problem setup.</p>
 <p><span class="math display">\[
@@ -725,19 +719,18 @@ f_{X|Y}(x|y) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
 \text{ Posterior } &amp; \propto &amp; \text{ Likelihood } &amp; \times &amp; \text{ Prior } \\
 \pi(\theta|t) &amp; \propto &amp; f(t|\theta) &amp; \times &amp;  \theta \\
 &amp; \propto &amp; \theta^n e^{-\theta \sum_{i=1}^{n=3} t_i} &amp; \times &amp; \lambda^{-0.5} \\
-&amp; \propto &amp; \lambda^{n-0.5} e^{-\theta \sum_{i=1}^{n} t_i} \\
-&amp; \propto &amp; \lambda^{(n+0.5)-1} e^{-\theta \sum_{i=1}^{n} t_i}.
+&amp; \propto &amp; \lambda^{n-0.5} \theta^n e^{-\theta \sum_{i=1}^{n} t_i} \\
+&amp; \propto &amp; \lambda^{(n+0.5)-1} \theta^n e^{-\theta \sum_{i=1}^{n} t_i}.
 \end{array}
 \]</span></p>
-<p>Thus, we see that the posterior follows a <span class="math inline">\(\mathcal{Ga}{\alpha, \beta)\)</span> distribution with <span class="math inline">\(\alpha=n+0.5, \beta=\sum_{i=1}^{n} t_i\)</span>. Given that <span class="math inline">\(n=3\)</span> and <span class="math inline">\(\sum_{i=1}^{n} t_i = 24\)</span>, we can say that posterior is <span class="math inline">\(\mathcal{Ga}(3.5, 24)\)</span>.</p>
-<p>We can go further with this result and calculate the posterior mean and variance.</p>
+<p>Thus, we see that the posterior follows a <span class="math inline">\(\mathcal{Ga}(\alpha, \beta)\)</span> distribution with <span class="math inline">\(\alpha=n+0.5, \beta=\sum_{i=1}^{n} t_i\)</span>. Given that <span class="math inline">\(n=3\)</span> and <span class="math inline">\(\sum_{i=1}^{n} t_i = 24\)</span>, we can say that posterior is <span class="math inline">\(\mathcal{Ga}(3.5, 24)\)</span>.</p>
+<p>We can go further with this result and calculate the posterior mean.</p>
 <p><span class="math display">\[
 \begin{array}{rcl}
-\operatorname{E}[T|\alpha, \beta] &amp; = &amp; \frac{\alpha}{\beta} = \frac{3.5}{24} = \frac{7}{48} \approx 0.1458. \\
-\operatorname{Var}(T|\alpha, \beta) &amp; = &amp; \frac{\alpha}{\beta^2} = \frac{3.5}{24^2} \approx 0.0061.
+\operatorname{E}[T|\alpha, \beta] &amp; = &amp; \frac{\alpha}{\beta} = \frac{3.5}{24} = \frac{7}{48} \approx 0.1458.
 \end{array}
 \]</span></p>
-<p>We note that the posterior mean is relatively close to the MLE estimate <span class="math inline">\(\frac{1}{8}\)</span>.</p>
+<p>We note that the posterior mean is relatively close to the MLE estimate <span class="math inline">\(\frac{1}{8} = 0.125\)</span>.</p>
 </div>
 </div>
 
@@ -758,6 +751,23 @@ $(document).ready(function () {
 
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

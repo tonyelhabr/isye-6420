@@ -103,6 +103,12 @@ the the posterior is gamma $\mathcal{Ga}(n+1, \lambda+\frac{1}{2}\sum_{i=1}^{n} 
 
 ## Response
 
+$$
+\begin{array}{c}
+\mathcal{Ga}(2, \lambda+\frac{r^2}{2})
+\end{array}
+$$
+
 ### a
 
 $$
@@ -368,6 +374,28 @@ model {
 # data
 list(alpha = 0.72, beta = 0.18, x = 22, n = 30)
 ```
+
+```{r}
+# R2OpenBUGS::validateInstallOpenBUGS()
+x <- dbinom(0.5, 100)
+data <- list('x', 'n', 'p', 'h_1')
+inits <- function() {
+  list(alpha = 0.72, beta = 0.18, x = 22, n = 30)
+}
+res_sim <- R2OpenBUGS::bugs(
+  data = data,
+  inits = inits,
+  model.file = 'hw03-q2.txt',
+  # n.chains = 1,
+  n.chains = 3,
+  n.iter = 2000,
+  n.burnin = 1000,
+  n.thin = 1
+)
+res_sim
+```
+
+
 
 The output is 
 
