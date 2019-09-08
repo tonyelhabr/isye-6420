@@ -1,8 +1,9 @@
 ---
 title: 'ISYE 6420: Homework 3'
-author: ''
+author: 'aelhabr3'
 output:
   html_document:
+    css: ../styles_hw.css
     theme: cosmo
     highlight: haddock
     toc: false
@@ -44,31 +45,6 @@ format_num <- function(x, digits = 4) {
 }
 ```
 
-<style type="text/css">
-body, td {
-  font-size: 14px;
-}
-code.r {
-  font-size: 12px;
-}
-/* General customization. */
-pre {
-  font-size: 12px;
-}
-ref {
-  font-style: italic;
-}
-instructions {
-  font-style: italic;
-}
-response {
-  font-weight: bold;
-}
-hide {
-  display: none;
-}
-</style>
-
 # 1. Estimating the Precision Parameter of a Rayleigh Distribution.
 
 ## Instructions
@@ -93,47 +69,128 @@ in a dart-throwing game where the deviations in the two dimensions of the target
 independent and normally distributed.<br/>
 (a) Assume that the prior on $\xi$ is exponential with the rate parameter $\lambda$.
 Show that the posterior is gamma $\mathcal{Ga}(2, \lambda+\frac{r^2}{2})$.<br/>
-(b) Assume that $R_1 = 3, R_2 = 4, R_3 = 2, and R_4 = 5$ are Rayleigh-distributed
+(b) Assume that $R_1 = 3, R_2 = 4, R_3 = 2$, and $R_4 = 5$ are Rayleigh-distributed
 random observations representing the distance of a dart from the center. Find the posterior
-in this case for the same prior from (a), and give a Bayesian estimate of $\xi$.
-(c) Numerically find 95% Credible Set for $\xi$.
+in this case for the same prior from (a), and give a Bayesian estimate of $\xi$. <br />
+(c) For $\lambda = 1$, Numerically find 95% Credible Set for $\xi$. <br /> <br />
 Hint: In (b) show that if $R_1, R_2, \dots, r_n$ are observed, and the prior on $\xi$ is exponential $\mathcal{E}(\lambda)$,
 the the posterior is gamma $\mathcal{Ga}(n+1, \lambda+\frac{1}{2}\sum_{i=1}^{n} r_i^2)$.
 </instructions>
 
 ## Response
 
-$$
-\begin{array}{c}
-\mathcal{Ga}(2, \lambda+\frac{r^2}{2})
-\end{array}
-$$
 
 ### a
 
-$$
-\begin{array}{rcccc}
-\text{ Likelihood } & : & f(r|\xi) & \sim & \xi r e^{-(\xi r^2)/2} \\
-\text{ Prior } & : & \xi & \sim & \lambda e^{-\lambda} \\
-\end{array}
-$$
-
-Then, 
-
+Since we know that the population is
+distributed as $f(r) = \xi r e^{-(\xi r^2)/2}$, we
+can say that the likelihood is
 
 $$
-\begin{array}{ccccc}
-\text{ Posterior } & \propto & \text{ Likelihood } & \times & \text{ Prior } \\
-\pi(\theta|t) & \propto & f(r|\xi) & \times &  \xi \\
-& \propto & \xi r e^{-(\xi r^2)/2} & \times & \lambda e^{-\lambda} \\
-& \propto & \lambda \xi e^{-(((\xi r^2)/2) + \lambda)} 
+\begin{array}{rcl}
+\sum_{i=1}^{n} f(r_i)
+& = & \xi r_1 e^{-\frac{1}{2} \xi r_1} + \ldots + \xi r_n e^{-\frac{1}{2} \xi r_n} \\
+& \propto & \xi e^{-\frac{1}{2} \xi r_1} + \ldots + \xi e^{-\frac{1}{2} \xi r_n} \\
+& \propto & \xi e^{-\frac{1}{2}\xi \sum_{i=1}^n r^2}.
 \end{array}
 $$
 
 
+Given that the prior $\pi(\lambda) = \lambda e^{-\lambda}$ (because it follows the distribution $\mathcal{Exp}(\lambda)$), we deduce that the
+posterior is
 
+$$
+\begin{array}{rcl}
+\text{ posterior }  & = & \text{ likelihood } \times \text{ prior } \\
+& = & \xi^n \lambda e^{-\xi(\lambda + \frac{1}{2} \sum_{i=1}^n r_i^2)} \\
+& \propto & \xi^n  e^{-\xi(\lambda + \frac{1}{2} \sum_{i=1}^n r_i^2)}
+\end{array}
+$$
 
+The above expression is the kernel for the distribution $\mathcal{Ga}(n+1, \lambda+\frac{1}{2}\sum_{i=1}^{n} r_i^2)$.
+(This is what is indicated by the hint).
 
+<response>
+Then, for the case of $n=1$, we see that $\mathcal{Ga}(2, \lambda+\frac{1}{2} r^2)$.
+</response>
+
+### b
+
+Using the general form of the posterior shown above with 
+$n=4$ and $\sum_{i=1}^{n} r_i^2 = 3^2 + 4^2 + 2^2 + 5^2) = 54$, 
+<response>
+we find that the posterior is
+</response>
+$$
+\begin{array}{c}
+\mathcal{Ga}((4)+1, \lambda+\frac{1}{2}(54)) = \mathcal{Ga}(5, \lambda + 27).
+\end{array}
+$$
+
+The Bayesian estimate of $\xi$ is simply the expected value of the parameter under the posterior distribution.
+
+We note that if $X \sim \mathcal{Ga}(\alpha, \beta)$, then
+
+$$
+\begin{array}{c}
+\operatorname{E}(X) = \frac{\alpha}{\beta}.
+\end{array}
+$$
+
+Thus, given that $\xi \sim \mathcal{Ga}(5, \lambda + 27)$, we find that
+
+$$
+\begin{array}{c}
+\xi_{Bayes} = \operatorname{E}(\xi) = \frac{5}{\lambda + 27}.
+\end{array}
+$$
+
+### c
+
+The equitailed credible set $C$ is based on the posterior distribution.
+This means that the set $C = [L, U]$ contains the true
+parameter $1-\alpha$ probability.
+Here, the parameter is $\xi$ and $\alpha=0.05$.
+
+Formally, an equitailed credible set is calculated as follows.
+
+$$
+\begin{array}{c}
+\int_{-\infty}^{L} \pi(p|x) dp \leq \frac{\alpha}{2}, 
+\int_{U}^{+\infty} \pi(p|x) dp \leq \frac{\alpha}{2} \\
+\text{ s.t. }
+\Pr(p \in \left[L, U\right] | X) \geq 1 - \alpha
+\end{array}
+$$
+
+We can calculate the 95% equitailed credibe set in `R` (given $\lambda = 1$) as follows.
+
+```{r hw03-q1-c-1, include=T, echo=T, eval=T}
+compute_credible_set <- function(alpha, beta, level = 0.95) {
+  q_buffer <- (1 - level) / 2
+  q_l <- (1 - level) - q_buffer
+  q_u <- level + q_buffer
+  res <-
+    c(
+      l = qbeta(q_l, shape1 = alpha, shape2 = beta),
+      u = qbeta(q_u, shape1 = alpha, shape2 = beta)
+    )
+}
+alpha_1 <- 5
+lambda_1 <- 1
+beta_1 <- lambda_1 + 27
+credible_set_1 <- compute_credible_set(alpha_1, beta_1)
+credible_set_1
+```
+
+```{r hw03-q1-c-2, include=F, echo=F, eval=T}
+credible_set_chr_1 <- format_num(credible_set_1)
+credible_set_chr_1
+```
+
+<response>
+We find that the 95% credible set is [`r credible_set_chr_1[1]`, `r credible_set_chr_1[2]`)].
+</response>
 
 
 # 2. Estimating Chemotherapy Response Rates
@@ -146,9 +203,8 @@ and that it is unlikely that this proportion will be below 80%.
 Elicit a beta prior on proportion that models the oncologist’s beliefs.<br/><br/>
 Hint: For elicitation of the prior use $\mu = 0.9, \mu − 2 \sigma = 0.8$ 
 and expressions for $\mu$ and $\sigma$. for beta.<br/><br/>
-During the trial, in 30 patients treated, 22 responded.
-(a) What are the likelihood and posterior distributions? What is the Bayes estimator of
-the proportion?<br/>
+During the trial, in 30 patients treated, 22 responded. <br/>
+(a) What are the likelihood and posterior distributions? What is the Bayes estimator of the proportion?<br/>
 (b) Using Octave, R, or Python, fine 95% Credible Set for $p$. <br/>
 (c) Using Octave, R, or Python, test the hypothesis $H_0 : p \geq 2/3$ against the alternative $H_1 : p < 2/3$. <br/>
 (d) Using WinBUGS, find the Bayes estimator, Credible Set and test, and compare results
@@ -167,19 +223,15 @@ Bayes -> 2018f-hw03-q1-iii
 
 ## Response
 
-### a
+First, we elicit a Beta prior according to the instructions.
 
-The expectation of a beta $\mathcal{Be}$ distribution 
+The expectation of a Beta distribution $\mathcal{Be}(\alpha, \beta)$
 for some random variable $X$ is $\operatorname{E}[X] = \frac{\alpha}{\alpha+\beta}$.
 Given $\mu = 0.9, \mu − 2 \sigma = 0.8$, 
 we can use algebra (or "trial and error")
 to find that $\alpha = 0.72, \beta = 0.25 \alpha = 0.18$.
 
-<hide>
-the variance is $\operatorname{Var}(X) = \frac{\alpha \beta}{(\alpha + \beta)^2 (\alpha + \beta + 1)}$
-</hide>
-
-We can verify that these values are valid with `R`.
+We can verify that values with `R`.
 
 ```{r hw03-q2-a-1, include=T, echo=T, eval=T}
 alpha_0 <- 0.72
@@ -191,73 +243,113 @@ mu_0 <- compute_beta_mu(alpha_0, beta_0)
 mu_0
 ```
 
-<hide>next, dwarf plants</hide>
+### a
 
 Given the problem statement, 
 <response>
-we deduce the likelihood follows a binomial $\mathcal{Bin}$ distribution
-We can model the likelihood distribution as follows.
+we deduce the likelihood follows a binomial $\mathcal{Bin}(n, p)$ distribution.
 </response>
 
 $$
 \begin{array}{c}
-X \sim \mathcal{Bin}(n, k) \\
-f_x(x|p) = \left( \begin{array}{c} n \\ k \end{array} \right) p^{x} (1 - p)^{n-k}
+X \sim \mathcal{Bin}(n, p) \\
+f(x|p) = \left( \begin{array}{c} n \\ x \end{array} \right) p^{x} (1 - p)^{n-x}
 \end{array}
 $$
 
-The posterior distribution, $\pi (p | x)$,
-is proportional to the product of the likelihood, $f_X(x|p)$, 
-and the prior distribution, $\pi(p)$. Therefore, we have
+And, given $n=30$ patients, $x=22$ of whom responded, the likelihood is
+
+$$
+\begin{array}{c}
+f(x|p) = \left( \begin{array}{c} 30 \\ 22 \end{array} \right) p^{22} (1 - p)^{8}.
+\end{array}
+$$
+
+
+The posterior distribution $\pi (p | x)$
+is proportional to the product of the likelihood $f(x|p)$
+and the prior distribution $\pi(p)$.
 
 $$
 \begin{array}{lcl}
 \pi(p | x) & \propto & f(x | p) \pi(p) \\
-& = & p^{x}(1-p)^{n-x}
+& \propto & p^{x}(1-p)^{n-x}
 \end{array}
 $$
 
-<hide>next, continue dwarf plants</hide>
+Next, we note that the general form the Beta distribution is
 
-...
+$$
+\begin{array}{c}
+X \sim \mathcal{Be}(\alpha, \beta) \\
+f(x)=\frac{1}{\operatorname{B}(\alpha,\beta)} x^{\alpha - 1} (1-x)^{\beta-1}
+\end{array}
+$$
 
+where $0 \leq x \leq 1, \alpha, \beta > 0$, $\operatorname{B}(\alpha,\beta) = \frac{\Gamma(\alpha) \Gamma(\beta)}{\Gamma(\alpha + \beta)}$ and $\Gamma(\alpha) = \int_{0}^{\infty} t^{\alpha-1} e^{-t} dt$.
+
+We can re-structure the posterior distribution
+to look like the general Beta distribution.
+
+$$
+\begin{array}{lcl}
+\pi(p | x) & \propto & p^{x}(1-p)^{n-x} \\
+& = & p^{(x+1)-1} (1-p)^{(n-x+1)-1}.
+\end{array}
+$$
+
+
+Then, defining $\alpha ^\prime = x + 1, \beta ^\prime = n - x + 1$,
 <response>
-Thus, the posterior distribution looks as follows.
+we write the posterior distribution as
 </response>
 
 $$
 \begin{array}{lcl}
-p|x & \sim & \mathcal{Be}(\alpha', \beta') \\
-& = & \mathcal{Be}(x + 1, n - x + 1)
+\pi(p|x) & \sim & \mathcal{Be}(\alpha ^\prime, \beta ^\prime) \\
+& \sim & \mathcal{Be}(x + 1, n - x + 1).
 \end{array}
 $$
 
+
+Finally, given $n=30,x=22$,
 <response>
-Given $n = 30$ patients and $x = 22$ who responded, we find that the posterior is
+we find that 
+the posterior distribution
 </response>
 
 $$
 \begin{array}{lcl}
-\mathcal{Be}(x + 1, N - x +1) & = & \mathcal{Be}(22 + 1, 30 - 22 + 1) \\
-& = &\mathcal{Be}(23, 9)
+\mathcal{Be}(x + 1, n - x +1) & = & \mathcal{Be}(22 + 1, 30 - 22 + 1) \\
+& = & \mathcal{Be}(23, 9).
+\end{array}
+$$
+
+The Bayes estimator of the proportion $p_{Bayes}$ is simply the expected value 
+of the parameter under the posterior distribution.
+
+We note that if $X \sim \mathcal{Be}(\alpha, \beta)$, then
+
+$$
+\begin{array}{c}
+\operatorname{E}(X) = \frac{\alpha}{\alpha+\beta}.
 \end{array}
 $$
 
 <response>
-The Bayes estimator of the proportion is simply the expected value 
-of the parameter under the posterior distribution, which
-is $\frac{23}{32} = 0.71875$.
+Thus, we find that
 </response>
 
 $$
 \begin{array}{lcl}
-\mathcal{Be}(23, 9) & = & \frac{(23)}{(23)+(9)} \\
+p_{Bayes} = \operatorname{E}(X) 
+& = & \frac{(23)}{(23)+(9)} \\
 & = & \frac{23}{32} \\
 & = & 0.71875.
 \end{array}
 $$
 
-We can verify the value of the posterior mean $\mu_1$ using `R`.
+We can verify the posterior mean $\mu_1$ using `R`.
 
 ```{r hw03-q2-a-2, include=T, echo=T, eval=T}
 n <- 30
@@ -268,46 +360,12 @@ mu_1 <- compute_beta_mu(alpha_1, beta_1)
 mu_1
 ```
 
-```{r hw03-q2-a-3, include=F, echo=F, eval=T}
-mu_1_chr <- format_num(mu_1, 5)
-mu_1_chr
-```
-
 ### b
 
-The 95% equitailed credible set is based on the posterior distribution.
-This means that the set $[q_{l}, q_{u}]$ contains the true
-proportion of patient who respond with 95% probability.
-
-In other words,
-
-$$
-\begin{array}{l}
-\int_{-\infty}^{q_{l}} \pi(p|x) dp \leq \frac{\alpha}{2}, 
-\int_{q_{u}}^{\infty} \pi(p|x) dp \leq \frac{\alpha}{2}
-\text{ s.t. }
-\Pr(p \in \left[q_{l}, q_{h}\right] | X) \geq 1 - \alpha
-\end{array}
-$$
-
-where $\alpha = 0.95$ here.
-
-<response>
-We can calculate the credible set using `R` as shown below.
-</response>
+We can calculate the 95% credible set using `R`
+(using the function created in 1(c)).
 
 ```{r hw03-q2-b-1, include=T, echo=T, eval=T}
-compute_credible_set <- function(alpha, beta, level = 0.95) {
-  q_buffer <- (1 - level) / 2
-  q_l <- (1 - level) - q_buffer
-  q_u <- level + q_buffer
-  res <-
-    c(
-      l = qbeta(q_l, shape1 = alpha, shape2 = beta),
-      u = qbeta(q_u, shape1 = alpha, shape2 = beta)
-    )
-}
-
 credible_set_1 <- compute_credible_set(alpha_1, beta_1)
 credible_set_1
 ```
@@ -317,7 +375,9 @@ credible_set_chr_1 <- format_num(credible_set_1)
 credible_set_chr_1
 ```
 
-We find that the 95% credible set is (`r credible_set_chr_1[1]`, `r credible_set_chr_1[2]`)
+<response>
+We find that the 95% credible set is [`r credible_set_chr_1[1]`, `r credible_set_chr_1[2]`].
+</response>
 
 ### c
 
@@ -329,84 +389,68 @@ qbeta(0.025, 137, 65) # `betainv(0.025,137,65)` in Matlab
 qbeta(0.975, 137, 65) # `betainv(0.975,137,65)` in Matlab
 ```
 
-To test the null hypothesis $H_0 : p \geq 2/3$ (against the alternative $H_1 : p < 2/3$),
-we calculate the posterior probability of $p \geq 2/3$ using `R` as follows.
+To test the null hypothesis $H_0 : p \geq 2/3$ against the alternative $H_1 : p < 2/3$,
+let's calculate the posterior probability of the alternative first (using `R`).
 
 ```{r hw03-q2-c-1, include=T, echo=T, eval=T}
-p_0 <- 2 / 3
-p_h <- pbeta(p_0, alpha_1, beta_1)
-p_h
+p_h1 <- 2 / 3
+p_h1 <- pbeta(p_h1, alpha_1, beta_1, lower.tail = TRUE)
+p_h1
 ```
 
 ```{r hw03-q2-c-2, include=F, echo=F, eval=T}
-p_h_chr <- format_num(p_h, 4)
-p_h_chr
-alpha_h <- 1 - p_h
-alpha_h_chr <- format_num(alpha_h, 4)
-alpha_h_chr
+p_h1_chr <- format_num(p_h1, 4)
+p_h1_chr
+p_h0 <- 1 - p_h1
+p_h0_chr <- format_num(p_h0, 4)
+p_h0_chr
 ```
 
-Analytically, the calculation looks as follows.
+Analytically, the calculation for $\Pr(H_1)$ looks as follows.
 
 $$
 \begin{array}{lcl}
-\Pr(p < 2/3) & = & \int_{0}^{2/3} \mathcal{Be}(23, 9) dp \\
+\Pr(H_1 : p < 2/3) & = & \int_{0}^{2/3} \mathcal{Be}(23, 9) dp \\
 & = & \frac{\Gamma(23 + 9)}{\Gamma(23) \Gamma(9)} \int_{0}^{2/3} p^{23-1}(1-p)^{9-1} dp \\
 & = & \frac{\Gamma(34)}{\Gamma(23) \Gamma(9)} \int_{0}^{2/3} p^{22}(1-p)^{10} dp \\
-& \approx & `r alpha_h_chr`.
+& \approx & `r p_h1_chr`.
 \end{array}
 $$
 
-Thus, at any significance level less than $\alpha \geq (1 - `r p_h_chr`) = `r alpha_h_chr`$,
-we do not reject the null hypothesis(?).
+Then we find that the probability of the null hypothesis is 
+
+$$
+\begin{array}{c}
+\Pr(H_0 : p \geq 2/3) = 1 - \Pr(H_1 : p < 2/3) = `r p_h0_chr`.
+\end{array}
+$$
+
+<response>
+Since we find that the null hypothesis has
+a probability greater than 0.5,
+we do not reject the null hypothesis (and, instead, reject the alternative hypothesis).
+</response>
+
+Note that Bayesian hypothesis testing is different than Frequentist hypothesis
+testing. Vidakovic explains in [***Engineering Biostatistics***](http://statbook.gatech.edu/statb4.pdf).
+
+> "In frequentist tests, it was customary to formulate $H_0$ as $H_0 : \theta = 0$ versus $H_1 : \theta > 0$ instead of $H_0 : \theta \leq 0$ versus $H_1 : \theta > 0$, as one might expect. The reason was that we calculated the p-value under the assumption that $H_0$ is true, and this is why a precise null hypothesis was needed.<br/> <br />"Bayesian testing is conceptually straightforward: The hypothesis with a higher posterior probability is favored. There is nothing special about the "null" hypothesis, and for a Bayesian, $H_0$ and $H_1$ are interchangeable."
 
 ### d
 
-WinBUGS code to evaluate each of the following answers may look as follows.
+Below is OpenBUGS code to evaluate each of the results found above.
 
-```
-model {
-	x ~ dbin(p, n)
-	p ~ dbeta(alpha, beta)
-	h_1 <- step(2/3 - p)
-}
+![](hw03-q2-openbugs-setup.PNG)
 
-# data
-list(alpha = 0.72, beta = 0.18, x = 22, n = 30)
-```
+Note the following about the implementation in OpenBUGS.
 
-```{r}
-# R2OpenBUGS::validateInstallOpenBUGS()
-x <- dbinom(0.5, 100)
-data <- list('x', 'n', 'p', 'h_1')
-inits <- function() {
-  list(alpha = 0.72, beta = 0.18, x = 22, n = 30)
-}
-res_sim <- R2OpenBUGS::bugs(
-  data = data,
-  inits = inits,
-  model.file = 'hw03-q2.txt',
-  # n.chains = 1,
-  n.chains = 3,
-  n.iter = 2000,
-  n.burnin = 1000,
-  n.thin = 1
-)
-res_sim
-```
++ Initial values were generated via "gen inits";
++ 1,000 burn-in samples were used;
++ 10,000 samples were used for estimation.
 
+The output is shown below.
 
-
-The output is 
-
-<hide>
-https://www.tablesgenerator.com/markdown_tables
-</hide>
-
-| node  | mean   | sd      | MC error | 2.5%   | median | 97.5%  | start | sample |
-|-------|--------|---------|----------|--------|--------|--------|-------|--------|
-| `h_1` | 0.1885 | 0.3911  | 0.001243 | 0.0    | 0.0    | 1.0    | 1     | 100000 |
-| `p`   | 0.7352 | 0.07807 | 2.517E-4 | 0.5693 | 0.7404 | 0.8719 | 1     | 100000 |
+![](hw03-q2-openbugs-results.PNG)
 
 The Bayes estimator corresponds to the mean of `p`, which is 0.7352.
 This is very close to the value that we found analytically---`r mu_1`.
@@ -417,6 +461,45 @@ These values are reasonably close to the values we found with `R`--`r credible_s
 
 The probability of the alternative hypothesis $H_1$ corresponds to the
 mean of the `h_1` variable---0.1885. This is relatively close to the
-value that we found with `R`---`r p_h_chr`.
+value that we found with `R`---`r p_h1_chr`.
+
+### Aside
+
+We can use the `R` package `{R2OpenBUGS}` to achieve the same results
+found directly in OpenBUGS.
+
+```{r hw03-q2-1, include=T, echo=T, eval=F}
+model <- function() {
+  x ~ dbin(p, n)
+	p ~ dbeta(alpha, beta)
+	h_1 <- step(2/3 - p)
+}
+data <- list(alpha = 0.72, beta = 0.18, x = 22, n = 30)
+inits <- NULL
+params <- c('h_1', 'p')
+res_sim <-
+  R2OpenBUGS::bugs(
+    data = data,
+    inits = inits,
+    model.file = model,
+    parameters.to.save = params,
+    DIC = FALSE,
+    n.chains = 1,
+    n.iter = 10000,
+    n.burnin = 1000
+  )
+res_sim$summary
+```
+
+```{r hw03-q2-1-hide, include=F, echo=F, eval=F}
+clipr::write_clip(knitr::kable(res_sim$summary))
+```
+
+|    |      mean|        sd|      2.5%|    25%|  50%|   75%|  97.5%|
+|:---|---------:|---------:|---------:|------:|----:|-----:|------:|
+|h_1 | 0.1955556| 0.3966498| 0.0000000| 0.0000| 0.00| 0.000| 1.0000|
+|p   | 0.7343966| 0.0781395| 0.5678975| 0.6837| 0.74| 0.791| 0.8697|
+
+
 
 

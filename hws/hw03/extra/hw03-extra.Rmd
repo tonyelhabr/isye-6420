@@ -1,0 +1,36 @@
+
+
+A known propery of the Rayleigh distribution 
+$R \sim \mathcal{Ra}(\sigma)$ is that $\sum_{i=1}^n R_i^2 \sim \mathcal{Ga}(n, 2 \sigma^2)$. Expressed in terms of $\xi$ instead of $\sigma$, this is simply $\mathcal{Ga}(n, \frac{2}{\xi})$. 
+The PDF of $\mathcal{Ga}(n, 2 \sigma^2)$ is proportional to 
+$(2 \sigma^2)^n e^{-(2 \sigma^2) \sum_{i=1}^n r_i}$, so we deduce that
+the PDF of $\mathcal{Ga}(n, \xi)$ is proportional
+to $\xi^n e^{\frac{1}{2} \xi \sum_{i=1}^n r^2}$.
+
+...
+
+$$
+\begin{array}{c}
+\mathcal{Ga}(2, \lambda+\frac{r^2}{2})
+\end{array}
+$$
+
+...
+
+$$
+\begin{array}{rcccc}
+\text{ Likelihood } & : & f(r|\xi) & \sim & \xi r e^{-(\xi r^2)/2} \\
+\text{ Prior } & : & \xi & \sim & \lambda e^{-\lambda} \\
+\end{array}
+$$
+
+Then,
+
+$$
+\begin{array}{ccccc}
+\text{ Posterior } & \propto & \text{ Likelihood } & \times & \text{ Prior } \\
+\pi(\theta|t) & \propto & f(r|\xi) & \times &  \xi \\
+& \propto & \xi r e^{-(\xi r^2)/2} & \times & \lambda e^{-\lambda} \\
+& \propto & \lambda \xi e^{-(((\xi r^2)/2) + \lambda)} 
+\end{array}
+$$

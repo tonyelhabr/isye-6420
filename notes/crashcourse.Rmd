@@ -109,7 +109,7 @@ $$
 \begin{array}{c}
 X \sim \mathcal{Bin}(n, p) \\
 f(x)=\left(\begin{array}{l}{n} \\ 
-{k}\end{array}\right) p^{X} q^{n-X}, k=0,1, \ldots, n \\
+{x}\end{array}\right) p^{X} q^{n-X}, k=0,1, \ldots, n \\
 \operatorname{E}[X]=n p, \\
 \operatorname{Var}(X)=n p q.
 \end{array}

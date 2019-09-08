@@ -3,6 +3,7 @@ title: 'ISYE 6420: Homework 1'
 author: 'aelhabr3'
 output:
   html_document:
+    css: ../styles_hw.css
     theme: cosmo
     highlight: haddock
     toc: false
@@ -43,31 +44,6 @@ format_num <- function(x, digits = 3) {
   sprintf(fmt, x)
 }
 ```
-
-<style type="text/css">
-body, td {
-  font-size: 14px;
-}
-code.r {
-  font-size: 12px;
-}
-/* General customization. */
-pre {
-  font-size: 12px;
-}
-ref {
-  font-style: italic;
-}
-instructions {
-  font-style: italic;
-}
-response {
-  font-weight: bold;
-}
-hide {
-  display: none;
-}
-</style>
 
 # 1. Circuit
 
@@ -533,7 +509,7 @@ The problem description indicates
 
 $$
 \begin{array}{l}
-P_{new}(X=0)=0.99, \\
+P_{new}(X=0)=0.99 \\
 P_{new}(X=1)=0.01.
 \end{array}
 $$
@@ -544,7 +520,7 @@ Note that we would define
 
 $$
 \begin{array}{l}
-P(X=0)=\frac{55}{120}=\frac{11}{24}, \\
+P(X=0)=\frac{55}{120}=\frac{11}{24} \\
 P(X=1)=\frac{65}{120}=\frac{13}{24}
 \end{array}
 $$
@@ -555,7 +531,7 @@ Additionally, we identify the following from the original population
 
 $$
 \begin{array}{l}
-P(Y=1|X=1) = \frac{52}{65} = \frac{4}{5}, \\
+P(Y=1|X=1) = \frac{52}{65} = \frac{4}{5} \\
 P(Y=1|X=0)=\frac{18}{55}.
 \end{array}
 $$

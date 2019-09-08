@@ -3,6 +3,7 @@ title: 'ISYE 6420: Homework 2'
 author: 'aelhabr3'
 output:
   html_document:
+    css: ../styles_hw.css
     theme: cosmo
     highlight: haddock
     toc: false
@@ -43,31 +44,6 @@ format_num <- function(x, digits = 4) {
   sprintf(fmt, x)
 }
 ```
-
-<style type="text/css">
-body, td {
-  font-size: 14px;
-}
-code.r {
-  font-size: 12px;
-}
-/* General customization. */
-pre {
-  font-size: 12px;
-}
-ref {
-  font-style: italic;
-}
-instructions {
-  font-style: italic;
-}
-response {
-  font-weight: bold;
-}
-hide {
-  display: none;
-}
-</style>
 
 # 1. Cell Clusters in 3D Petri Dishes
 

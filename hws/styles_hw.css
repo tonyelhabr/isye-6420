@@ -1,0 +1,50 @@
+
+body, td, blockquote {
+  font-size: 16px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+}
+code.r {
+  font-size: 12px;
+}
+img {
+  display: block;
+  margin: 0 auto;
+}
+.table {
+  width: 0%;
+  margin-left: auto;
+  margin-right: auto;
+}
+blockquote {
+  font-style: italic;
+}
+
+/* General customization. */
+pre {
+  font-size: 12px;
+}
+ref {
+  font-style: italic;
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+
+/* For HTML to PDF conversion (with chrome headless). */
+@media print {
+  @page {
+    margin: 0mm 0mm 0mm 0mm;
+    size:8in 9.5in;
+  }
+}

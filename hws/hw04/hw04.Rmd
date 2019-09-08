@@ -1,0 +1,335 @@
+---
+title: 'ISYE 6420: Homework 4'
+author: 'aelhabr3'
+output:
+  html_document:
+    css: ../styles_hw.css
+    theme: cosmo
+    highlight: haddock
+    toc: false
+---
+
+```{r setup, include=F, cache=F}
+knitr::opts_knit$set(root.dir = here::here())
+knitr::opts_chunk$set(
+  # rows.print = 25,
+  # rows.print = 25,
+  echo = TRUE,
+  # cache = FALSE,
+  cache = TRUE,
+  include = TRUE,
+  fig.show = "asis",
+  fig.align = "center",
+  fig.width = 8,
+  # size = "small",
+  fig.height = 5,
+  # fig.width = 5,
+  # out.width = 5,
+  # fig.asp = 0.75,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r postprocess, include=F, echo=F, cache=F}
+.path_sans_ext <- file.path('hws', 'hw02')
+.path_rmd <- paste0(.path_sans_ext, '.Rmd')
+# spelling::spell_check_files(.path_rmd)
+```
+
+```{r setup-1, include=F, echo=F, eval=T}
+library(tidyverse)
+format_num <- function(x, digits = 4) {
+  fmt <- sprintf("%%.%df", digits)
+  sprintf(fmt, x)
+}
+```
+
+# 1. Metropolis: The Bounded Normal Mean.
+
+## Instructions
+
+$$
+\begin{array}{c}
+\pi(\theta)=\frac{1}{m} \cos ^{2}\left( \frac{\pi \theta}{2 m}\right), \quad -m \leq \theta \leq m.
+\end{array}
+$$
+
+$$
+\begin{array}{c}
+f(y|\theta) \propto \sqrt{\tau} \text{ exp } \{ \frac{\tau}{2} (y - \theta) ^2 \},
+\end{array}
+$$
+
+## Response
+
+### a
+
+
+The target desnity function is $\pi(\theta|Y) = e ^ {-\theta (y^2 / 2 + 1)}$ and
+the proposal distribution uses the Bickel-Levit prior $\pi(\theta)$ with $m = 2$.
+The target probability $\rho$ is
+
+$$
+\begin{array}{c}
+\rho\left(\theta_{n}, \theta_{prop}\right)=
+\min \left\{1, \frac{\pi\left(\theta_{prop}\right)}{\pi\left(\theta_{n}\right)} \frac{q\left(\theta_{n} | \theta_{prop}\right)}{q\left(\theta_{prop} | \theta_{n}\right)}\right\}
+=\min \left\{1, \frac{e^{-3 \theta_{prop}}}{e^{-3 \theta_{n}}} \frac{q\left(\theta_{n} | \theta_{prop}\right)}{q\left(\theta_{prop} | \theta_{n}\right)}\right\}.
+\end{array}
+$$
+
+Note that we implement the Metropolis algorithm in the code as follows.
+
+1. Start with arbitary $\theta$. (Don't really have an idea of the form of support of the target; otherwise, would try to initialize $theta$ to be like the target.)
+
+2. At stage $n$, generate proposal $\theta_{prop}$ from $q(y|x_n)$.
+
+3. Define
+
+$$
+\theta_{n+1} = \begin{cases}
+\theta_{prop} & \text{ with probability } & \rho(\theta_{n}, \theta_{prop}), \\
+\theta_{n} & \text{ with probability } &  1 - \rho(\theta_{n}, \theta_{prop}).
+\end{cases}
+$$
+
+
+(Generate $U = \mathcal{U}(0, 1)$ and accept proposal $\theta_{prop}$ if $U \leq \rho(\theta_{n}, \theta_{prop})$.)
+
+4. Increase $n$ and go to Step 2.
+
+See the code below for the implementation.
+
+```{r hw04-q1-a}
+# vec_num_n <- vector(mode = 'numeric', length = n)
+bl <- function(theta, m) {
+  (1 / m) * (cos((pi * theta) / (2 * m))) ^ 2
+}
+
+rbl <- function(n, m) {
+  theta <- runif(n = n, min = -m, max = m)
+  bl(theta, m)
+}
+
+rbl_m2 <- purrr::partial(rbl, m = 2)
+
+# Constants.
+n_mcmc <- 10000
+n_burnin <- 500
+idx_final <- (n_burnin + 1):n_mcmc
+# # Or?
+# n_mcmc <- n_mcmc + n_burnin
+# idx_final <- (n_burnin + 1):n_mcmc
+
+tau <- 1 / 4
+
+# Data.
+# These are used to calculate the posterior likelihood, but not for MCMC.
+y <- c(-2, -3, 4, -7, 0, 4)
+y_sum <- sum(y)
+n_obs <- length(y)
+
+# Step 1: Start with arbitary $theta$. (Don't really have an idea of the form of support of the target; otherwise, would try to initialize $theta$ to be like the target.
+theta <- 1 # mean(y)
+
+# Output.
+cols_mat_mcmc <-  c('theta', 'theta_prop', 'r', 'rho', 'u', 'is_accepted')
+mat_mcmc <- matrix(nrow = n_mcmc, ncol = length(cols_mat_mcmc))
+colnames(mat_mcmc) <- cols_mat_mcmc
+
+for (1 in 1:n_mcmc) {
+  # Step 2.
+  theta_prop <- rbl(n = 1)
+  
+  # Step 3.
+  u <- runif(n = 1)
+  num <- 1 # tbd
+  den <- 1 # tbd
+  r <- num / den
+  rho <- min(1, r)
+  
+  # Step 4.
+  is_accepted <- 0
+  if(u <= rho) {
+    theta <- theta_prop
+    is_accepted <- 1
+  } else {
+    
+  }
+  mat_mcmc[i, ] <- c(theta, theta_prop, r, u, rho, is_accepted)
+}
+```
+
+
+
+# 2. Gibbs Sampler and High/Low Protein Diet in Rats.
+
+## Instructions
+
+## Response
+
+### a
+
+```{r hw04-q2-ab-1, include=T, echo=T, eval=T}
+library(tidyverse)
+compute_mu_new <- function(mu_i, tau_i, mu_0, tau_0, y_sum, n_obs) {
+   mu_tau_0 <- mu_0 * tau_0
+   mu_rnorm_num <- tau_i * y_sum + mu_tau_0
+   mu_rnorm_den <- tau_0 + n_obs * tau_i
+   mu_rnorm <- mu_rnorm_num / mu_rnorm_den
+   sigma2_rnorm <- 1 / (tau_0 + n_obs * tau_i)
+   sigma_rnorm <- sqrt(sigma2_rnorm)
+   rnorm(1, mu_rnorm, sigma_rnorm)
+}
+
+compute_tau_new <- function(mu_new, y, a_0, b_0, n_obs) {
+   shape_rgamma <- a_0 + 0.5 * n_obs
+   rate_rgamma  <- b_0 + 0.5 * sum((y - mu_new) ^ 2)
+   rgamma(1, shape = shape_rgamma, rate = rate_rgamma) 
+}
+
+# Constants.
+n_mcmc <- 10000
+n_burnin <- 500
+idx_final <- (n_burnin + 1):n_mcmc
+
+# Data.
+y_1 <- c(134, 146, 104, 119, 124, 161, 107, 107, 83, 113, 129, 97, 123)
+y_2 <- c(70, 118, 101, 85, 107, 132, 94)
+y_1_sum <- sum(y_1)
+y_2_sum <- sum(y_2)
+n_1_obs <- length(y_1)
+n_2_obs <- length(y_2)
+
+# Hypterparamters.
+theta_1_0 <- 110
+theta_2_0 <- theta_1_0
+tau_1_0 <- 1 / 100
+tau_2_0 <- tau_1_0
+a_1_0 <- 0.01
+a_2_0 <- a_1_0
+b_1_0 <- 4
+b_2_0 <- b_1_0
+
+# Initial values.
+theta_1_i <- mean(y_1) # theta_1_0
+theta_2_i <- mean(y_2) # theta_1_i
+tau_1_i <- 1 / sd(y_1) # tau_1_0
+tau_2_i <- 1 / sd(y_2) # tau_1_i
+
+# Output.
+cols_mat_mcmc <- c('theta_1', 'theta_2', 'tau_1', 'tau_2')
+mat_mcmc <- matrix(nrow = n_mcmc, ncol = length(cols_mat_mcmc))
+colnames(mat_mcmc) <- 
+for (i in 1:n_mcmc) {
+  theta_1_new <-
+    compute_mu_new(
+      mu_i = theta_1_i,
+      tau_i = tau_1_i,
+      mu_0 = theta_1_0,
+      tau_0 = tau_1_0,
+      y_sum = y_1_sum,
+      n_obs = n_1_obs
+    )
+  
+  theta_2_new <-
+    compute_mu_new(
+      mu_i = theta_2_i,
+      tau_i = tau_2_i,
+      mu_0 = theta_2_0,
+      tau_0 = tau_2_0,
+      y_sum = y_2_sum,
+      n_obs = n_2_obs
+    )
+  
+  tau_1_new <-
+    compute_tau_new(
+      mu_new = theta_1_new,
+      y = y_1,
+      a_0 = a_1_0,
+      b_0 = b_1_0,
+      n_obs = n_1_obs
+    )
+  
+  tau_2_new <-
+    compute_tau_new(
+      mu_new = theta_2_new,
+      y = y_2,
+      a_0 = a_2_0,
+      b_0 = b_2_0,
+      n_obs = n_2_obs
+    )
+  mat_mcmc[i, ] <- c(theta_1_new, theta_2_new, tau_1_new, tau_2_new)
+  
+  theta_1_i <- theta_1_new
+  tau_1_i <- tau_1_new
+  theta_2_i <- theta_2_new
+  tau_2_i <- tau_2_new
+  
+  if(i == n_mcmc) {
+    res <- tibble::as_tibble(mat_mcmc)
+  }
+}
+
+res_final <- res %>% dplyr::slice(idx_final)
+res_final
+```
+
+```{r hw04-q2-ab-2, include=F, echo=F, eval=F}
+summ_final <- 
+  res_final %>% 
+  summarise_all(mean)
+summ_final
+```
+
+### b
+
+```{r hw04-q2-b-1, include=T, echo=T, eval=T}
+res_final_calc <-
+  res_final %>%
+  mutate(
+    theta_diff = theta_1 - theta_2
+  ) %>% 
+  mutate(
+    h_0 = ifelse(theta_diff > 0, TRUE, FALSE)
+  )
+
+h_0_calc <-
+  res_final_calc %>% 
+  summarise(h_0 = sum(h_0), n = n()) %>% 
+  mutate(frac = h_0 / n)
+h_0_calc
+```
+
+### c
+
+```{r hw04-q2-c-0, include=F, echo=F, eval=F}
+# compute_equi_credible_set <- function(mu, sigma, level = 0.95) {
+#   alpha <- 1 - level
+#   alpha_half <- alpha / 2
+#   q_l <- alpha - alpha_half
+#   q_u <- level + alpha_half
+#   res <-
+#     c(
+#       l = qnorm(q_l, mean = mu, sd = sigma),
+#       u = qnorm(q_u, mean = mu, sd = sigma)
+#     )
+# }
+```
+
+```{r hw04-q2-c-1, include=T, echo=T, eval=T}
+equi_credible_set <-
+  res_final_calc %>% 
+  summarise(
+    mu = mean(theta_diff), 
+    sd = sd(theta_diff)
+  ) %>% 
+  mutate(
+    l = qnorm(0.025, mu, sd),
+    u = qnorm(0.975, mu, sd)
+  )
+equi_credible_set
+```
+
+
+
