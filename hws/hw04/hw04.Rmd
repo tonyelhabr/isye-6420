@@ -71,12 +71,26 @@ can be used to approximate a posterior distribution.
 
 <hide>
 NOTE TO SELF:
-target density function <-> posterior distribution
+target density function <-> posterior distribution <-> $\pi(\theta|\text{data})$ where $\theta = \theta^{\prime} \text{ or } \theta_{n}$ <- `f_pi()`
+proposal density <-> independence candidate density <-> $q(\theta_1|\theta_2)$ $\theta_1, \theta_2 = \theta^{\prime}, \theta_{n}$<- `dbl_m2()`
 </hide>
 
-The target density function here is $\pi(\theta|Y) = e ^ {-\theta (y^2 / 2 + 1)}$.
+Given  $\tau = \frac{1}{4}$, the posterior distribution $f(y|\theta)$,
+and $\bar{y} = \frac{1}{n} \sum_{i=1}^n} y_i = \frac{1}{6} (-6) = -1$,
+we can say that the target density function here is
+
+$$
+\begin{array}{rcl}
+\pi(\theta|Y) 
+& = & \sqrt{\tau} e ^ {-\frac{\tau}{2} (\hat{y} - \theta) ^2} \\
+& = & \sqrt {(\frac{1}{4})} e ^ {-\frac{(1/4)}{2} ((-1) - \theta) ^2 } \\
+& = & \frac{1}{2} e ^ {\frac{1}{8} (\theta - 1) ^2 } \\
+\end{array}
+$$
+
 The proposal distribution uses the Bickel-Levit prior $\pi(\theta)$ with $m = 2$.
 The target probability $\rho$ is
+
 
 $$
 \begin{array}{c}
@@ -110,9 +124,20 @@ See the code below for the implementation. (Note that `theta_prop` below represe
 $\theta^{\prime}$ in the formulations above.)
 
 ```{r hw04-q1-a}
-# vec_num_n <- vector(mode = 'numeric', length = n)
+tau <- 1 / 4
+.f_pi <- function(theta, tau) {
+  # sqrt(tau) * exp(0.5 * tau * (y - theta)^2)
+  sqrt(tau) * exp(0.5 * theta^2)
+}
+f_pi <- purrr::partial(.f_pi, tau = tau)
+
 bl <- function(theta, m) {
   (1 / m) * (cos((pi * theta) / (2 * m))) ^ 2
+}
+
+dbl <- function(theta, m) {
+  theta <- dunif(x = theta, min = -m, max = m)
+  bl(theta, m)
 }
 
 rbl <- function(n, m) {
@@ -120,7 +145,9 @@ rbl <- function(n, m) {
   bl(theta, m)
 }
 
+dbl_m2 <- purrr::partial(dbl, m = 2)
 rbl_m2 <- purrr::partial(rbl, m = 2)
+
 
 # Constants.
 n_mcmc <- 10000
@@ -130,8 +157,6 @@ idx_final <- (n_burnin + 1):n_mcmc
 # n_mcmc <- n_mcmc + n_burnin
 # idx_final <- (n_burnin + 1):n_mcmc
 
-tau <- 1 / 4
-
 # Data.
 # These are used to calculate the posterior likelihood, but not for MCMC.
 y <- c(-2, -3, 4, -7, 0, 4)
@@ -139,7 +164,7 @@ y_sum <- sum(y)
 n_obs <- length(y)
 
 # Step 1: Start with arbitary $theta$. (Don't really have an idea of the form of support of the target; otherwise, would try to initialize $theta$ to be like the target.
-theta <- 1 # mean(y)
+theta_current <- 1 # mean(y)
 
 # Output.
 cols_mat_mcmc <-  c('theta', 'theta_prop', 'r', 'rho', 'u', 'is_accepted')
@@ -148,24 +173,31 @@ colnames(mat_mcmc) <- cols_mat_mcmc
 
 for (1 in 1:n_mcmc) {
   # Step 2.
-  theta_prop <- rbl(n = 1)
+  theta_prop <- rbl_m2(n = 1)
   
   # Step 3.
+  q_theta_current <- dbl_m2(theta = theta_current)
+  q_theta_prop <- dbl_m2(theta = theta_prop)
+  
+  pi_current <- f_pi(theta = theta_current)
+  pi_prop <- f_pi(theta = theta_prop)
+  
+  ratio_num <- pi_prop * q_theta_current
+  ratio_den <- pi_current * q_theta_prop
+  ratio <- ratio_num / ratio_den
+    
   u <- runif(n = 1)
-  num <- 1 # tbd
-  den <- 1 # tbd
-  r <- num / den
-  rho <- min(1, r)
+  rho <- min(1, ratio)
   
   # Step 4.
   is_accepted <- 0
   if(u <= rho) {
-    theta <- theta_prop
+    theta_current <- theta_prop
     is_accepted <- 1
   } else {
     
   }
-  mat_mcmc[i, ] <- c(theta, theta_prop, r, u, rho, is_accepted)
+  mat_mcmc[i, ] <- c(theta_current, theta_prop, ratio, u, rho, is_accepted)
 }
 ```
 
