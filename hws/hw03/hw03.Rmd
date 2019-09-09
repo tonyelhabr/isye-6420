@@ -166,7 +166,7 @@ $$
 We can calculate the 95% equitailed credibe set in `R` (given $\lambda = 1$) as follows.
 
 ```{r hw03-q1-c-1, include=T, echo=T, eval=T}
-compute_credible_set <- function(alpha, beta, level = 0.95) {
+compute_equi_credible_set <- function(alpha, beta, level = 0.95) {
   q_buffer <- (1 - level) / 2
   q_l <- (1 - level) - q_buffer
   q_u <- level + q_buffer
@@ -179,7 +179,7 @@ compute_credible_set <- function(alpha, beta, level = 0.95) {
 alpha_1 <- 5
 lambda_1 <- 1
 beta_1 <- lambda_1 + 27
-credible_set_1 <- compute_credible_set(alpha_1, beta_1)
+credible_set_1 <- compute_equi_credible_set(alpha_1, beta_1)
 credible_set_1
 ```
 
@@ -366,7 +366,7 @@ We can calculate the 95% credible set using `R`
 (using the function created in 1(c)).
 
 ```{r hw03-q2-b-1, include=T, echo=T, eval=T}
-credible_set_1 <- compute_credible_set(alpha_1, beta_1)
+credible_set_1 <- compute_equi_credible_set(alpha_1, beta_1)
 credible_set_1
 ```
 

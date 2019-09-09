@@ -65,16 +65,24 @@ $$
 
 ### a
 
+As noted in the instructions, the posterior cannot be written easiliy
+in terms of "elementary" functions. Alternatively, the Metropolis algorithm
+can be used to approximate a posterior distribution.
 
-The target desnity function is $\pi(\theta|Y) = e ^ {-\theta (y^2 / 2 + 1)}$ and
-the proposal distribution uses the Bickel-Levit prior $\pi(\theta)$ with $m = 2$.
+<hide>
+NOTE TO SELF:
+target density function <-> posterior distribution
+</hide>
+
+The target density function here is $\pi(\theta|Y) = e ^ {-\theta (y^2 / 2 + 1)}$.
+The proposal distribution uses the Bickel-Levit prior $\pi(\theta)$ with $m = 2$.
 The target probability $\rho$ is
 
 $$
 \begin{array}{c}
-\rho\left(\theta_{n}, \theta_{prop}\right)=
-\min \left\{1, \frac{\pi\left(\theta_{prop}\right)}{\pi\left(\theta_{n}\right)} \frac{q\left(\theta_{n} | \theta_{prop}\right)}{q\left(\theta_{prop} | \theta_{n}\right)}\right\}
-=\min \left\{1, \frac{e^{-3 \theta_{prop}}}{e^{-3 \theta_{n}}} \frac{q\left(\theta_{n} | \theta_{prop}\right)}{q\left(\theta_{prop} | \theta_{n}\right)}\right\}.
+\rho\left(\theta_{n}, \theta^{\prime}\right)=
+\min \left\{1, \frac{\pi\left(\theta^{\prime}\right)}{\pi\left(\theta_{n}\right)} \frac{q\left(\theta_{n} | \theta^{\prime}\right)}{q\left(\theta^{\prime} | \theta_{n}\right)}\right\}
+=\min \left\{1, z \right\}.
 \end{array}
 $$
 
@@ -82,23 +90,24 @@ Note that we implement the Metropolis algorithm in the code as follows.
 
 1. Start with arbitary $\theta$. (Don't really have an idea of the form of support of the target; otherwise, would try to initialize $theta$ to be like the target.)
 
-2. At stage $n$, generate proposal $\theta_{prop}$ from $q(y|x_n)$.
+2. At stage $n$, generate proposal $\theta^{\prime}$ from $q(y|x_n)$.
 
 3. Define
 
 $$
 \theta_{n+1} = \begin{cases}
-\theta_{prop} & \text{ with probability } & \rho(\theta_{n}, \theta_{prop}), \\
-\theta_{n} & \text{ with probability } &  1 - \rho(\theta_{n}, \theta_{prop}).
+\theta^{\prime} & \text{ with probability } & \rho(\theta_{n}, \theta^{\prime}), \\
+\theta_{n} & \text{ with probability } &  1 - \rho(\theta_{n}, \theta^{\prime}).
 \end{cases}
 $$
 
 
-(Generate $U = \mathcal{U}(0, 1)$ and accept proposal $\theta_{prop}$ if $U \leq \rho(\theta_{n}, \theta_{prop})$.)
+(Generate $U = \mathcal{U}(0, 1)$ and accept proposal $\theta^{\prime}$ if $U \leq \rho(\theta_{n}, \theta^{\prime})$.)
 
 4. Increase $n$ and go to Step 2.
 
-See the code below for the implementation.
+See the code below for the implementation. (Note that `theta_prop` below represents
+$\theta^{\prime}$ in the formulations above.)
 
 ```{r hw04-q1-a}
 # vec_num_n <- vector(mode = 'numeric', length = n)
