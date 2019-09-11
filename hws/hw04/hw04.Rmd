@@ -32,7 +32,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r postprocess, include=F, echo=F, cache=F}
-.path_sans_ext <- file.path('hws', 'hw04')
+.path_sans_ext <- file.path('hws', 'hw4')
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 ```
@@ -187,7 +187,7 @@ $$
 See the code below for the implementation. (Note that `theta_prop` below represents
 $\theta^{\prime}$ in the formulations above.)
 
-```{r hw04-q1-a-0, include=T, echo=T, eval=F}
+```{r q1-a-0, include=F, echo=F, eval=F}
 # f_likelihood_simple <- function(theta) {
 #   exp(theta^2 / 8)
 # }
@@ -212,7 +212,7 @@ $\theta^{\prime}$ in the formulations above.)
 
 ```
 
-```{r hw04-q1-a-1, include=T, echo=T, eval=T}
+```{r q1-a-1, include=T, echo=T, eval=T}
 library(tidyverse)
 
 # Data, constants, hyperparameters, and helper functions.
@@ -262,12 +262,13 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
 
 ```
 
-```{r hw04-q1-a-2-debug, include=F, echo=F, eval=F}
+```{r q1-a-2-debug, include=F, echo=F, eval=T}
 .rnorm_int <- function(...) {
   as.integer(rnorm(...))
 }
 
 n_obs <- length(y)
+
 rnorm_int <- function(n = n_obs, mean = 0, sd = 4) {
   # sort(.rnorm_int(n = n, mean = mean, sd = sd))
   .rnorm_int(n = n, mean = mean, sd = sd)
@@ -275,8 +276,11 @@ rnorm_int <- function(n = n_obs, mean = 0, sd = 4) {
 
 .seq <- c(1:9 / 10, 1:2 / 1) %>% sort()
 # .y_1 <- rnorm_int()
-.y_1 <- c(-3, -4, 0, 1, 7, 0)
+.y_1 <- c(-3, -4, 0, 1, 7, 0) # Just a manual emulation of `.y`.
+set.seed(1)
 .y_2 <- rnorm_int()
+mean(.y_2)
+sd(.y_2)
 # .y_2 <- c(3, -4, 1, -6, 1, 5)
 res_sim <-
   c(-.seq, 0, .seq) %>% 
@@ -309,7 +313,7 @@ res_sim %>%
   theme_light()
 ```
 
-```{r hw04-q1-a-4, include=T, echo=T, eval=T}
+```{r q1-a-4, include=T, echo=T, eval=T}
 # Main function.
 .do_mcmc_mh_q1 <- function(..., n_mcmc = 10000L, n_burnin = 1000L, theta_init = 0) {
   stopifnot(is_likeinteger(n_mcmc))
@@ -400,12 +404,12 @@ do_mcmc_mh_q1 <- function(..., .n_mcmc = n_mcmc_q1, .n_burnin = n_burnin_q1) {
 
 ```
 
-```{r hw04-q1-a-3, include=T, echo=T, eval=T}
+```{r q1-a-3, include=T, echo=T, eval=T}
 res_mcmc_mh_q1 <- do_mcmc_mh_q1()
 res_mcmc_mh_q1
 ```
 
-```{r hw04-q1-a-viz-0, include=F, echo=F, eval=F}
+```{r q1-a-viz-0, include=F, echo=F, eval=F}
 # res_mcmc_mh_q1 %>% filter(is_accepted)
 res_mcmc_mh_q1 %>% 
   ggplot() +
@@ -414,41 +418,54 @@ res_mcmc_mh_q1 %>%
   geom_line()
 ```
 
-```{r hw04-q1-a-viz-1, include=T, echo=T, eval=T}
+```{r q1-a-viz-1-prep, include=F, echo=F, eval=T}
+path_viz_q1 <- 'viz_mcmc_mh_q1.png'
+w_viz_q1 <- 8
+h_viz_q1 <- 5
+eval_viz_q1 <- !fs::file_exists(path_viz_q1)
+```
+
+```{r viz-funcs, include=T, echo=T, eval=T}
+theme_custom <- function(...) {
+  theme_light() +
+    theme(
+      axis.title.x = element_text(hjust = 1),
+      axis.title.y = element_text(hjust = 1),
+      ...
+    )
+}
+```
+
+```{r q1-a-viz-1, include=T, echo=T, eval=eval_viz_q1}
 viz_mcmc_mh_q1 <-
   res_mcmc_mh_q1 %>% 
   ggplot() +
   aes(x = theta_current) +
   geom_histogram() +
-  theme_light() +
-  theme(
-    axis.title.x = element_text(hjust = 1),
-    axis.title.y = element_text(hjust = 1)
-  ) +
+  scale_y_continuous(labels = scales::comma) +
+  theme_custom() +
   labs(
-    # title = '',
-    # x = latex2exp::TeX('$\\theta$'),
     x = 'theta',
     y = 'Frequency'
   )
 ```
 
-```{r hw01-q01-a-6, include=T, echo=T, eval=T, fig.width=8, fig.height=5}
+```{r q1-a-viz-1-export, include=F, echo=F, eval=eval_viz_q1}
+teproj::export_ext_png(
+  viz_mcmc_mh_q1,
+  path = path_viz_q1,
+  units = 'in',
+  width = w_viz_q1,
+  height = h_viz_q1
+)
+```
+
+```{r q1-a-viz-1-show-1, include=T, echo=T, eval=F}
 viz_mcmc_mh_q1
 ```
 
-
-![](viz_mcmc_mh_q1.png)
-
-
-```{r hw01-q01-a-7, include=F, echo=F, eval=F}
-teproj::export_ext_png(
-  viz_mcmc_mh_q1,
-  dir = '.',
-  units = 'in',
-  width = 8,
-  height = 5
-)
+```{r q1-a-viz-1-show-2, include=T, echo=F, eval=T}
+knitr::include_graphics(path_viz_q1)
 ```
 
 # 2. Gibbs Sampler and High/Low Protein Diet in Rats.
@@ -460,7 +477,7 @@ teproj::export_ext_png(
 ### a
 
 
-```{r hw04-q2-ab-1, include=T, echo=T, eval=T}
+```{r q2-ab-1, include=T, echo=T, eval=T}
 # Data, constants, hyperparameters, and functions.
 y_1 <- c(134, 146, 104, 119, 124, 161, 107, 107, 83, 113, 129, 97, 123)
 y_2 <- c(70, 118, 101, 85, 107, 132, 94)
@@ -567,7 +584,7 @@ tau_1_init <- 1 / sd(y_1) # tau_1_0
 tau_2_init <- 1 / sd(y_2) # tau_1_i
 ```
 
-```{r hw04-q2-ab-2, include=T, echo=T, eval=T}
+```{r q2-ab-2, include=T, echo=T, eval=T}
 # Main function.
 .do_mcmc_gibbs_q2 <-
   function(...,
@@ -629,7 +646,11 @@ tau_2_init <- 1 / sd(y_2) # tau_1_i
       tau_2_i <- tau_2_new
       
     }
-    res_mcmc <- tibble::as_tibble(mat_mcmc)
+    res_mcmc <-
+      mat_mcmc %>% 
+      as_tibble() %>% 
+      mutate(idx = row_number()) %>% 
+      select(idx, everything())
     
     if (!is.null(n_burnin)) {
       idx_slice <- (n_burnin + 1):nrow(mat_mcmc)
@@ -657,22 +678,64 @@ do_mcmc_gibbs_q2 <-
       ...
     )
   }
+# TODO: Remove these lines.
 # undebug(compute_tau_new_1)
 # res_mcmc_gibbs_q2 <- do_mcmc_gibbs_q2()
 ```
 
-```{r hw04-q2-ab-3, include=T, echo=T, eval=T}
+```{r q2-ab-3, include=T, echo=T, eval=T}
 res_mcmc_gibbs_q2 <- do_mcmc_gibbs_q2()
 res_mcmc_gibbs_q2
 ```
 
-```{r hw04-q2-ab-4, include=F, echo=F, eval=F}
+```{r q2-ab-4, include=F, echo=F, eval=F}
 res_mcmc_gibbs_q2 %>% summarise_all(mean)
+```
+
+```{r q2-ab-viz-2-prep, include=F, echo=F, eval=T}
+path_viz_q2 <- 'viz_mcmc_gibbs_q2.png'
+w_viz_q2 <- w_viz_q1
+h_viz_q2 <- h_viz_q1
+eval_viz_q2 <- !fs::file_exists(path_viz_q2)
+```
+
+```{r q2-ab-viz-1, include=T, echo=T, eval=eval_viz_q2}
+viz_mcmc_gibbs_q2 <-
+  res_mcmc_gibbs_q2 %>% 
+  gather(key = 'key', value = 'value', -idx) %>% 
+  ggplot() +
+  aes(x = value) +
+  geom_histogram() +
+  scale_y_continuous(labels = scales::comma) +
+  theme_custom() +
+  facet_wrap(~key, scales = 'free') +
+  labs(
+    x = NULL,
+    y = 'Frequency'
+  )
+```
+
+```{r q2-ab-viz-1-export, include=F, echo=F, eval=eval_viz_q2}
+teproj::export_ext_png(
+  viz_mcmc_gibbs_q2,
+  path = path_viz_q2,
+  units = 'in',
+  width = w_viz_q2,
+  height = h_viz_q2
+)
+```
+
+```{r q2-ab-viz-1-show-1, include=T, echo=T, eval=F}
+viz_mcmc_gibbs_q2
+```
+
+```{r q2-ab-viz-1-show-2, include=T, echo=F, eval=T}
+knitr::include_graphics(path_viz_q2)
 ```
 
 ### b
 
-```{r hw04-q2-b-1, include=T, echo=T, eval=T}
+```{r q2-b-1, include=T, echo=T, eval=T}
 res_mcmc_gibbs_q2_calc <-
   res_mcmc_gibbs_q2 %>%
   mutate(
@@ -684,7 +747,7 @@ res_mcmc_gibbs_q2_calc <-
 
 ```
 
-```{r hw04-q2-b-2, include=T, echo=T, eval=T}
+```{r q2-b-2, include=T, echo=T, eval=T}
 h_0_q2 <-
   res_mcmc_gibbs_q2_calc %>% 
   summarise(h_0 = sum(h_0), n = n()) %>% 
@@ -694,7 +757,7 @@ h_0_q2
 
 ### c
 
-```{r hw04-q2-c-0, include=F, echo=F, eval=F}
+```{r q2-c-0, include=F, echo=F, eval=F}
 # compute_equi_credible_set <- function(mu, sigma, level = 0.95) {
 #   alpha <- 1 - level
 #   alpha_half <- alpha / 2
@@ -708,7 +771,7 @@ h_0_q2
 # }
 ```
 
-```{r hw04-q2-c-1, include=T, echo=T, eval=T}
+```{r q2-c-1, include=T, echo=T, eval=T}
 equi_credible_set_q2 <-
   res_mcmc_gibbs_q2_calc %>% 
   summarise(
