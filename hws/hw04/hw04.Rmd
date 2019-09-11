@@ -18,8 +18,8 @@ knitr::opts_chunk$set(
   # cache = FALSE,
   cache = TRUE,
   include = TRUE,
-  fig.show = "asis",
-  fig.align = "center",
+  fig.show = 'asis',
+  fig.align = 'center',
   fig.width = 8,
   # size = "small",
   fig.height = 5,
@@ -32,7 +32,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r postprocess, include=F, echo=F, cache=F}
-.path_sans_ext <- file.path('hws', 'hw02')
+.path_sans_ext <- file.path('hws', 'hw04')
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 ```
@@ -40,20 +40,71 @@ knitr::opts_chunk$set(
 ```{r setup-1, include=F, echo=F, eval=T}
 library(tidyverse)
 format_num <- function(x, digits = 4) {
-  fmt <- sprintf("%%.%df", digits)
+  fmt <- sprintf('%%.%df', digits)
   sprintf(fmt, x)
 }
 ```
 
+```{r pdf-convert-1, include=F, echo=F, eval=F}
+convert_page_to_lines <- function(page) {
+  page %>%
+    str_split('\\n') %>%
+    purrr::map(str_squish) %>%
+    unlist() %>%
+    enframe(name = 'idx_line', value = 'line')
+}
+
+unnest_pages <- function(pages) {
+  pages %>%
+    mutate(lines = purrr::map(page, convert_page_to_lines)) %>%
+    select(-page) %>%
+    unnest(lines)
+}
+path_hw <- 'Homework4f.pdf'
+pages <- 
+  path_hw %>% 
+  tibble(path = .) %>% 
+  mutate(
+    page = purrr::map(path, ~pdftools::pdf_text(.))
+  ) %>%
+  select(-path)
+lines <- pages %>% unnest_pages()
+lines
+lines_text <-
+  lines %>%
+  pull(line) %>% 
+  paste(collapse = ' ', sep = '')
+lines_text
+```
+
+
 # 1. Metropolis: The Bounded Normal Mean.
 
 ## Instructions
+
+<instructions>
+Suppose that we have information that the normal mean $θ$ is bounded between $−m$ and $m$, for some known number $m$. In this case it is natural to elicit a prior on $θ$ with the support on interval $[−m, m]$. A prior with interesting theoretical properties supported on $[−m, m$] is Bickel-Levit prior ^[1], 
+</instructions>
 
 $$
 \begin{array}{c}
 \pi(\theta)=\frac{1}{m} \cos ^{2}\left( \frac{\pi \theta}{2 m}\right), \quad -m \leq \theta \leq m.
 \end{array}
 $$
+
+<instructions>
+Assume that a sample $[−2, −3, 4, −7, 0, 4]$ is observed from normal distribution 
+</instructions>
+
+<instructions>
+with a known precision $τ = 1/4$. Assume also that the prior on $θ$ is Bickel-Levit, with $m = 2$. This combination likelihood/prior does not result in an explicit posterior (in terms of elementary functions). Construct a Metropolis algorithm that will sample from the posterior of $θ$.<br/><br/>
+(a) Simulate 10,000 observations from the posterior, after discarding first 500 observations (burn-in), and plot the histogram of the posterior.<br/>
+(b) Find Bayes estimator of θ, and 95% equitailed Credible Set based on the simulated observations.<br/><br/>
+Suggestions:<br/>
+(i) Take uniform distribution on $[−m, m]$ as a proposal distribution since it is easy to sample from. This is an independence proposal, the proposed $θ′$ does not depend on the current value of the chain, $θ$.<br/>
+(ii) You will need to calculate $\sum_{i=1}^n (y_i − θ)^2$ for current $θ$ and $\sum_{i=1}^n i=1 (y_i − θ′)^2$ for the proposed $θ′$, prior to calculating the Metropolis ratio.
+</instructions>
+
 
 $$
 \begin{array}{c}
@@ -70,21 +121,34 @@ in terms of "elementary" functions. Alternatively, the Metropolis algorithm
 can be used to approximate a posterior distribution.
 
 <hide>
-NOTE TO SELF:
-target density function <-> posterior distribution <-> $\pi(\theta|\text{data})$ where $\theta = \theta^{\prime} \text{ or } \theta_{n}$ <- `f_pi()`
-proposal density <-> independence candidate density <-> $q(\theta_1|\theta_2)$ $\theta_1, \theta_2 = \theta^{\prime}, \theta_{n}$<- `dbl_m2()`
+NOTEs TO SELF:
++ target density function
+  + a.k.a. posterior distribution (ideally, although may only be proportional or not actually known).
+  + i.e. prior x likelihood.
+  + $\pi$ function.
+  + $\pi(y)$ or $\pi(x_t)$ in acceptance ratio $A$ shown in https://stephens999.github.io/fiveMinuteStats/MH_intro.html#the_mh_algorithm.
+  + Using Brani syntax, $\pi(\theta)$ where $\theta = \theta^{\prime} \text{ or } \theta_{n}$
++ proposal density
+  + a.k.a. independence candidate density.
+  + a.k.a. transition kernel.
+  + $Q$ function.
+  + $Q(y|x_t)$ or $Q(x_t|y)$ in acceptance ratio $A$ shown in https://stephens999.github.io/fiveMinuteStats/MH_intro.html#the_mh_algorithm.
+  + Using Brani's syntax, $q(\theta_1|\theta_2)$ where $\theta_1, \theta_2 = \theta^{\prime}, \theta_{n}$.
+  + If symmatric, then simplifies the acceptance ratio $A$.
+  + Is or isn't the same as the prior?
 </hide>
 
-Given  $\tau = \frac{1}{4}$, the posterior distribution $f(y|\theta)$,
-and $\bar{y} = \frac{1}{n} \sum_{i=1}^n} y_i = \frac{1}{6} (-6) = -1$,
+Given  $\tau = \frac{1}{4}$ and the posterior distribution $f(y|\theta)$,
+<hide>and $\bar{y} = \frac{1}{n} \sum_{i=1}^n} y_i = \frac{1}{6} (-6) = -1$</hide>,
 we can say that the target density function here is
 
 $$
 \begin{array}{rcl}
 \pi(\theta|Y) 
-& = & \sqrt{\tau} e ^ {-\frac{\tau}{2} (\hat{y} - \theta) ^2} \\
-& = & \sqrt {(\frac{1}{4})} e ^ {-\frac{(1/4)}{2} ((-1) - \theta) ^2 } \\
-& = & \frac{1}{2} e ^ {\frac{1}{8} (\theta - 1) ^2 } \\
+& \propto & \sqrt{\tau} e ^ {\frac{\tau}{2} (- \theta) ^2} \\
+& = & \sqrt {(\frac{1}{4})} e ^ {\frac{(1/4)}{2} \theta ^2 } \\
+& = & \frac{1}{2} e ^ {\theta^2 / 8} \\
+& \propto & e ^ {\theta^2 / 8}
 \end{array}
 $$
 
@@ -123,85 +187,269 @@ $$
 See the code below for the implementation. (Note that `theta_prop` below represents
 $\theta^{\prime}$ in the formulations above.)
 
-```{r hw04-q1-a}
-tau <- 1 / 4
-.f_pi <- function(theta, tau) {
-  # sqrt(tau) * exp(0.5 * tau * (y - theta)^2)
-  sqrt(tau) * exp(0.5 * theta^2)
-}
-f_pi <- purrr::partial(.f_pi, tau = tau)
+```{r hw04-q1-a-0, include=T, echo=T, eval=F}
+# f_likelihood_simple <- function(theta) {
+#   exp(theta^2 / 8)
+# }
+# dbl <- function(theta, m) {
+#   theta <- punif(theta, min = -m, max = m)
+#   bl(theta, m)
+# }
+# 
+# rbl <- function(n, m) {
+#   theta <- runif(n = n, min = -m, max = m)
+#   bl(theta, m)
+# }
 
-bl <- function(theta, m) {
-  (1 / m) * (cos((pi * theta) / (2 * m))) ^ 2
-}
-
-dbl <- function(theta, m) {
-  theta <- dunif(x = theta, min = -m, max = m)
-  bl(theta, m)
-}
-
-rbl <- function(n, m) {
-  theta <- runif(n = n, min = -m, max = m)
-  bl(theta, m)
-}
-
-dbl_m2 <- purrr::partial(dbl, m = 2)
-rbl_m2 <- purrr::partial(rbl, m = 2)
-
-
-# Constants.
-n_mcmc <- 10000
-n_burnin <- 500
-idx_final <- (n_burnin + 1):n_mcmc
+# idx_final <- (n_burnin + 1):n_mcmc
 # # Or?
 # n_mcmc <- n_mcmc + n_burnin
 # idx_final <- (n_burnin + 1):n_mcmc
 
 # Data.
-# These are used to calculate the posterior likelihood, but not for MCMC.
+# ~~These are used to calculate the posterior likelihood, but not for MCMC.~~
+# y <- ''
+
+```
+
+```{r hw04-q1-a-1, include=T, echo=T, eval=T}
+library(tidyverse)
+
+# Data, constants, hyperparameters, and helper functions.
 y <- c(-2, -3, 4, -7, 0, 4)
-y_sum <- sum(y)
-n_obs <- length(y)
 
-# Step 1: Start with arbitary $theta$. (Don't really have an idea of the form of support of the target; otherwise, would try to initialize $theta$ to be like the target.
-theta_current <- 1 # mean(y)
+n_mcmc_q1 <- 10000L
+n_burnin_q1 <- 500L
 
-# Output.
-cols_mat_mcmc <-  c('theta', 'theta_prop', 'r', 'rho', 'u', 'is_accepted')
-mat_mcmc <- matrix(nrow = n_mcmc, ncol = length(cols_mat_mcmc))
-colnames(mat_mcmc) <- cols_mat_mcmc
+m <- 2
+tau <- 1 / 4
 
-for (1 in 1:n_mcmc) {
-  # Step 2.
-  theta_prop <- rbl_m2(n = 1)
-  
-  # Step 3.
-  q_theta_current <- dbl_m2(theta = theta_current)
-  q_theta_prop <- dbl_m2(theta = theta_prop)
-  
-  pi_current <- f_pi(theta = theta_current)
-  pi_prop <- f_pi(theta = theta_prop)
-  
-  ratio_num <- pi_prop * q_theta_current
-  ratio_den <- pi_current * q_theta_prop
-  ratio <- ratio_num / ratio_den
-    
-  u <- runif(n = 1)
-  rho <- min(1, ratio)
-  
-  # Step 4.
-  is_accepted <- 0
-  if(u <= rho) {
-    theta_current <- theta_prop
-    is_accepted <- 1
-  } else {
-    
-  }
-  mat_mcmc[i, ] <- c(theta_current, theta_prop, ratio, u, rho, is_accepted)
+
+.f_likelihood_1 <- function(y, theta, tau) {
+  sqrt(tau) * exp(-0.5 * tau * (y - theta)^2)
 }
+
+.f_likelihood_2 <- function(y, theta, tau) {
+  sqrt(tau) * exp(-0.5 * tau * sum(y - theta)^2)
+}
+
+bl <- function(theta, m) {
+  stopifnot(theta <= m || theta >= -m)
+  (1 / m) * (cos((pi * theta) / (2 * m))) ^ 2
+}
+
+f_prior <- function(theta, .m = m) {
+  bl(theta, m = .m)
+}
+
+f_proposal <- function(.n = 1, .m = m) { 
+  runif(n = .n, min = -.m, max = .m) 
+}
+
+# f_likelihood_1 <- function(theta, .y = y, .tau = tau) {
+#   sum(.f_likelihood_1(theta, y = y, tau = tau))
+# }
+
+f_likelihood_2 <- function(theta, .y = y, .tau = tau) {
+  .f_likelihood_2(theta, y = y, tau = tau)
+}
+
+f_likelihood <- f_likelihood_2
+
+is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
+  abs(x - round(x)) < tol
+}
+
+```
+
+```{r hw04-q1-a-2-debug, include=F, echo=F, eval=F}
+.rnorm_int <- function(...) {
+  as.integer(rnorm(...))
+}
+
+n_obs <- length(y)
+rnorm_int <- function(n = n_obs, mean = 0, sd = 4) {
+  # sort(.rnorm_int(n = n, mean = mean, sd = sd))
+  .rnorm_int(n = n, mean = mean, sd = sd)
+}
+
+.seq <- c(1:9 / 10, 1:2 / 1) %>% sort()
+# .y_1 <- rnorm_int()
+.y_1 <- c(-3, -4, 0, 1, 7, 0)
+.y_2 <- rnorm_int()
+# .y_2 <- c(3, -4, 1, -6, 1, 5)
+res_sim <-
+  c(-.seq, 0, .seq) %>% 
+  sort() %>% 
+  tibble(theta = .) %>% 
+  mutate(idx = row_number()) %>% 
+  select(idx, everything()) %>% 
+  group_by(idx) %>% 
+  mutate(
+    # pi_0 = bl(theta, m = 4),
+    pi = f_prior(theta),
+    # f_1 = sum(.f_1(theta)), 
+    # f = f_likelihood(theta),
+    # f = purrr::map_dbl(theta, .f_likelihood_2, y = y, tau = tau),
+    f_0 = .f_likelihood_2(theta, y = y, tau = tau),
+    # f_0 = .f_likelihood_2(theta, y = sort(y), tau = tau),
+    f_1 = .f_likelihood_2(theta, y = .y_1, tau = tau),
+    f_2 = .f_likelihood_2(theta, y = .y_2, tau = tau)
+  ) %>% 
+  ungroup()
+res_sim
+res_sim %>% 
+  gather(key = 'key', value = 'value', -matches('idx|theta')) %>% 
+  ggplot() +
+  aes(x = theta, y = value, color = key) +
+  geom_point() +
+  geom_line() +
+  # scale_x_continuous(trans = 'reciprocal')
+  xlim(-1.1, 1.1) +
+  theme_light()
+```
+
+```{r hw04-q1-a-4, include=T, echo=T, eval=T}
+# Main function.
+.do_mcmc_mh_q1 <- function(..., n_mcmc = 10000L, n_burnin = 1000L, theta_init = 0) {
+  stopifnot(is_likeinteger(n_mcmc))
+  if(!is.null(n_burnin)) {
+    stopifnot(is_likeinteger(n_burnin))
+    stopifnot(n_burnin < n_mcmc)
+  }
+  cols_mat_mcmc <-
+    c(
+      'theta_current', 
+      'theta_prop',
+      'q_current',
+      'q_prop',
+      'pi_current',
+      'pi_prop',
+      # 'ratio_num',
+      # 'ratio_den',
+      'ratio', 
+      'rho',
+      'u', 
+      'is_accepted'
+    )
+  mat_mcmc <- matrix(nrow = n_mcmc, ncol = length(cols_mat_mcmc))
+  colnames(mat_mcmc) <- cols_mat_mcmc
+  
+  # Step 1 achieved with `.theta_init`.
+  theta_current <- theta_init
+  for (i in 1:n_mcmc) {
+    # Step 2.
+    theta_prop <- f_proposal()
+    
+    # Step 3.
+    q_current <- f_prior(theta = theta_current)
+    q_prop <- f_prior(theta = theta_prop)
+    
+    pi_current <- f_likelihood_2(theta = theta_current)
+    pi_prop <- f_likelihood_2(theta = theta_prop)
+    
+    ratio_num <- pi_prop * q_current
+    ratio_den <- pi_current * q_prop
+    ratio <- ratio_num / ratio_den
+    
+    u <- runif(n = 1, min = 0, max = 1)
+    rho <- min(1, ratio)
+    
+    # Step 4.
+    is_accepted <- 0
+    if(u <= rho) {
+      theta_current <- theta_prop
+      is_accepted <- 1
+    } else {
+      # NULL
+    }
+    mat_mcmc[i, ] <- 
+      c(
+        theta_current,
+        theta_prop,
+        q_current,
+        q_prop,
+        pi_current,
+        pi_prop,
+        # ratio_num,
+        # ratio_den,
+        ratio,
+        rho, 
+        u, 
+        is_accepted
+      )
+  }
+  res_mcmc <- 
+    mat_mcmc %>% 
+    as_tibble() %>% 
+    mutate(idx = row_number()) %>% 
+    select(idx, everything()) %>% 
+    mutate_at(vars(is_accepted), ~ifelse(. == 1, TRUE, FALSE))
+  
+  if(!is.null(n_burnin)) {
+    idx_slice <- (n_burnin + 1):nrow(mat_mcmc)
+    res_mcmc <- res_mcmc %>% slice(idx_slice) 
+  }
+  
+  res_mcmc
+}
+
+do_mcmc_mh_q1 <- function(..., .n_mcmc = n_mcmc_q1, .n_burnin = n_burnin_q1) {
+  .do_mcmc_mh_q1(n_mcmc = .n_mcmc, n_burnin = .n_burnin, ...)
+}
+
+```
+
+```{r hw04-q1-a-3, include=T, echo=T, eval=T}
+res_mcmc_mh_q1 <- do_mcmc_mh_q1()
+res_mcmc_mh_q1
+```
+
+```{r hw04-q1-a-viz-0, include=F, echo=F, eval=F}
+# res_mcmc_mh_q1 %>% filter(is_accepted)
+res_mcmc_mh_q1 %>% 
+  ggplot() +
+  aes(x = idx, y = theta_current) +
+  geom_point(size = 1.5) +
+  geom_line()
+```
+
+```{r hw04-q1-a-viz-1, include=T, echo=T, eval=T}
+viz_mcmc_mh_q1 <-
+  res_mcmc_mh_q1 %>% 
+  ggplot() +
+  aes(x = theta_current) +
+  geom_histogram() +
+  theme_light() +
+  theme(
+    axis.title.x = element_text(hjust = 1),
+    axis.title.y = element_text(hjust = 1)
+  ) +
+  labs(
+    # title = '',
+    # x = latex2exp::TeX('$\\theta$'),
+    x = 'theta',
+    y = 'Frequency'
+  )
+```
+
+```{r hw01-q01-a-6, include=T, echo=T, eval=T, fig.width=8, fig.height=5}
+viz_mcmc_mh_q1
 ```
 
 
+![](viz_mcmc_mh_q1.png)
+
+
+```{r hw01-q01-a-7, include=F, echo=F, eval=F}
+teproj::export_ext_png(
+  viz_mcmc_mh_q1,
+  dir = '.',
+  units = 'in',
+  width = 8,
+  height = 5
+)
+```
 
 # 2. Gibbs Sampler and High/Low Protein Diet in Rats.
 
@@ -211,38 +459,15 @@ for (1 in 1:n_mcmc) {
 
 ### a
 
+
 ```{r hw04-q2-ab-1, include=T, echo=T, eval=T}
-library(tidyverse)
-compute_mu_new <- function(mu_i, tau_i, mu_0, tau_0, y_sum, n_obs) {
-   mu_tau_0 <- mu_0 * tau_0
-   mu_rnorm_num <- tau_i * y_sum + mu_tau_0
-   mu_rnorm_den <- tau_0 + n_obs * tau_i
-   mu_rnorm <- mu_rnorm_num / mu_rnorm_den
-   sigma2_rnorm <- 1 / (tau_0 + n_obs * tau_i)
-   sigma_rnorm <- sqrt(sigma2_rnorm)
-   rnorm(1, mu_rnorm, sigma_rnorm)
-}
-
-compute_tau_new <- function(mu_new, y, a_0, b_0, n_obs) {
-   shape_rgamma <- a_0 + 0.5 * n_obs
-   rate_rgamma  <- b_0 + 0.5 * sum((y - mu_new) ^ 2)
-   rgamma(1, shape = shape_rgamma, rate = rate_rgamma) 
-}
-
-# Constants.
-n_mcmc <- 10000
-n_burnin <- 500
-idx_final <- (n_burnin + 1):n_mcmc
-
-# Data.
+# Data, constants, hyperparameters, and functions.
 y_1 <- c(134, 146, 104, 119, 124, 161, 107, 107, 83, 113, 129, 97, 123)
 y_2 <- c(70, 118, 101, 85, 107, 132, 94)
-y_1_sum <- sum(y_1)
-y_2_sum <- sum(y_2)
-n_1_obs <- length(y_1)
-n_2_obs <- length(y_2)
 
-# Hypterparamters.
+n_mcmc_q2 <- 10000
+n_burnin_q2 <- 500
+
 theta_1_0 <- 110
 theta_2_0 <- theta_1_0
 tau_1_0 <- 1 / 100
@@ -252,82 +477,204 @@ a_2_0 <- a_1_0
 b_1_0 <- 4
 b_2_0 <- b_1_0
 
-# Initial values.
-theta_1_i <- mean(y_1) # theta_1_0
-theta_2_i <- mean(y_2) # theta_1_i
-tau_1_i <- 1 / sd(y_1) # tau_1_0
-tau_2_i <- 1 / sd(y_2) # tau_1_i
-
-# Output.
-cols_mat_mcmc <- c('theta_1', 'theta_2', 'tau_1', 'tau_2')
-mat_mcmc <- matrix(nrow = n_mcmc, ncol = length(cols_mat_mcmc))
-colnames(mat_mcmc) <- 
-for (i in 1:n_mcmc) {
-  theta_1_new <-
-    compute_mu_new(
-      mu_i = theta_1_i,
-      tau_i = tau_1_i,
-      mu_0 = theta_1_0,
-      tau_0 = tau_1_0,
-      y_sum = y_1_sum,
-      n_obs = n_1_obs
-    )
-  
-  theta_2_new <-
-    compute_mu_new(
-      mu_i = theta_2_i,
-      tau_i = tau_2_i,
-      mu_0 = theta_2_0,
-      tau_0 = tau_2_0,
-      y_sum = y_2_sum,
-      n_obs = n_2_obs
-    )
-  
-  tau_1_new <-
-    compute_tau_new(
-      mu_new = theta_1_new,
-      y = y_1,
-      a_0 = a_1_0,
-      b_0 = b_1_0,
-      n_obs = n_1_obs
-    )
-  
-  tau_2_new <-
-    compute_tau_new(
-      mu_new = theta_2_new,
-      y = y_2,
-      a_0 = a_2_0,
-      b_0 = b_2_0,
-      n_obs = n_2_obs
-    )
-  mat_mcmc[i, ] <- c(theta_1_new, theta_2_new, tau_1_new, tau_2_new)
-  
-  theta_1_i <- theta_1_new
-  tau_1_i <- tau_1_new
-  theta_2_i <- theta_2_new
-  tau_2_i <- tau_2_new
-  
-  if(i == n_mcmc) {
-    res <- tibble::as_tibble(mat_mcmc)
-  }
+.compute_mu_new <- function(mu_i, tau_i, mu_0, tau_0, y_sum, n_obs) {
+  mu_tau_0 <- mu_0 * tau_0
+  mu_rnorm_num <- tau_i * y_sum + mu_tau_0
+  mu_rnorm_den <- tau_0 + n_obs * tau_i
+  mu_rnorm <- mu_rnorm_num / mu_rnorm_den
+  sigma2_rnorm <- 1 / (tau_0 + n_obs * tau_i)
+  sigma_rnorm <- sqrt(sigma2_rnorm)
+  rnorm(1, mu_rnorm, sigma_rnorm)
 }
 
-res_final <- res %>% dplyr::slice(idx_final)
-res_final
+y_sum_1 <- sum(y_1)
+y_sum_2 <- sum(y_2)
+n_obs_1 <- length(y_1)
+n_obs_2 <- length(y_2)
+compute_mu_new_1 <-
+  function(mu_i,
+           tau_i,
+           .mu_0 = theta_1_0,
+           .tau_0 = tau_1_0,
+           .y_sum = y_sum_1,
+           .n_obs = n_obs_1) {
+    .compute_mu_new(
+      mu_i,
+      tau_i,
+      mu_0 = .mu_0,
+      tau_0 = .tau_0,
+      y_sum = .y_sum,
+      n_obs = .n_obs
+    )
+  }
+
+compute_mu_new_2 <-
+  function(mu_i,
+           tau_i,
+           .mu_0 = theta_2_0,
+           .tau_0 = tau_2_0,
+           .y_sum = y_sum_2,
+           .n_obs = n_obs_2) {
+    .compute_mu_new(
+      mu_i,
+      tau_i,
+      mu_0 = .mu_0,
+      tau_0 = .tau_0,
+      y_sum = .y_sum,
+      n_obs = .n_obs
+    )
+  }
+
+.compute_tau_new <- function(mu_new, y, a_0, b_0, n_obs) {
+  shape_rgamma <- a_0 + 0.5 * n_obs
+  rate_rgamma  <- b_0 + 0.5 * sum((y - mu_new) ^ 2)
+  rgamma(1, shape = shape_rgamma, rate = rate_rgamma) 
+}
+
+compute_tau_new_1 <-
+  function(mu_new,
+           .y = y_1,
+           .a_0 = a_1_0,
+           .b_0 = b_1_0,
+           .n_obs = n_obs_1) {
+    .compute_tau_new(
+      mu_new = mu_new,
+      y = .y,
+      a_0 = .a_0,
+      b_0 = .b_0,
+      n_obs = .n_obs
+    )
+  }
+
+compute_tau_new_2 <-
+  function(mu_new,
+           .y = y_2,
+           .a_0 = a_2_0,
+           .b_0 = b_2_0,
+           .n_obs = n_obs_2) {
+    .compute_tau_new(
+      mu_new,
+      y = .y,
+      a_0 = .a_0,
+      b_0 = .b_0,
+      n_obs = .n_obs
+    )
+  }
+
+theta_1_init <- mean(y_1) # theta_1_0
+theta_2_init <- mean(y_2) # theta_1_i
+tau_1_init <- 1 / sd(y_1) # tau_1_0
+tau_2_init <- 1 / sd(y_2) # tau_1_i
 ```
 
-```{r hw04-q2-ab-2, include=F, echo=F, eval=F}
-summ_final <- 
-  res_final %>% 
-  summarise_all(mean)
-summ_final
+```{r hw04-q2-ab-2, include=T, echo=T, eval=T}
+# Main function.
+.do_mcmc_gibbs_q2 <-
+  function(...,
+           n_mcmc = 10000,
+           n_burnin = 1000,
+           theta_1_init = 0,
+           theta_2_init = 0,
+           tau_1_init = 1,
+           tau_2_init = 1) {
+    stopifnot(is_likeinteger(n_mcmc))
+    if (!is.null(n_burnin)) {
+      stopifnot(is_likeinteger(n_burnin))
+      stopifnot(n_burnin < n_mcmc)
+    }
+    stopifnot(is.numeric(theta_1_init))
+    stopifnot(is.numeric(theta_2_init))
+    stopifnot(is.numeric(tau_1_init))
+    stopifnot(is.numeric(tau_2_init))
+    cols_mat_mcmc <- c('theta_1', 'theta_2', 'tau_1', 'tau_2')
+    mat_mcmc <- matrix(nrow = n_mcmc, ncol = length(cols_mat_mcmc))
+    
+    colnames(mat_mcmc) <- cols_mat_mcmc
+    theta_1_i <- theta_1_init
+    theta_2_i <- theta_2_init
+    tau_1_i <- tau_1_init
+    tau_2_i <- tau_2_init
+    y_1_sum <- sum(y_1)
+    y_2_sum <- sum(y_2)
+    n_1_obs <- length(y_1)
+    n_2_obs <- length(y_2)
+    for (i in 1:n_mcmc) {
+      theta_1_new <-
+        compute_mu_new_1(
+          mu_i = theta_1_i,
+          tau_i = tau_1_i
+        )
+      
+      theta_2_new <-
+        compute_mu_new_2(
+          mu_i = theta_2_i,
+          tau_i = tau_2_i
+        )
+      
+      tau_1_new <-
+        compute_tau_new_1(
+          mu_new = theta_1_new
+        )
+      
+      tau_2_new <-
+        compute_tau_new_2(
+          mu_new = theta_2_new
+        )
+      mat_mcmc[i,] <-
+        c(theta_1_new, theta_2_new, tau_1_new, tau_2_new)
+      
+      theta_1_i <- theta_1_new
+      tau_1_i <- tau_1_new
+      theta_2_i <- theta_2_new
+      tau_2_i <- tau_2_new
+      
+    }
+    res_mcmc <- tibble::as_tibble(mat_mcmc)
+    
+    if (!is.null(n_burnin)) {
+      idx_slice <- (n_burnin + 1):nrow(mat_mcmc)
+      res_mcmc <- res_mcmc %>% slice(idx_slice)
+    }
+    
+    res_mcmc
+  }
+
+do_mcmc_gibbs_q2 <-
+  function(...,
+           .n_mcmc = n_mcmc_q2,
+           .n_burnin = n_burnin_q2,
+           .theta_1_init = theta_1_init,
+           .theta_2_init = theta_2_init,
+           .tau_1_init = tau_1_init,
+           .tau_2_init = tau_2_init) {
+    .do_mcmc_gibbs_q2(
+      n_mcmc = .n_mcmc,
+      n_burnin = .n_burnin,
+      theta_1_iniit = .theta_1_init,
+      theta_2_init = .theta_2_init,
+      tau_1_init = .tau_1_init,
+      tau_2_init = .tau_2_init,
+      ...
+    )
+  }
+# undebug(compute_tau_new_1)
+# res_mcmc_gibbs_q2 <- do_mcmc_gibbs_q2()
+```
+
+```{r hw04-q2-ab-3, include=T, echo=T, eval=T}
+res_mcmc_gibbs_q2 <- do_mcmc_gibbs_q2()
+res_mcmc_gibbs_q2
+```
+
+```{r hw04-q2-ab-4, include=F, echo=F, eval=F}
+res_mcmc_gibbs_q2 %>% summarise_all(mean)
 ```
 
 ### b
 
 ```{r hw04-q2-b-1, include=T, echo=T, eval=T}
-res_final_calc <-
-  res_final %>%
+res_mcmc_gibbs_q2_calc <-
+  res_mcmc_gibbs_q2 %>%
   mutate(
     theta_diff = theta_1 - theta_2
   ) %>% 
@@ -335,11 +682,14 @@ res_final_calc <-
     h_0 = ifelse(theta_diff > 0, TRUE, FALSE)
   )
 
-h_0_calc <-
-  res_final_calc %>% 
+```
+
+```{r hw04-q2-b-2, include=T, echo=T, eval=T}
+h_0_q2 <-
+  res_mcmc_gibbs_q2_calc %>% 
   summarise(h_0 = sum(h_0), n = n()) %>% 
   mutate(frac = h_0 / n)
-h_0_calc
+h_0_q2
 ```
 
 ### c
@@ -359,8 +709,8 @@ h_0_calc
 ```
 
 ```{r hw04-q2-c-1, include=T, echo=T, eval=T}
-equi_credible_set <-
-  res_final_calc %>% 
+equi_credible_set_q2 <-
+  res_mcmc_gibbs_q2_calc %>% 
   summarise(
     mu = mean(theta_diff), 
     sd = sd(theta_diff)
@@ -369,7 +719,7 @@ equi_credible_set <-
     l = qnorm(0.025, mu, sd),
     u = qnorm(0.975, mu, sd)
   )
-equi_credible_set
+equi_credible_set_q2
 ```
 
 
