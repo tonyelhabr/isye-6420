@@ -276,6 +276,8 @@ The probability is `r format_num(p_q2c, 4)`.
 
 # 3. 2-D Density Tasks
 
+## Instructions
+
 <instructions>
 If
 </instructions>
@@ -307,6 +309,8 @@ Show that:<br/>
 (c) conditional distribution $f(y|x)$ is shifted exponential $f(y|x) = \lambda e^{-\lambda(y-x)}$, $y \geq x$.<br/>
 (d) conditional distribution $f(x|y)$ is uniform $\mathcal{U}(0,y)$.
 <instructions/>
+
+## Response
 
 ## (a)
 
@@ -413,6 +417,8 @@ Note that the general form of the PDF of $\mathcal{U}(a, b)$ is $\frac{1}{b-a}$ 
 
 # 4. Nylon Fiber Continued
 
+## Instructions
+
 <instructions>
 In the Exercise 2, the times (in hours) between blockages of the 
 extrusion process, $T$, had an exponential $\mathcal{E}(\lambda)$ distribution. 
@@ -422,7 +428,9 @@ Suppose that the rate parameter $\lambda$ is unknown, but there are three measur
 Hint: In (b) the prior is not a proper distribution, but the posterior is. Identify the posterior from the product of the likelihood from (a) and the prior, no need to integrate.
 <instructions/>
 
-## a.
+## Response
+
+## (a)
 
 <hide>
 Reference(s):
@@ -442,12 +450,12 @@ $$
 \hat{\lambda}_{MLE} = \frac{1}{\overline{X}} = \frac{1}{8}.
 $$
 
-## b.
+## (b)
 
 <hide>
 Best reference:
 + PDF page ~58 (PRBLEM 8.3) of http://springer.bme.gatech.edu/solbook.pdf
-</hide
+</hide>
 
 <hide>
 Reference(s):

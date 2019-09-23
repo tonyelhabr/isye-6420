@@ -325,6 +325,7 @@ h6 {
 }
 </style>
 
+<style type="text/css">body, td, blockquote {font-size: 16px;font-family: Arial, Helvetica, sans-serif;}h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {font-family: Arial, Helvetica, sans-serif;font-weight: bold;font-size: 20px;}code.r {font-size: 12px;}img {display: block;margin: 0 auto;}.table {width: 0%;margin-left: auto;margin-right: auto;}blockquote {font-style: italic;}pre {font-size: 12px;}ref {font-style: italic;}instructions {font-style: italic;}response {font-weight: bold;}hide {display: none;}@media print {@page {margin: 0mm 0mm 0mm 0mm;size:8in 9.5in;}}</style>
 
 
 
@@ -439,30 +440,6 @@ summary {
 </div>
 
 
-<style type="text/css">
-body, td {
-  font-size: 14px;
-}
-code.r {
-  font-size: 12px;
-}
-/* General customization. */
-pre {
-  font-size: 12px;
-}
-ref {
-  font-style: italic;
-}
-instructions {
-  font-style: italic;
-}
-response {
-  font-weight: bold;
-}
-hide {
-  display: none;
-}
-</style>
 <div id="cell-clusters-in-3d-petri-dishes" class="section level1">
 <h1>1. Cell Clusters in 3D Petri Dishes</h1>
 <div id="instructions" class="section level2">
@@ -601,6 +578,8 @@ P(X &gt; 20 | X &gt; 10) = P(X &gt; 10) = e^{-10/10} = e^{-1} = 0.3679.
 </div>
 <div id="d-density-tasks" class="section level1">
 <h1>3. 2-D Density Tasks</h1>
+<div id="instructions-2" class="section level2">
+<h2>Instructions</h2>
 <p><instructions> If </instructions></p>
 <p><hide> <span class="math display">\[
 f(x,y) =
@@ -619,6 +598,10 @@ f(x,y) =
 \right.
 \]</span></p>
 <p><instructions> Show that:<br /> (a) marginal distribution <span class="math inline">\(f_X(x)\)</span> is exponential <span class="math inline">\(\mathcal{E}(\lambda)\)</span>.<br /> (b) marginal distribution <span class="math inline">\(f_Y(y)\)</span> is Gamma <span class="math inline">\(\mathcal{G}a(2,\lambda)\)</span>.<br /> (c) conditional distribution <span class="math inline">\(f(y|x)\)</span> is shifted exponential <span class="math inline">\(f(y|x) = \lambda e^{-\lambda(y-x)}\)</span>, <span class="math inline">\(y \geq x\)</span>.<br /> (d) conditional distribution <span class="math inline">\(f(x|y)\)</span> is uniform <span class="math inline">\(\mathcal{U}(0,y)\)</span>. <instructions></instructions></p>
+</div>
+<div id="response-2" class="section level2">
+<h2>Response</h2>
+</div>
 <div id="a-2" class="section level2">
 <h2>(a)</h2>
 <p><hide> Reference(s): + <a href="https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy">https://www.symbolab.com/solver/integral-calculator/%20%5Cint_%7Bx%7D%5E%7B%5Cinfty%7D%20C%5E%7B2%7De%5E%7B-Cy%7Ddy</a> </hide></p>
@@ -689,9 +672,15 @@ f_{X|Y}(x|y) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
 </div>
 <div id="nylon-fiber-continued" class="section level1">
 <h1>4. Nylon Fiber Continued</h1>
+<div id="instructions-3" class="section level2">
+<h2>Instructions</h2>
 <p><instructions> In the Exercise 2, the times (in hours) between blockages of the extrusion process, <span class="math inline">\(T\)</span>, had an exponential <span class="math inline">\(\mathcal{E}(\lambda)\)</span> distribution. Suppose that the rate parameter <span class="math inline">\(\lambda\)</span> is unknown, but there are three measurements of interblockage times, <span class="math inline">\(T_1 = 3, T_2 = 13\)</span>, and <span class="math inline">\(T_3 = 8\)</span>.<br /><br /> (a) How would a classical statistician estimate <span class="math inline">\(\lambda\)</span>?<br /> (b) What is the Bayes estimator of <span class="math inline">\(\lambda\)</span> if the prior is <span class="math inline">\(\pi(\lambda) = \frac{1}{\sqrt{\lambda}}\)</span>, <span class="math inline">\(\lambda &gt; 0\)</span>? <br /><br /> Hint: In (b) the prior is not a proper distribution, but the posterior is. Identify the posterior from the product of the likelihood from (a) and the prior, no need to integrate. <instructions></instructions></p>
-<div id="a." class="section level2">
-<h2>a.</h2>
+</div>
+<div id="response-3" class="section level2">
+<h2>Response</h2>
+</div>
+<div id="a-3" class="section level2">
+<h2>(a)</h2>
 <p><hide> Reference(s): + self </hide></p>
 <p>A classical statistician would estimate <span class="math inline">\(\lambda\)</span> using the MLE, which is <span class="math inline">\(\hat{\lambda}_{MLE} = \frac{1}{\overline{X}}\)</span>.</p>
 <p><span class="math display">\[
@@ -702,9 +691,10 @@ f_{X|Y}(x|y) &amp; = &amp; \frac{f_{X,Y}(x,y)}{f_Y(y)} \\
 \hat{\lambda}_{MLE} = \frac{1}{\overline{X}} = \frac{1}{8}.
 \]</span></p>
 </div>
-<div id="b." class="section level2">
-<h2>b.</h2>
-<p><hide> Best reference: + PDF page ~58 (PRBLEM 8.3) of <a href="http://springer.bme.gatech.edu/solbook.pdf" class="uri">http://springer.bme.gatech.edu/solbook.pdf</a> </hide> Reference(s): + 2018f-hw02-q3: Exponential Lifetimes? + 2019s-hw02-q3: Weibull Lifetimes? + Exercises48: Histcoompatibility? </hide></p>
+<div id="b-3" class="section level2">
+<h2>(b)</h2>
+<p><hide> Best reference: + PDF page ~58 (PRBLEM 8.3) of <a href="http://springer.bme.gatech.edu/solbook.pdf" class="uri">http://springer.bme.gatech.edu/solbook.pdf</a> </hide></p>
+<p><hide> Reference(s): + 2018f-hw02-q3: Exponential Lifetimes? + 2019s-hw02-q3: Weibull Lifetimes? + Exercises48: Histcoompatibility? </hide></p>
 <p>The instructions indicate that we are trying to estimate the rate <span class="math inline">\(T_1, \dots, T_n \sim \mathcal{E}(\theta)\)</span> given the prior <span class="math inline">\(\pi(\lambda) = \theta = \frac{1}{\sqrt{\lambda}} = \lambda^{-0.5}, \lambda &gt; 0\)</span>.</p>
 <p>Thus, we have the following problem setup.</p>
 <p><span class="math display">\[
