@@ -137,7 +137,10 @@ $$
 \end{array}
 $$
 
-Thus, given that $\xi \sim \mathcal{Ga}(5, \lambda + 27)$, we find that
+<response>
+Thus, given that $\xi \sim \mathcal{Ga}(5, \lambda + 27)$, we find that the
+Bayesian estimate of $\xi$ is
+</response>
 
 $$
 \begin{array}{c}
@@ -206,7 +209,7 @@ and expressions for $\mu$ and $\sigma$. for beta.<br/><br/>
 During the trial, in 30 patients treated, 22 responded. <br/>
 (a) What are the likelihood and posterior distributions? What is the Bayes estimator of the proportion?<br/>
 (b) Using Octave, R, or Python, fine 95% Credible Set for $p$. <br/>
-(c) Using Octave, R, or Python, test the hypothesis $H_0 : p \geq 2/3$ against the alternative $H_1 : p < 2/3$. <br/>
+(c) Using Octave, R, or Python, test the hypothesis $H_0 : p \geq 4/5$ against the alternative $H_1 : p < 4/5$. <br/>
 (d) Using WinBUGS, find the Bayes estimator, Credible Set and test, and compare results
 with (a-c).
 </instructions>
@@ -389,11 +392,11 @@ qbeta(0.025, 137, 65) # `betainv(0.025,137,65)` in Matlab
 qbeta(0.975, 137, 65) # `betainv(0.975,137,65)` in Matlab
 ```
 
-To test the null hypothesis $H_0 : p \geq 2/3$ against the alternative $H_1 : p < 2/3$,
+To test the null hypothesis $H_0 : p \geq 4/5$ against the alternative $H_1 : p < 4/5$,
 let's calculate the posterior probability of the alternative first (using `R`).
 
 ```{r hw03-q2-c-1, include=T, echo=T, eval=T}
-p_h1 <- 2 / 3
+p_h1 <- 4/5
 p_h1 <- pbeta(p_h1, alpha_1, beta_1, lower.tail = TRUE)
 p_h1
 ```
@@ -410,9 +413,9 @@ Analytically, the calculation for $\Pr(H_1)$ looks as follows.
 
 $$
 \begin{array}{lcl}
-\Pr(H_1 : p < 2/3) & = & \int_{0}^{2/3} \mathcal{Be}(23, 9) dp \\
-& = & \frac{\Gamma(23 + 9)}{\Gamma(23) \Gamma(9)} \int_{0}^{2/3} p^{23-1}(1-p)^{9-1} dp \\
-& = & \frac{\Gamma(34)}{\Gamma(23) \Gamma(9)} \int_{0}^{2/3} p^{22}(1-p)^{10} dp \\
+\Pr(H_1 : p < 4/5) & = & \int_{0}^{4/5} \mathcal{Be}(23, 9) dp \\
+& = & \frac{\Gamma(23 + 9)}{\Gamma(23) \Gamma(9)} \int_{0}^{4/5} p^{23-1}(1-p)^{9-1} dp \\
+& = & \frac{\Gamma(34)}{\Gamma(23) \Gamma(9)} \int_{0}^{4/5} p^{22}(1-p)^{10} dp \\
 & \approx & `r p_h1_chr`.
 \end{array}
 $$
@@ -421,14 +424,14 @@ Then we find that the probability of the null hypothesis is
 
 $$
 \begin{array}{c}
-\Pr(H_0 : p \geq 2/3) = 1 - \Pr(H_1 : p < 2/3) = `r p_h0_chr`.
+\Pr(H_0 : p \geq 4/5) = 1 - \Pr(H_1 : p < 4/5) = `r p_h0_chr`.
 \end{array}
 $$
 
 <response>
-Since we find that the null hypothesis has
+Since we find that the alternative hypothesis $H_1$ has
 a probability greater than 0.5,
-we do not reject the null hypothesis (and, instead, reject the alternative hypothesis).
+we choose to accept the alternative hypothesis over the null hypothesis $H_0$.
 </response>
 
 Note that Bayesian hypothesis testing is different than Frequentist hypothesis
@@ -460,7 +463,7 @@ are 0.5693 and 0.8719 respectively.
 These values are reasonably close to the values we found with `R`--`r credible_set_chr_1[1]` and `r credible_set_chr_1[2]`.
 
 The probability of the alternative hypothesis $H_1$ corresponds to the
-mean of the `h_1` variable---0.1885. This is relatively close to the
+posterior mean of the `h_1` variable---0.7913. This is relatively close to the
 value that we found with `R`---`r p_h1_chr`.
 
 ### Aside
@@ -472,7 +475,7 @@ found directly in OpenBUGS.
 model <- function() {
   x ~ dbin(p, n)
 	p ~ dbeta(alpha, beta)
-	h_1 <- step(2/3 - p)
+	h_1 <- step(4/5 - p)
 }
 data <- list(alpha = 0.72, beta = 0.18, x = 22, n = 30)
 inits <- NULL
@@ -494,12 +497,17 @@ res_sim$summary
 ```{r hw03-q2-1-hide, include=F, echo=F, eval=F}
 clipr::write_clip(knitr::kable(res_sim$summary))
 ```
-
+<hide>
 |    |      mean|        sd|      2.5%|    25%|  50%|   75%|  97.5%|
 |:---|---------:|---------:|---------:|------:|----:|-----:|------:|
 |h_1 | 0.1955556| 0.3966498| 0.0000000| 0.0000| 0.00| 0.000| 1.0000|
 |p   | 0.7343966| 0.0781395| 0.5678975| 0.6837| 0.74| 0.791| 0.8697|
+</hide>
 
+|    |      mean|        sd|      2.5%|    25%|  50%|   75%|  97.5%|
+|:---|---------:|---------:|---------:|------:|----:|-----:|------:|
+|h_1 | 0.7912222| 0.4064578| 0.0000000| 1.0000| 1.00| 1.000| 1.0000|
+|p   | 0.7343966| 0.0781395| 0.5678975| 0.6837| 0.74| 0.791| 0.8697|
 
 
 
