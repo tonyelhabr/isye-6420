@@ -456,24 +456,57 @@ f(r) = \xi r \text{ exp } \{ \frac{-\xi r^2}{2} \}, \quad r \geq 0, \xi &gt; 0.
 <h2>Response</h2>
 <div id="a" class="section level3">
 <h3>a</h3>
-<p>Since we know that the population is distributed as <span class="math inline">\(f(r) = \xi r e^{-(\xi r^2)/2}\)</span>, we can say that the likelihood is</p>
+<p><b><i> As a note to the grader, this proof is very similar to that shown for the third problem in the <a href="https://www2.isye.gatech.edu/~brani/isye6420/Bank/Homework2solutions.pdf">solutions for Homework 2 for the Spring 2019 semester</a>. </i></b></p>
+<p>Recall Bayes’ formula (expressed here in the symbols used by the instructions).</p>
 <p><span class="math display">\[
-\begin{array}{rcl}
-\sum_{i=1}^{n} f(r_i)
-&amp; = &amp; \xi r_1 e^{-\frac{1}{2} \xi r_1} + \ldots + \xi r_n e^{-\frac{1}{2} \xi r_n} \\
-&amp; \propto &amp; \xi e^{-\frac{1}{2} \xi r_1} + \ldots + \xi e^{-\frac{1}{2} \xi r_n} \\
-&amp; \propto &amp; \xi e^{-\frac{1}{2}\xi \sum_{i=1}^n r^2}.
+\begin{array}{c}
+\pi\left(\xi | r_{1}, \ldots, r_{n}\right)=\frac{f\left(r_{1}, \ldots, r_{n} | \xi\right) \pi(\xi)}{m\left(r_{1}, \ldots, r_{n}\right)}
 \end{array}
 \]</span></p>
-<p>Given that the prior <span class="math inline">\(\pi(\lambda) = \lambda e^{-\lambda}\)</span> (because it follows the distribution <span class="math inline">\(\mathcal{Exp}(\lambda)\)</span>), we deduce that the posterior is</p>
+<p>We will work towards formulating the posterior <span class="math inline">\(\pi\left(\xi | r_{1}, \ldots, r_{n}\right)\)</span> by looking at each of its components—the prior <span class="math inline">\(\pi(\xi)\)</span>, the likelihood <span class="math inline">\(f\left(r_{1}, \ldots, r_{n} | \xi\right)\)</span>, and the <span class="math inline">\(m\left(r_{1}, \ldots, r_{n}\right)\)</span>. We will assume that <span class="math inline">\(f\left(r_{1}, \ldots, r_{n} | \xi\right) = f\left(r_{1}, \ldots, r_{n}\right)\)</span> in what follows.</p>
+<p>First, we start with the prior. Given that the prior follows the Exponential distribution distribution <span class="math inline">\(\xi \sim \mathcal{Exp}(\lambda)\)</span>, we can express it as <span class="math inline">\(\pi(\xi) = \lambda e^{-\lambda \xi}\)</span>.</p>
+<p>Next, we look at the likelihood. Since we know that the population is distributed as <span class="math inline">\(f(r) = \xi r e^{-(\xi r^2)/2}\)</span>, we can say that the likelihood is</p>
 <p><span class="math display">\[
 \begin{array}{rcl}
-\text{ posterior }  &amp; = &amp; \text{ likelihood } \times \text{ prior } \\
-&amp; = &amp; \xi^n \lambda e^{-\xi(\lambda + \frac{1}{2} \sum_{i=1}^n r_i^2)} \\
-&amp; \propto &amp; \xi^n  e^{-\xi(\lambda + \frac{1}{2} \sum_{i=1}^n r_i^2)}
+f\left(r_{1}, \ldots, r_{n} | \xi\right) 
+&amp; = &amp; f\left(r_{1}, \ldots, r_{n}\right) \\
+&amp; = &amp; \prod_{i=1}^{n} f(r_i) \\
+&amp; = &amp; \xi^n \prod_{i=1}^{n} r_i e^{-\frac{1}{2}\xi \sum_{i=1}^n r^2} \\
+&amp; \propto &amp; \xi^n e^{-\frac{1}{2}\xi \sum_{i=1}^n r^2}.
 \end{array}
 \]</span></p>
-<p>The above expression is the kernel for the distribution <span class="math inline">\(\mathcal{Ga}(n+1, \lambda+\frac{1}{2}\sum_{i=1}^{n} r_i^2)\)</span>. (This is what is indicated by the hint).</p>
+<p>(Note that we “drop” the term <span class="math inline">\(\prod_{i=1}^{n} r_i\)</span> since it is just a constant.)</p>
+<p>Next, we can formulate the marginal as follows.</p>
+<p><span class="math display">\[
+\begin{aligned}
+m\left(r_{1}, \ldots, r_{n}\right)
+&amp; = \int_{0}^{\infty} f\left(r_{1}, \ldots, r_{n} | \xi\right) \pi(\xi) d \xi \\ 
+&amp; = \int_{0}^{\infty} f\left(r_{1}, \ldots, r_{n}\right) \pi(\xi) d \xi \\ 
+&amp; = \int_{0}^{\infty} \xi^{n} e^{-\sum_{i=1}^{n} r_{i} \xi} \lambda e^{-\lambda \xi} d \xi \\ 
+&amp; = \lambda \int_{0}^{\infty} \xi^{n} e^{-\left(\sum_{i=1}^{n} r_{i}+\lambda\right) \xi} d \xi.
+\end{aligned}
+\]</span></p>
+<p>We will re-express the marginal <span class="math inline">\(m\)</span> shortly. First, recall the properties of the Gamma distribution <span class="math inline">\(\mathcal{Ga}(\alpha, \beta)\)</span> for a random variable <span class="math inline">\(X\)</span> where <span class="math inline">\(\alpha &lt; 0, \beta &gt; 0, x \geq 0\)</span>.</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(x | \alpha, \beta) &amp;=\frac{\beta^{\alpha}}{\Gamma(\alpha)} x^{\alpha-1} e^{-\beta_{x}} \\
+\mathbb{E}[X | \alpha, \beta] &amp;=\frac{\alpha}{\beta} \\ \operatorname{Var}(X | \alpha, \beta) &amp;=\frac{\alpha}{\beta^{2}} \end{aligned}
+\]</span></p>
+<p>We can re-express the PDF <span class="math inline">\(f\)</span> of the Gamma distribution as <span class="math inline">\(\int_{0}^{\infty} \frac{\beta^{\alpha}}{\Gamma(\alpha)} y^{\alpha-1} e^{-\beta y}=1\)</span> after substituting <span class="math inline">\(\Gamma(\alpha)=\int_{0}^{\infty} u^{\alpha-1} e^{-u} d u\)</span> (in the denominator).</p>
+<p>Next, we go back and re-express the marginal <span class="math inline">\(m\)</span> as so.</p>
+<p><span class="math display">\[
+\begin{aligned}
+m\left(r_{1}, \ldots, r_{n}\right) &amp;=\frac{\lambda \Gamma(n+1)}{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}} \int_{0}^{\infty} \frac{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}}{\Gamma(n+1)} \xi^{(n+1)-1} e^{-\left(\lambda+\sum_{i=1}^{n} r_{i}\right) \xi} d \xi \\ &amp;=\frac{\lambda \Gamma(n+1)}{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}}
+\end{aligned}
+\]</span></p>
+<p>Finally, we put together our expressions for the prior, the likelihood, and the marginal as follows..</p>
+<p><span class="math display">\[
+\begin{aligned} 
+\pi\left(\xi | r_{1}, \ldots, r_{n}\right)
+&amp;=\frac{\lambda \xi^{n} e^{-\left(\lambda+\frac{1}{2}\sum_{i=1}^{n} r_i\right) \xi}}{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}} \\ &amp;=\frac{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}}{\Gamma(n+1)} \xi^{n} e^{-\left(\lambda+\frac{1}{2}\sum_{i=1}^{n} r_i\right) \xi} 
+\end{aligned}
+\]</span></p>
+<p>The above expression is the kernel for the Gamma distribution <span class="math inline">\(\mathcal{Ga}(\alpha,\beta)\)</span> with <span class="math inline">\(\alpha=n+1, \beta=\lambda+\frac{1}{2}\sum_{i=1}^{n} r_i^2\)</span>. (This is what is indicated by the hint).</p>
 <p><response> Then, for the case of <span class="math inline">\(n=1\)</span>, we see that <span class="math inline">\(\mathcal{Ga}(2, \lambda+\frac{1}{2} r^2)\)</span>. </response></p>
 </div>
 <div id="b" class="section level3">
@@ -490,7 +523,7 @@ f(r) = \xi r \text{ exp } \{ \frac{-\xi r^2}{2} \}, \quad r \geq 0, \xi &gt; 0.
 \operatorname{E}(X) = \frac{\alpha}{\beta}.
 \end{array}
 \]</span></p>
-<p><response> Thus, given that <span class="math inline">\(\xi \sim \mathcal{Ga}(5, \lambda + 27)\)</span>, we find that the Bayesian estimate of <span class="math inline">\(\xi\)</span> is </response></p>
+<p><response> Thus, given that <span class="math inline">\(\xi \sim \mathcal{Ga}(5, \lambda + 27)\)</span>, we find that the Bayesian estimate <span class="math inline">\(\xi_{Bayes}\)</span> of <span class="math inline">\(\xi\)</span> is </response></p>
 <p><span class="math display">\[
 \begin{array}{c}
 \xi_{Bayes} = \operatorname{E}(\xi) = \frac{5}{\lambda + 27}.
@@ -509,15 +542,15 @@ f(r) = \xi r \text{ exp } \{ \frac{-\xi r^2}{2} \}, \quad r \geq 0, \xi &gt; 0.
 \Pr(p \in \left[L, U\right] | X) \geq 1 - \alpha
 \end{array}
 \]</span></p>
-<p>We can calculate the 95% equitailed credibe set in <code>R</code> (given <span class="math inline">\(\lambda = 1\)</span>) as follows.</p>
+<p>We can calculate the 95% equitailed credible set in <code>R</code> (given <span class="math inline">\(\lambda = 1\)</span>) as follows.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">compute_equi_credible_set &lt;-<span class="st"> </span><span class="cf">function</span>(alpha, beta, <span class="dt">level =</span> <span class="fl">0.95</span>) {</a>
 <a class="sourceLine" id="cb1-2" data-line-number="2">  q_buffer &lt;-<span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>level) <span class="op">/</span><span class="st"> </span><span class="dv">2</span></a>
 <a class="sourceLine" id="cb1-3" data-line-number="3">  q_l &lt;-<span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>level) <span class="op">-</span><span class="st"> </span>q_buffer</a>
 <a class="sourceLine" id="cb1-4" data-line-number="4">  q_u &lt;-<span class="st"> </span>level <span class="op">+</span><span class="st"> </span>q_buffer</a>
 <a class="sourceLine" id="cb1-5" data-line-number="5">  res &lt;-</a>
 <a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">    </span><span class="kw">c</span>(</a>
-<a class="sourceLine" id="cb1-7" data-line-number="7">      <span class="dt">l =</span> <span class="kw">qbeta</span>(q_l, <span class="dt">shape1 =</span> alpha, <span class="dt">shape2 =</span> beta),</a>
-<a class="sourceLine" id="cb1-8" data-line-number="8">      <span class="dt">u =</span> <span class="kw">qbeta</span>(q_u, <span class="dt">shape1 =</span> alpha, <span class="dt">shape2 =</span> beta)</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">      <span class="dt">l =</span> <span class="kw">qgamma</span>(q_l, <span class="dt">shape =</span> alpha, <span class="dt">rate =</span> beta),</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">      <span class="dt">u =</span> <span class="kw">qgamma</span>(q_u, <span class="dt">shape =</span> alpha, <span class="dt">rate =</span> beta)</a>
 <a class="sourceLine" id="cb1-9" data-line-number="9">    )</a>
 <a class="sourceLine" id="cb1-10" data-line-number="10">}</a>
 <a class="sourceLine" id="cb1-11" data-line-number="11">alpha_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="dv">5</span></a>
@@ -526,8 +559,8 @@ f(r) = \xi r \text{ exp } \{ \frac{-\xi r^2}{2} \}, \quad r \geq 0, \xi &gt; 0.
 <a class="sourceLine" id="cb1-14" data-line-number="14">credible_set_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">compute_equi_credible_set</span>(alpha_<span class="dv">1</span>, beta_<span class="dv">1</span>)</a>
 <a class="sourceLine" id="cb1-15" data-line-number="15">credible_set_<span class="dv">1</span></a></code></pre></div>
 <pre><code>##          l          u 
-## 0.05275056 0.28994842</code></pre>
-<p><response> We find that the 95% credible set is [0.0528, 0.2899)]. </response></p>
+## 0.05798166 0.36577102</code></pre>
+<p><response> We find that the 95% credible set is [0.0580, 0.3658]. </response></p>
 </div>
 </div>
 </div>
@@ -632,9 +665,9 @@ p_{Bayes} = \operatorname{E}(X)
 <p>We can calculate the 95% credible set using <code>R</code> (using the function created in 1(c)).</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">credible_set_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">compute_equi_credible_set</span>(alpha_<span class="dv">1</span>, beta_<span class="dv">1</span>)</a>
 <a class="sourceLine" id="cb7-2" data-line-number="2">credible_set_<span class="dv">1</span></a></code></pre></div>
-<pre><code>##         l         u 
-## 0.5538661 0.8577715</code></pre>
-<p><response> We find that the 95% credible set is [0.5539, 0.8578]. </response></p>
+<pre><code>##        l        u 
+## 1.620003 3.700918</code></pre>
+<p><response> We find that the 95% credible set is [1.6200, 3.7009]. </response></p>
 </div>
 <div id="c-1" class="section level3">
 <h3>c</h3>
@@ -677,7 +710,7 @@ p_{Bayes} = \operatorname{E}(X)
 <p>The output is shown below.</p>
 <p><img src="data:image/png;base64,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" /></p>
 <p>The Bayes estimator corresponds to the mean of <code>p</code>, which is 0.7352. This is very close to the value that we found analytically—0.71875.</p>
-<p>The 95% credible set corresponds to the 2.5% and 97.5% values for <code>p</code>, which are 0.5693 and 0.8719 respectively. These values are reasonably close to the values we found with <code>R</code>–0.5539 and 0.8578.</p>
+<p>The 95% credible set corresponds to the 2.5% and 97.5% values for <code>p</code>, which are 0.5693 and 0.8719 respectively. These values are reasonably close to the values we found with <code>R</code>–1.6200 and 3.7009.</p>
 <p>The probability of the alternative hypothesis <span class="math inline">\(H_1\)</span> corresponds to the posterior mean of the <code>h_1</code> variable—0.7913. This is relatively close to the value that we found with <code>R</code>—0.8492.</p>
 </div>
 <div id="aside" class="section level3">

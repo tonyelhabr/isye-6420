@@ -32,7 +32,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r postprocess, include=F, echo=F, cache=F}
-.path_sans_ext <- file.path('hws', 'hw02')
+.path_sans_ext <- file.path('hw03')
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 ```
@@ -79,35 +79,79 @@ the the posterior is gamma $\mathcal{Ga}(n+1, \lambda+\frac{1}{2}\sum_{i=1}^{n} 
 
 ## Response
 
-
 ### a
 
-Since we know that the population is
-distributed as $f(r) = \xi r e^{-(\xi r^2)/2}$, we
-can say that the likelihood is
+<b><i>
+As a note to the grader, this proof is very similar to that shown for the third problem in the [solutions for Homework 2 for the Spring 2019 semester](https://www2.isye.gatech.edu/~brani/isye6420/Bank/Homework2solutions.pdf).
+</i></b>
+
+Recall Bayes' formula (expressed here in the symbols used by the instructions).
 
 $$
-\begin{array}{rcl}
-\sum_{i=1}^{n} f(r_i)
-& = & \xi r_1 e^{-\frac{1}{2} \xi r_1} + \ldots + \xi r_n e^{-\frac{1}{2} \xi r_n} \\
-& \propto & \xi e^{-\frac{1}{2} \xi r_1} + \ldots + \xi e^{-\frac{1}{2} \xi r_n} \\
-& \propto & \xi e^{-\frac{1}{2}\xi \sum_{i=1}^n r^2}.
+\begin{array}{c}
+\pi\left(\xi | r_{1}, \ldots, r_{n}\right)=\frac{f\left(r_{1}, \ldots, r_{n} | \xi\right) \pi(\xi)}{m\left(r_{1}, \ldots, r_{n}\right)}
 \end{array}
 $$
 
+We will work towards formulating the posterior $\pi\left(\xi | r_{1}, \ldots, r_{n}\right)$ by looking at each of its components---the prior $\pi(\xi)$, the likelihood $f\left(r_{1}, \ldots, r_{n} | \xi\right)$, and the $m\left(r_{1}, \ldots, r_{n}\right)$. We will assume that $f\left(r_{1}, \ldots, r_{n} | \xi\right) = f\left(r_{1}, \ldots, r_{n}\right)$ in what follows.
 
-Given that the prior $\pi(\lambda) = \lambda e^{-\lambda}$ (because it follows the distribution $\mathcal{Exp}(\lambda)$), we deduce that the
-posterior is
+First, we start with the prior. Given that the prior follows the Exponential distribution distribution $\xi \sim \mathcal{Exp}(\lambda)$, we can express it as $\pi(\xi) = \lambda e^{-\lambda \xi}$.
+
+Next, we look at the likelihood. Since we know that the population is distributed as $f(r) = \xi r e^{-(\xi r^2)/2}$, we can say that the likelihood is
 
 $$
 \begin{array}{rcl}
-\text{ posterior }  & = & \text{ likelihood } \times \text{ prior } \\
-& = & \xi^n \lambda e^{-\xi(\lambda + \frac{1}{2} \sum_{i=1}^n r_i^2)} \\
-& \propto & \xi^n  e^{-\xi(\lambda + \frac{1}{2} \sum_{i=1}^n r_i^2)}
+f\left(r_{1}, \ldots, r_{n} | \xi\right) 
+& = & f\left(r_{1}, \ldots, r_{n}\right) \\
+& = & \prod_{i=1}^{n} f(r_i) \\
+& = & \xi^n \prod_{i=1}^{n} r_i e^{-\frac{1}{2}\xi \sum_{i=1}^n r^2} \\
+& \propto & \xi^n e^{-\frac{1}{2}\xi \sum_{i=1}^n r^2}.
 \end{array}
 $$
 
-The above expression is the kernel for the distribution $\mathcal{Ga}(n+1, \lambda+\frac{1}{2}\sum_{i=1}^{n} r_i^2)$.
+(Note that we "drop" the term $\prod_{i=1}^{n} r_i$ since it is just a constant.)
+
+Next, we can formulate the marginal as follows.
+
+$$
+\begin{aligned}
+m\left(r_{1}, \ldots, r_{n}\right)
+& = \int_{0}^{\infty} f\left(r_{1}, \ldots, r_{n} | \xi\right) \pi(\xi) d \xi \\ 
+& = \int_{0}^{\infty} f\left(r_{1}, \ldots, r_{n}\right) \pi(\xi) d \xi \\ 
+& = \int_{0}^{\infty} \xi^{n} e^{-\sum_{i=1}^{n} r_{i} \xi} \lambda e^{-\lambda \xi} d \xi \\ 
+& = \lambda \int_{0}^{\infty} \xi^{n} e^{-\left(\sum_{i=1}^{n} r_{i}+\lambda\right) \xi} d \xi.
+\end{aligned}
+$$
+
+We will re-express the marginal $m$ shortly. First, recall the properties of the Gamma distribution $\mathcal{Ga}(\alpha, \beta)$ for a random variable $X$ where $\alpha < 0, \beta > 0, x \geq 0$.
+
+$$
+\begin{aligned}
+f(x | \alpha, \beta) &=\frac{\beta^{\alpha}}{\Gamma(\alpha)} x^{\alpha-1} e^{-\beta_{x}} \\
+\mathbb{E}[X | \alpha, \beta] &=\frac{\alpha}{\beta} \\ \operatorname{Var}(X | \alpha, \beta) &=\frac{\alpha}{\beta^{2}} \end{aligned}
+$$
+
+We can re-express the PDF $f$ of the Gamma distribution as $\int_{0}^{\infty} \frac{\beta^{\alpha}}{\Gamma(\alpha)} y^{\alpha-1} e^{-\beta y}=1$ after substituting $\Gamma(\alpha)=\int_{0}^{\infty} u^{\alpha-1} e^{-u} d u$ (in the denominator).
+
+Next, we go back and re-express the marginal $m$ as so.
+
+$$
+\begin{aligned}
+m\left(r_{1}, \ldots, r_{n}\right) &=\frac{\lambda \Gamma(n+1)}{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}} \int_{0}^{\infty} \frac{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}}{\Gamma(n+1)} \xi^{(n+1)-1} e^{-\left(\lambda+\sum_{i=1}^{n} r_{i}\right) \xi} d \xi \\ &=\frac{\lambda \Gamma(n+1)}{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}}
+\end{aligned}
+$$
+
+Finally, we put together our expressions for the prior, the likelihood,
+and the marginal as follows..
+
+$$
+\begin{aligned} 
+\pi\left(\xi | r_{1}, \ldots, r_{n}\right)
+&=\frac{\lambda \xi^{n} e^{-\left(\lambda+\frac{1}{2}\sum_{i=1}^{n} r_i\right) \xi}}{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}} \\ &=\frac{\left(\lambda+\sum_{i=1}^{n} r_{i}\right)^{n+1}}{\Gamma(n+1)} \xi^{n} e^{-\left(\lambda+\frac{1}{2}\sum_{i=1}^{n} r_i\right) \xi} 
+\end{aligned}
+$$
+
+The above expression is the kernel for the Gamma distribution $\mathcal{Ga}(\alpha,\beta)$ with $\alpha=n+1, \beta=\lambda+\frac{1}{2}\sum_{i=1}^{n} r_i^2$.
 (This is what is indicated by the hint).
 
 <response>
@@ -139,7 +183,7 @@ $$
 
 <response>
 Thus, given that $\xi \sim \mathcal{Ga}(5, \lambda + 27)$, we find that the
-Bayesian estimate of $\xi$ is
+Bayesian estimate $\xi_{Bayes}$ of $\xi$ is
 </response>
 
 $$
@@ -166,7 +210,7 @@ $$
 \end{array}
 $$
 
-We can calculate the 95% equitailed credibe set in `R` (given $\lambda = 1$) as follows.
+We can calculate the 95% equitailed credible set in `R` (given $\lambda = 1$) as follows.
 
 ```{r hw03-q1-c-1, include=T, echo=T, eval=T}
 compute_equi_credible_set <- function(alpha, beta, level = 0.95) {
@@ -175,8 +219,8 @@ compute_equi_credible_set <- function(alpha, beta, level = 0.95) {
   q_u <- level + q_buffer
   res <-
     c(
-      l = qbeta(q_l, shape1 = alpha, shape2 = beta),
-      u = qbeta(q_u, shape1 = alpha, shape2 = beta)
+      l = qgamma(q_l, shape = alpha, rate = beta),
+      u = qgamma(q_u, shape = alpha, rate = beta)
     )
 }
 alpha_1 <- 5
@@ -192,7 +236,7 @@ credible_set_chr_1
 ```
 
 <response>
-We find that the 95% credible set is [`r credible_set_chr_1[1]`, `r credible_set_chr_1[2]`)].
+We find that the 95% credible set is [`r credible_set_chr_1[1]`, `r credible_set_chr_1[2]`].
 </response>
 
 
