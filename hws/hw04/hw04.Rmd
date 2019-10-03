@@ -32,7 +32,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r postprocess, include=F, echo=F, cache=F}
-.path_sans_ext <- file.path('hws', 'hw4')
+.path_sans_ext <- file.path('hw4')
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 ```
@@ -77,13 +77,12 @@ lines_text <-
 lines_text
 ```
 
-
 # 1. Metropolis: The Bounded Normal Mean.
 
 ## Instructions
 
 <instructions>
-Suppose that we have information that the normal mean $θ$ is bounded between $−m$ and $m$, for some known number $m$. In this case it is natural to elicit a prior on $θ$ with the support on interval $[−m, m]$. A prior with interesting theoretical properties supported on $[−m, m$] is Bickel-Levit prior, 
+Suppose that we have information that the normal mean $\theta$ is bounded between $−m$ and $m$, for some known number $m$. In this case it is natural to elicit a prior on $\theta$ with the support on interval $[−m, m]$. A prior with interesting theoretical properties supported on $[−m, m$] is Bickel-Levit prior, 
 </instructions>
 
 $$
@@ -97,12 +96,12 @@ Assume that a sample $[−2, −3, 4, −7, 0, 4]$ is observed from normal distr
 </instructions>
 
 <instructions>
-with a known precision $τ = 1/4$. Assume also that the prior on $θ$ is Bickel-Levit, with $m = 2$. This combination likelihood/prior does not result in an explicit posterior (in terms of elementary functions). Construct a Metropolis algorithm that will sample from the posterior of $θ$.<br/><br/>
+with a known precision $\tau = 1/4$. Assume also that the prior on $\theta$ is Bickel-Levit, with $m = 2$. This combination likelihood/prior does not result in an explicit posterior (in terms of elementary functions). Construct a Metropolis algorithm that will sample from the posterior of $\theta$.<br/><br/>
 (a) Simulate 10,000 observations from the posterior, after discarding first 500 observations (burn-in), and plot the histogram of the posterior.<br/>
-(b) Find Bayes estimator of θ, and 95% equitailed Credible Set based on the simulated observations.<br/><br/>
+(b) Find Bayes estimator of $\theta$, and 95% equitailed Credible Set based on the simulated observations.<br/><br/>
 Suggestions:<br/>
-(i) Take uniform distribution on $[−m, m]$ as a proposal distribution since it is easy to sample from. This is an independence proposal, the proposed $θ′$ does not depend on the current value of the chain, $θ$.<br/>
-(ii) You will need to calculate $\sum_{i=1}^n (y_i − θ)^2$ for current $θ$ and $\sum_{i=1}^n i=1 (y_i − θ′)^2$ for the proposed $θ′$, prior to calculating the Metropolis ratio.
+(i) Take uniform distribution on $[−m, m]$ as a proposal distribution since it is easy to sample from. This is an independence proposal, the proposed $\theta'$ does not depend on the current value of the chain, $\theta$.<br/>
+(ii) You will need to calculate $\sum_{i=1}^n (y_i − \theta)^2$ for current $\theta$ and $\sum_{i=1}^n i=1 (y_i − \theta')^2$ for the proposed $\theta'$, prior to calculating the Metropolis ratio.
 </instructions>
 
 
@@ -116,13 +115,14 @@ $$
 
 ### a
 
-As noted in the instructions, the posterior cannot be written easiliy in terms of "elementary" functions. Alternatively, the Metropolis algorithm can be used to approximate a posterior distribution.
+As noted in the instructions, the posterior cannot be written easiliy in terms of "elementary" functions.
+Alternatively, the Metropolis algorithm can be used to approximate a posterior distribution.
 
 <hide>
 NOTEs TO SELF:
 + target density function
-  + a.k.a. posterior distribution (ideally, although may only be proportional or not actually known).
-  + i.e. prior \times likelihood.
+  + a.k.a. posterior distribution (ideally, although may only be proportional or not actually known). *Here, it is not actually known.*
+  + i.e. prior \times likelihood. *Use this if the posterior is not actually known.*
   + $\pi$ function.
   + $\pi(y)$ or $\pi(x_t)$ in acceptance ratio $A$ shown in https://stephens999.github.io/fiveMinuteStats/MH_intro.html#the_mh_algorithm.
   + Using Brani's syntax, $\pi(\theta)$ where $\theta = \theta^{\prime} \text{ or } \theta_{n}$
@@ -136,22 +136,21 @@ NOTEs TO SELF:
   + Is or isn't the same as the prior?
 </hide>
 
-First, let's construct the target density function. We estimate it to be the product of the prior and the likelihood. Given  the the Bickel-Levit prior $\pi(\theta)$ with $m = 2$ and the likelihood distribution $f(y|\theta)$ with $\tau = \frac{1}{4}$, <hide>and $\bar{y} = \frac{1}{n} \sum_{i=1}^n} y_i = \frac{1}{6} (-6) = -1$</hide>, we formulate the target density function as follows.
-
-<hide>TODO: Where did $Y$ go in the formulation below?</hide>
+First, let's construct the target density distribution. This is proportional to the posterior, which is the product of the prior and the likelihood. Using the Bickel-Levit prior $\pi(\theta)$ with $m = 2$ and the likelihood distribution $f(y|\theta)$ with $\tau = \frac{1}{4}$, <hide>and $\bar{y} = \frac{1}{n} \sum_{i=1}^n} y_i = \frac{1}{6} (-6) = -1$</hide>, we formulate the target density function as follows.
 
 $$
 \begin{array}{rcl}
-\pi(\theta|Y) 
-& \propto & \sqrt{\tau} e ^ {\frac{\tau}{2} (- \theta) ^2} \\
-& = & \sqrt {(\frac{1}{4})} e ^ {\frac{(1/4)}{2} \theta ^2 } \\
-& = & \frac{1}{2} e ^ {\theta^2 / 8} \\
-& \propto & e ^ {\theta^2 / 8}
+\text{ posterior } & \propto & \text{ prior } \times \text{ likelihood } \\
+\pi(y|\theta) & \propto & \pi(\theta) \times f(y|\theta) \\
+& = & (\frac{1}{(2)} \cos ^{2}\left( \frac{\pi \theta}{2 (2)}\right)) (\sqrt{(1/4)} \text{ exp } \{ \frac{(1/4)}{2} (y - \theta) ^2 \}) \\
 \end{array}
 $$
 
-The proposal distribution ...
-The target probability $\rho$ is
+(This is still a relatively complex expression, but code can help us solve for given values of $\theta$ and $\tau$.)
+
+Using the suggestion and given $m=2$, we define the proposal density as $\mathcal{U}(-2, 2)$.
+
+Then we have the acceptance probability $\rho$ as
 
 
 $$
@@ -177,15 +176,13 @@ $$
 \end{cases}
 $$
 
-
 (Generate $U = \mathcal{U}(0, 1)$ and accept proposal $\theta^{\prime}$ if $U \leq \rho(\theta_{n}, \theta^{\prime})$.)
 
 4. Increase $n$ and go to Step 2.
 
-[^1]: We don't really have an idea of the form of the support of the target; otherwise, we would try to initialize $theta$ to be like the target.
+[^1]: We don't really have an idea of the form of the support of the target; otherwise, we would try to initialize $\theta$ to be like the target.
 
-See the code below for the implementation. (Note that `theta_prop` below represents
-$\theta^{\prime}$ in the formulations above.)
+See the code below for the implementation. (Note that `theta_prop` below represents $\theta^{\prime}$ in the formulations above.)
 
 ```{r q1-a-0, include=F, echo=F, eval=F}
 # f_likelihood_simple <- function(theta) {
