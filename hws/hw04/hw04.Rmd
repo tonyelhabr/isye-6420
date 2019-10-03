@@ -83,7 +83,7 @@ lines_text
 ## Instructions
 
 <instructions>
-Suppose that we have information that the normal mean $θ$ is bounded between $−m$ and $m$, for some known number $m$. In this case it is natural to elicit a prior on $θ$ with the support on interval $[−m, m]$. A prior with interesting theoretical properties supported on $[−m, m$] is Bickel-Levit prior ^[1], 
+Suppose that we have information that the normal mean $θ$ is bounded between $−m$ and $m$, for some known number $m$. In this case it is natural to elicit a prior on $θ$ with the support on interval $[−m, m]$. A prior with interesting theoretical properties supported on $[−m, m$] is Bickel-Levit prior, 
 </instructions>
 
 $$
@@ -116,31 +116,29 @@ $$
 
 ### a
 
-As noted in the instructions, the posterior cannot be written easiliy
-in terms of "elementary" functions. Alternatively, the Metropolis algorithm
-can be used to approximate a posterior distribution.
+As noted in the instructions, the posterior cannot be written easiliy in terms of "elementary" functions. Alternatively, the Metropolis algorithm can be used to approximate a posterior distribution.
 
 <hide>
 NOTEs TO SELF:
 + target density function
   + a.k.a. posterior distribution (ideally, although may only be proportional or not actually known).
-  + i.e. prior x likelihood.
+  + i.e. prior \times likelihood.
   + $\pi$ function.
   + $\pi(y)$ or $\pi(x_t)$ in acceptance ratio $A$ shown in https://stephens999.github.io/fiveMinuteStats/MH_intro.html#the_mh_algorithm.
-  + Using Brani syntax, $\pi(\theta)$ where $\theta = \theta^{\prime} \text{ or } \theta_{n}$
+  + Using Brani's syntax, $\pi(\theta)$ where $\theta = \theta^{\prime} \text{ or } \theta_{n}$
 + proposal density
   + a.k.a. independence candidate density.
   + a.k.a. transition kernel.
   + $Q$ function.
   + $Q(y|x_t)$ or $Q(x_t|y)$ in acceptance ratio $A$ shown in https://stephens999.github.io/fiveMinuteStats/MH_intro.html#the_mh_algorithm.
   + Using Brani's syntax, $q(\theta_1|\theta_2)$ where $\theta_1, \theta_2 = \theta^{\prime}, \theta_{n}$.
-  + If symmatric, then simplifies the acceptance ratio $A$.
+  + If symmetric, then simplifies the acceptance ratio $A$.
   + Is or isn't the same as the prior?
 </hide>
 
-Given  $\tau = \frac{1}{4}$ and the posterior distribution $f(y|\theta)$,
-<hide>and $\bar{y} = \frac{1}{n} \sum_{i=1}^n} y_i = \frac{1}{6} (-6) = -1$</hide>,
-we can say that the target density function here is
+First, let's construct the target density function. We estimate it to be the product of the prior and the likelihood. Given  the the Bickel-Levit prior $\pi(\theta)$ with $m = 2$ and the likelihood distribution $f(y|\theta)$ with $\tau = \frac{1}{4}$, <hide>and $\bar{y} = \frac{1}{n} \sum_{i=1}^n} y_i = \frac{1}{6} (-6) = -1$</hide>, we formulate the target density function as follows.
+
+<hide>TODO: Where did $Y$ go in the formulation below?</hide>
 
 $$
 \begin{array}{rcl}
@@ -152,7 +150,7 @@ $$
 \end{array}
 $$
 
-The proposal distribution uses the Bickel-Levit prior $\pi(\theta)$ with $m = 2$.
+The proposal distribution ...
 The target probability $\rho$ is
 
 
@@ -166,7 +164,7 @@ $$
 
 Note that we implement the Metropolis algorithm in the code as follows.
 
-1. Start with arbitary $\theta$. (Don't really have an idea of the form of support of the target; otherwise, would try to initialize $theta$ to be like the target.)
+1. Start with arbitary $\theta$.[^1]
 
 2. At stage $n$, generate proposal $\theta^{\prime}$ from $q(y|x_n)$.
 
@@ -183,6 +181,8 @@ $$
 (Generate $U = \mathcal{U}(0, 1)$ and accept proposal $\theta^{\prime}$ if $U \leq \rho(\theta_{n}, \theta^{\prime})$.)
 
 4. Increase $n$ and go to Step 2.
+
+[^1]: We don't really have an idea of the form of the support of the target; otherwise, we would try to initialize $theta$ to be like the target.
 
 See the code below for the implementation. (Note that `theta_prop` below represents
 $\theta^{\prime}$ in the formulations above.)
