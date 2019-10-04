@@ -118,24 +118,6 @@ $$
 As noted in the instructions, the posterior cannot be written easiliy in terms of "elementary" functions.
 Alternatively, the Metropolis algorithm can be used to approximate a posterior distribution.
 
-<hide>
-NOTEs TO SELF:
-+ target density function
-  + a.k.a. posterior distribution (ideally, although may only be proportional or not actually known). *Here, it is not actually known.*
-  + i.e. prior \times likelihood. *Use this if the posterior is not actually known.*
-  + $\pi$ function.
-  + $\pi(y)$ or $\pi(x_t)$ in acceptance ratio $A$ shown in https://stephens999.github.io/fiveMinuteStats/MH_intro.html#the_mh_algorithm.
-  + Using Brani's syntax, $\pi(\theta)$ where $\theta = \theta^{\prime} \text{ or } \theta_{n}$
-+ proposal density
-  + a.k.a. independence candidate density.
-  + a.k.a. transition kernel.
-  + $Q$ function.
-  + $Q(y|x_t)$ or $Q(x_t|y)$ in acceptance ratio $A$ shown in https://stephens999.github.io/fiveMinuteStats/MH_intro.html#the_mh_algorithm.
-  + Using Brani's syntax, $q(\theta_1|\theta_2)$ where $\theta_1, \theta_2 = \theta^{\prime}, \theta_{n}$.
-  + If symmetric, then simplifies the acceptance ratio $A$.
-  + Is or isn't the same as the prior?
-</hide>
-
 First, let's construct the target density distribution. This is proportional to the posterior, which is the product of the prior and the likelihood. Using the Bickel-Levit prior $\pi(\theta)$ with $m = 2$ and the likelihood distribution $f(y|\theta)$ with $\tau = \frac{1}{4}$, <hide>and $\bar{y} = \frac{1}{n} \sum_{i=1}^n} y_i = \frac{1}{6} (-6) = -1$</hide>, we formulate the target density function as follows.
 
 $$
@@ -258,8 +240,33 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
 }
 
 ```
+```{r q1-a-2-debug-1, include=F, echo=F, eval=T}
+.x <- seq(-2, 2, by = 0.01)
+qsave <- function(x, nm = deparse(substitute(x))) {
+  ggplot2::ggsave(
+    filename = sprintf('%s.png', nm),
+    plot = x,
+    units = 'in', 
+    width = 7, 
+    height = 5
+  )
+}
+viz_prior <- tibble(x = .x, prior = f_prior(.x)) %>% qplot(x, prior, data = .)
+viz_prior
+qsave(viz_prior)
+viz_prop <- tibble(x = .x, prop = f_proposal(.x)) %>% qplot(x, prop, data = .)
+viz_prop
+qsave(viz_prop)
+viz_likl <- tibble(x = .x, likl = purrr::map_dbl(.x, f_likelihood)) %>% qplot(x, likl, data = .)
+viz_likl
+qsave(viz_likl)
+tibble(x = .x, likl = purrr::map_dbl(.x, ~.f_likelihood_2(.x, y = -3, tau = tau))) %>% 
+  qplot(x, likl, data = .)
 
-```{r q1-a-2-debug, include=F, echo=F, eval=T}
+```
+
+
+```{r q1-a-2-debug-2, include=F, echo=F, eval=T}
 .rnorm_int <- function(...) {
   as.integer(rnorm(...))
 }
@@ -312,7 +319,10 @@ res_sim %>%
 
 ```{r q1-a-4, include=T, echo=T, eval=T}
 # Main function.
-.do_mcmc_mh_q1 <- function(..., n_mcmc = 10000L, n_burnin = 1000L, theta_init = 0) {
+.do_mcmc_mh_q1 <- function(..., n_mcmc = 10000L, n_burnin = 1000L, theta_init = 2) {
+  
+  # n_mcmc = n_mcmc_q1; n_burnin = n_burnin_q1; theta_init = 0
+  
   stopifnot(is_likeinteger(n_mcmc))
   if(!is.null(n_burnin)) {
     stopifnot(is_likeinteger(n_burnin))
@@ -326,8 +336,8 @@ res_sim %>%
       'q_prop',
       'pi_current',
       'pi_prop',
-      # 'ratio_num',
-      # 'ratio_den',
+      'ratio_num',
+      'ratio_den',
       'ratio', 
       'rho',
       'u', 
@@ -339,7 +349,10 @@ res_sim %>%
   # Step 1 achieved with `.theta_init`.
   theta_current <- theta_init
   for (i in 1:n_mcmc) {
+    #  i <- 1
+    
     # Step 2.
+    # set.seed(42)
     theta_prop <- f_proposal()
     
     # Step 3.
@@ -372,8 +385,8 @@ res_sim %>%
         q_prop,
         pi_current,
         pi_prop,
-        # ratio_num,
-        # ratio_den,
+        ratio_num,
+        ratio_den,
         ratio,
         rho, 
         u, 
@@ -384,13 +397,13 @@ res_sim %>%
     mat_mcmc %>% 
     as_tibble() %>% 
     mutate(idx = row_number()) %>% 
-    select(idx, everything()) %>% 
-    mutate_at(vars(is_accepted), ~ifelse(. == 1, TRUE, FALSE))
+    select(idx, everything()) # %>% 
+    # mutate_at(vars(is_accepted), ~ifelse(. == 1, TRUE, FALSE))
   
-  if(!is.null(n_burnin)) {
-    idx_slice <- (n_burnin + 1):nrow(mat_mcmc)
-    res_mcmc <- res_mcmc %>% slice(idx_slice) 
-  }
+  # if(!is.null(n_burnin)) {
+  #   idx_slice <- (n_burnin + 1):nrow(mat_mcmc)
+  #   res_mcmc <- res_mcmc %>% slice(idx_slice) 
+  # }
   
   res_mcmc
 }
@@ -406,13 +419,30 @@ res_mcmc_mh_q1 <- do_mcmc_mh_q1()
 res_mcmc_mh_q1
 ```
 
-```{r q1-a-viz-0, include=F, echo=F, eval=F}
+```{r q1-a-viz-debug-1, include=F, echo=F, eval=F}
 # res_mcmc_mh_q1 %>% filter(is_accepted)
 res_mcmc_mh_q1 %>% 
   ggplot() +
   aes(x = idx, y = theta_current) +
-  geom_point(size = 1.5) +
+  geom_point() +
   geom_line()
+
+res_mcmc_mh_q1 %>% 
+  sample_frac(0.1) %>% 
+  # select_if(is.numeric) %>% 
+  gather(key = 'key', value = 'value', -idx) %>% 
+  ggplot() +
+  aes(x = idx, y = value) +
+  geom_point() +
+  facet_wrap(~key, scales = 'free')
+
+res_mcmc_mh_q1 %>% 
+  # select_if(is.numeric) %>% 
+  gather(key = 'key', value = 'value', -idx) %>% 
+  ggplot() +
+  aes(x = value) +
+  geom_histogram() +
+  facet_wrap(~key, scales = 'free')
 ```
 
 ```{r q1-a-viz-1-prep, include=F, echo=F, eval=T}
@@ -437,7 +467,7 @@ theme_custom <- function(...) {
 viz_mcmc_mh_q1 <-
   res_mcmc_mh_q1 %>% 
   ggplot() +
-  aes(x = theta_current) +
+  aes(x = theta_prop) +
   geom_histogram() +
   scale_y_continuous(labels = scales::comma) +
   theme_custom() +
@@ -445,6 +475,7 @@ viz_mcmc_mh_q1 <-
     x = 'theta',
     y = 'Frequency'
   )
+viz_mcmc_mh_q1
 ```
 
 ```{r q1-a-viz-1-export, include=F, echo=F, eval=eval_viz_q1}
