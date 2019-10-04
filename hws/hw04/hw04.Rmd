@@ -22,10 +22,10 @@ knitr::opts_chunk$set(
   fig.align = 'center',
   fig.width = 8,
   # size = "small",
-  fig.height = 5,
+  # fig.height = 5,
   # fig.width = 5,
   # out.width = 5,
-  # fig.asp = 0.75,
+  fig.asp = 0.75,
   warning = FALSE,
   message = FALSE
 )
@@ -115,7 +115,7 @@ $$
 
 ### a
 
-As noted in the instructions, the posterior cannot be written easiliy in terms of "elementary" functions.
+As noted in the instructions, the posterior cannot be written easily in terms of "elementary" functions.
 Alternatively, the Metropolis algorithm can be used to approximate a posterior distribution.
 
 First, let's construct the target density distribution. This is proportional to the posterior, which is the product of the prior and the likelihood. Using the Bickel-Levit prior $\pi(\theta)$ with $m = 2$ and the likelihood distribution $f(y|\theta)$ with $\tau = \frac{1}{4}$, <hide>and $\bar{y} = \frac{1}{n} \sum_{i=1}^n} y_i = \frac{1}{6} (-6) = -1$</hide>, we formulate the target density function as follows.
@@ -145,7 +145,7 @@ $$
 
 Note that we implement the Metropolis algorithm in the code as follows.
 
-1. Start with arbitary $\theta$.[^1]
+1. Start with arbitrary $\theta$. (Here, 0 is a fine choice.) [^1]
 
 2. At stage $n$, generate proposal $\theta^{\prime}$ from $q(y|x_n)$.
 
@@ -160,7 +160,7 @@ $$
 
 (Generate $U = \mathcal{U}(0, 1)$ and accept proposal $\theta^{\prime}$ if $U \leq \rho(\theta_{n}, \theta^{\prime})$.)
 
-4. Increase $n$ and go to Step 2.
+4. Increment $n$ and go to Step 2.
 
 [^1]: We don't really have an idea of the form of the support of the target; otherwise, we would try to initialize $\theta$ to be like the target.
 
@@ -192,6 +192,7 @@ See the code below for the implementation. (Note that `theta_prop` below represe
 ```
 
 ```{r q1-a-1, include=T, echo=T, eval=T}
+set.seed(42)
 library(tidyverse)
 
 # Data, constants, hyperparameters, and helper functions.
@@ -205,6 +206,7 @@ tau <- 1 / 4
 
 
 .f_likelihood_1 <- function(y, theta, tau) {
+  mu <- mean(y)
   sqrt(tau) * exp(-0.5 * tau * (y - theta)^2)
 }
 
@@ -225,9 +227,9 @@ f_proposal <- function(.n = 1, .m = m) {
   runif(n = .n, min = -.m, max = .m) 
 }
 
-# f_likelihood_1 <- function(theta, .y = y, .tau = tau) {
-#   sum(.f_likelihood_1(theta, y = y, tau = tau))
-# }
+f_likelihood_1 <- function(theta, .y = y, .tau = tau) {
+  sum(.f_likelihood_1(theta, y = y, tau = tau))
+}
 
 f_likelihood_2 <- function(theta, .y = y, .tau = tau) {
   .f_likelihood_2(theta, y = y, tau = tau)
@@ -240,7 +242,7 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
 }
 
 ```
-```{r q1-a-2-debug-1, include=F, echo=F, eval=T}
+```{r q1-a-2-debug-1, include=F, echo=F, eval=F}
 .x <- seq(-2, 2, by = 0.01)
 qsave <- function(x, nm = deparse(substitute(x))) {
   ggplot2::ggsave(
@@ -260,13 +262,14 @@ qsave(viz_prop)
 viz_likl <- tibble(x = .x, likl = purrr::map_dbl(.x, f_likelihood)) %>% qplot(x, likl, data = .)
 viz_likl
 qsave(viz_likl)
-tibble(x = .x, likl = purrr::map_dbl(.x, ~.f_likelihood_2(.x, y = -3, tau = tau))) %>% 
+tibble(x = .x, likl = purrr::map_dbl(.x, ~.f_likelihood_2(.x, y = -1, tau = tau))) %>% 
   qplot(x, likl, data = .)
-
+tibble(x = .x, likl = purrr::map_dbl(.x, ~.f_likelihood_1(.x, y = -1, tau = tau))) %>% 
+  qplot(x, likl, data = .)
 ```
 
 
-```{r q1-a-2-debug-2, include=F, echo=F, eval=T}
+```{r q1-a-2-debug-2, include=F, echo=F, eval=F}
 .rnorm_int <- function(...) {
   as.integer(rnorm(...))
 }
@@ -281,7 +284,7 @@ rnorm_int <- function(n = n_obs, mean = 0, sd = 4) {
 .seq <- c(1:9 / 10, 1:2 / 1) %>% sort()
 # .y_1 <- rnorm_int()
 .y_1 <- c(-3, -4, 0, 1, 7, 0) # Just a manual emulation of `.y`.
-set.seed(1)
+# set.seed(1)
 .y_2 <- rnorm_int()
 mean(.y_2)
 sd(.y_2)
@@ -295,18 +298,22 @@ res_sim <-
   group_by(idx) %>% 
   mutate(
     # pi_0 = bl(theta, m = 4),
-    pi = f_prior(theta),
+    prior = f_prior(theta),
     # f_1 = sum(.f_1(theta)), 
     # f = f_likelihood(theta),
     # f = purrr::map_dbl(theta, .f_likelihood_2, y = y, tau = tau),
-    f_0 = .f_likelihood_2(theta, y = y, tau = tau),
+    # f_a_1 = .f_likelihood_1(theta, y = y, tau = tau),
     # f_0 = .f_likelihood_2(theta, y = sort(y), tau = tau),
-    f_1 = .f_likelihood_2(theta, y = .y_1, tau = tau),
-    f_2 = .f_likelihood_2(theta, y = .y_2, tau = tau)
+    # f_b_1 = .f_likelihood_1(theta, y = mean(.y_1), tau = tau),
+    # f_c_1 = .f_likelihood_1(theta, y = mean(.y_2), tau = tau),
+    likl_actual_2 = .f_likelihood_2(theta, y = y, tau = tau),
+    likl_sim1_2 = .f_likelihood_2(theta, y = .y_1, tau = tau),
+    likl_sim2_2 = .f_likelihood_2(theta, y = .y_2, tau = tau)
   ) %>% 
   ungroup()
 res_sim
-res_sim %>% 
+viz_sim <-
+  res_sim %>% 
   gather(key = 'key', value = 'value', -matches('idx|theta')) %>% 
   ggplot() +
   aes(x = theta, y = value, color = key) +
@@ -315,11 +322,13 @@ res_sim %>%
   # scale_x_continuous(trans = 'reciprocal')
   xlim(-1.1, 1.1) +
   theme_light()
+viz_sim
+qsave(viz_sim)
 ```
 
 ```{r q1-a-4, include=T, echo=T, eval=T}
 # Main function.
-.do_mcmc_mh_q1 <- function(..., n_mcmc = 10000L, n_burnin = 1000L, theta_init = 2) {
+.do_mcmc_mh_q1 <- function(..., n_mcmc = 10000L, n_burnin = 1000L, theta_init = 0) {
   
   # n_mcmc = n_mcmc_q1; n_burnin = n_burnin_q1; theta_init = 0
   
@@ -348,11 +357,12 @@ res_sim %>%
   
   # Step 1 achieved with `.theta_init`.
   theta_current <- theta_init
+  # theta_current <- f_proposal()
+  # theta_current <- 1
   for (i in 1:n_mcmc) {
     #  i <- 1
     
     # Step 2.
-    # set.seed(42)
     theta_prop <- f_proposal()
     
     # Step 3.
@@ -365,6 +375,7 @@ res_sim %>%
     ratio_num <- pi_prop * q_current
     ratio_den <- pi_current * q_prop
     ratio <- ratio_num / ratio_den
+    # ratio <- ratio_den / ratio_num
     
     u <- runif(n = 1, min = 0, max = 1)
     rho <- min(1, ratio)
@@ -376,6 +387,7 @@ res_sim %>%
       is_accepted <- 1
     } else {
       # NULL
+      # theta_current <- theta_current
     }
     mat_mcmc[i, ] <- 
       c(
@@ -418,6 +430,28 @@ do_mcmc_mh_q1 <- function(..., .n_mcmc = n_mcmc_q1, .n_burnin = n_burnin_q1) {
 res_mcmc_mh_q1 <- do_mcmc_mh_q1()
 res_mcmc_mh_q1
 ```
+
+```{r q1-a-3-debug, include=F, echo=F, eval=F}
+res_nest <-
+  tibble(
+    theta_init = seq(-1.2, 1.2, length.out = 7)
+  ) %>% 
+  mutate(res = purrr::map(theta_init, ~do_mcmc_mh_q1(theta_init = .x)))
+res_nest
+res_nest %>% 
+  unnest() %>% 
+  filter(theta_current > -1.9) %>% 
+  ggplot() +
+  aes(x = theta_current) +
+  geom_histogram() +
+  scale_y_continuous(labels = scales::comma) +
+  facet_wrap(~theta_init) +
+  labs(
+    x = 'theta',
+    y = 'Frequency'
+  )
+```
+
 
 ```{r q1-a-viz-debug-1, include=F, echo=F, eval=F}
 # res_mcmc_mh_q1 %>% filter(is_accepted)
@@ -463,11 +497,18 @@ theme_custom <- function(...) {
 }
 ```
 
+```{r q1-a-viz-0, include=T, echo=F, eval=eval_viz_q1}
+res_mcmc_mh_q1 <-
+  res_mcmc_mh_q1 %>% 
+  filter(theta_current > -1.9) 
+```
+
+
 ```{r q1-a-viz-1, include=T, echo=T, eval=eval_viz_q1}
 viz_mcmc_mh_q1 <-
   res_mcmc_mh_q1 %>% 
   ggplot() +
-  aes(x = theta_prop) +
+  aes(x = theta_current) +
   geom_histogram() +
   scale_y_continuous(labels = scales::comma) +
   theme_custom() +
@@ -500,10 +541,57 @@ knitr::include_graphics(path_viz_q1)
 
 ## Instructions
 
+<instructions>
+Armitage and Berry (1994, p. 111) report data on the weight gain of 19 female rats between 28 and 84 days after birth. The rats were placed in randomized manner on diets with high (12 animals) and low (7 animals) protein content.
+</instructions>
+
+| High protein | Low protein |
+|--------------|-------------|
+| 134          | 70          |
+| 146          | 118         |
+| 104          | 101         |
+| 119          | 85          |
+| 124          | 107         |
+| 161          | 132         |
+| 107          | 94          |
+| 83           |             |
+| 113          |             |
+| 129          |             |
+| 97           |             |
+| 123          |             |
+
+<instructions>
+We want to test the hypothesis on dietary effect: Did a low protein diet result in a significantly lower weight gain? The classical $t$ test against the one sided alternative will be significant at 5% significance level, but we will not go in there. We will do the test Bayesian way using Gibbs sampler. Assume that high-protein diet measurements $y_{1j}$, $i = 1, \dots, 12$ are coming from normal distribution $\mathcal{N}(\theta_1, 1/\tau_1)$, where $\tau_1$ is the precision parameter,
+</instructions>
+
+$$
+f(y_{1i} | \theta_1, \tau_1) \propto \tau_1^{1/2} \text{ exp } \{ -\frac{\tau_1}{2} (y_{1i} - \theta_1)^2 \}, \quad i = 1, \dots, 12.
+$$
+
+<instructions>
+The low-protein diet measurements $y_{2i}$, $i = 1, \dots, 7$ are coming from normal distribution $\mathcal{N}(\theta_2, 1/\tau_2)$,
+</instructions>
+
+$$
+f(y_{2i} | \theta_2, \tau_2) \propto \tau_2^{1/2} \text{ exp } \{ -\frac{\tau_2}{2} (y_{2i} - \theta_2)^2 \}, \quad i = 1, \dots, 7.
+$$
+
+<instructions>
+Assume that $\theta_1$ and $\theta_2$ have normal priors $\mathcal{N}(\theta_{10}, 1/\tau_{10})$ and $\mathcal{N}(\theta_{20}, 1/\tau_{20})$, respectively. Take prior means as $\theta_{10} = \theta_{20} = 110$ (apriori no preference) and precisions as $\tau_{10} = \tau_{20} = 1/100$.<br/>
+Assume that $\tau_1$ and $\tau_2$ have the gamma $\mathcal{Ga}(a_1, b_1)$ and $\mathcal{Ga}(a_2, b_2)$ priors with shapes $a_1 = a_2 - 0.01$ and rates $b_1 = b_2 = 4$.<br/>
+(a) Construct Gibbs sampler that will sample $\theta_1, \tau_1, \theta_2$, and $\tau_2$ from their posteriors.<br/>
+(b) Find sample differences $\theta_1 - theta_2$. Proportion of positive differences approximates the posterior probability of hypothesis $H_0 : \theta_1 > \theta_2$. What is this proportion if the number of simulations is 10,000, with burn-in of 500?<br/>
+(c) Using sample quantiles find the 95% equitailed credible set for $\theta_1 - \theta_2$. Does this set contain 0?<br/><br/>
+Hint: No WinBUGS should be used (except maybe to check your results). Use Octave (MATLAB), or R, or Python here. You may want to consult Handout GIBBS.pdf from the course web repository.
+</instructions>
+
 ## Response
 
 ### a
 
+<response>
+See the code and its output below.
+</response>
 
 ```{r q2-ab-1, include=T, echo=T, eval=T}
 # Data, constants, hyperparameters, and functions.
@@ -761,7 +849,40 @@ viz_mcmc_gibbs_q2
 knitr::include_graphics(path_viz_q2)
 ```
 
+```{r q2-ab-5, include=F, echo=F, eval=T}
+mcmc_gibbs_q2 <-
+  res_mcmc_gibbs_q2 %>% 
+  summarise_at(vars(-idx), list(sum = ~sum(.), mean = ~mean(.))) %>% 
+  gather() %>% 
+  deframe()
+mcmc_gibbs_q2
+
+theta_1_mean <- mcmc_gibbs_q2[['theta_1_mean']]
+theta_1_mean
+theta_1_mean_chr <- format_num(theta_1_mean, digits = 1)
+theta_1_mean_chr
+theta_2_mean <- mcmc_gibbs_q2[['theta_2_mean']]
+theta_2_mean
+theta_2_mean_chr <- format_num(theta_2_mean, digits = 1)
+theta_2_mean_chr
+
+y_1_mean <- mean(y_1)
+y_1_mean
+y_1_mean_chr <- format_num(y_1_mean, digits = 0)
+y_1_mean_chr
+y_2_mean <- mean(y_2)
+y_2_mean
+y_2_mean_chr <- format_num(y_2_mean, digits = 0)
+y_2_mean_chr
+```
+
+As a quick check of the validity of our results, we can compare the posterior means of $\theta_1$ and $\theta_2$ (from the Gibbs sampling results) with those of the observations $y_1$ and $y_2$ and the priors $\theta_1, \theta_2 = 110$. We find that $\hat{\theta_1}$ = `r theta_1_mean_chr`, which is between the observed mean $\hat{y_1}$ = `r y_1_mean_chr` and the prior 110; and we find that $\hat{\theta_2}$ = `r theta_2_mean_chr`, which is between the observed mean $\hat{y_2}$ = `r y_2_mean_chr` and 110. This is what we should have expected.
+
 ### b
+
+<response>
+See the code and its output below.
+</response>
 
 ```{r q2-b-1, include=T, echo=T, eval=T}
 res_mcmc_gibbs_q2_calc <-
@@ -772,7 +893,6 @@ res_mcmc_gibbs_q2_calc <-
   mutate(
     h_0 = ifelse(theta_diff > 0, TRUE, FALSE)
   )
-
 ```
 
 ```{r q2-b-2, include=T, echo=T, eval=T}
@@ -784,20 +904,6 @@ h_0_q2
 ```
 
 ### c
-
-```{r q2-c-0, include=F, echo=F, eval=F}
-# compute_equi_credible_set <- function(mu, sigma, level = 0.95) {
-#   alpha <- 1 - level
-#   alpha_half <- alpha / 2
-#   q_l <- alpha - alpha_half
-#   q_u <- level + alpha_half
-#   res <-
-#     c(
-#       l = qnorm(q_l, mean = mu, sd = sigma),
-#       u = qnorm(q_u, mean = mu, sd = sigma)
-#     )
-# }
-```
 
 ```{r q2-c-1, include=T, echo=T, eval=T}
 equi_credible_set_q2 <-
@@ -813,5 +919,20 @@ equi_credible_set_q2 <-
 equi_credible_set_q2
 ```
 
+```{r q2-c-2, include=T, echo=F, eval=T}
+credible_set_q2 <- equi_credible_set_q2 %>% select(l, u) %>% c()
+credible_set_q2
+```
+
+```{r q2-c-3, include=F, echo=F, eval=T}
+credible_set_chr_q2 <- format_num(credible_set_q2)
+credible_set_chr_q2
+```
+
+<response>
+We find that the 95% equitailed credible set is [`r credible_set_chr_q2[1]`, `r credible_set_chr_q2[2]`]. Indeed, this set does include 0.
+</response>
+
+The possibility of 0
 
 
