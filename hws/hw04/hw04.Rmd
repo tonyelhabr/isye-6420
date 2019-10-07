@@ -242,6 +242,7 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
 }
 
 ```
+
 ```{r q1-a-2-debug-1, include=F, echo=F, eval=F}
 .x <- seq(-2, 2, by = 0.01)
 qsave <- function(x, nm = deparse(substitute(x))) {
@@ -372,8 +373,10 @@ qsave(viz_sim)
     pi_current <- f_likelihood_2(theta = theta_current)
     pi_prop <- f_likelihood_2(theta = theta_prop)
     
-    ratio_num <- pi_prop * q_current
-    ratio_den <- pi_current * q_prop
+    # ratio_num <- pi_prop * q_current
+    ratio_num <- pi_prop * q_prop
+    # ratio_den <- pi_current * q_prop
+    ratio_den <- pi_current * q_current
     ratio <- ratio_num / ratio_den
     # ratio <- ratio_den / ratio_num
     
@@ -412,10 +415,10 @@ qsave(viz_sim)
     select(idx, everything()) # %>% 
     # mutate_at(vars(is_accepted), ~ifelse(. == 1, TRUE, FALSE))
   
-  # if(!is.null(n_burnin)) {
-  #   idx_slice <- (n_burnin + 1):nrow(mat_mcmc)
-  #   res_mcmc <- res_mcmc %>% slice(idx_slice) 
-  # }
+  if(!is.null(n_burnin)) {
+    idx_slice <- (n_burnin + 1):nrow(mat_mcmc)
+    res_mcmc <- res_mcmc %>% slice(idx_slice)
+  }
   
   res_mcmc
 }
@@ -426,57 +429,75 @@ do_mcmc_mh_q1 <- function(..., .n_mcmc = n_mcmc_q1, .n_burnin = n_burnin_q1) {
 
 ```
 
-```{r q1-a-3, include=T, echo=T, eval=T}
+```{r q1-a-5, include=T, echo=T, eval=T}
 res_mcmc_mh_q1 <- do_mcmc_mh_q1()
 res_mcmc_mh_q1
 ```
 
+```{r q1-a-6, include=T, echo=T, eval=T}
+y_mean <- y %>% mean()
+y_mean
+theta_mean <- 
+  res_mcmc_mh_q1 %>% 
+  summarise_at(vars(theta_current), mean) %>% 
+  pull(1)
+theta_mean 
+```
+
+```{r q1-a-6-hide, include=F, echo=F, eval=T}
+y_mean_chr <- y_mean %>% format_num(3)
+y_mean_chr
+theta_mean_chr <- theta_mean %>% format_num(3)
+theta_mean_chr
+```
+
+
 ```{r q1-a-3-debug, include=F, echo=F, eval=F}
-res_nest <-
-  tibble(
-    theta_init = seq(-1.2, 1.2, length.out = 7)
-  ) %>% 
-  mutate(res = purrr::map(theta_init, ~do_mcmc_mh_q1(theta_init = .x)))
-res_nest
-res_nest %>% 
-  unnest() %>% 
-  filter(theta_current > -1.9) %>% 
-  ggplot() +
-  aes(x = theta_current) +
-  geom_histogram() +
-  scale_y_continuous(labels = scales::comma) +
-  facet_wrap(~theta_init) +
-  labs(
-    x = 'theta',
-    y = 'Frequency'
-  )
+# res_nest <-
+#   tibble(
+#     theta_init = seq(-1.2, 1.2, length.out = 7)
+#   ) %>% 
+#   mutate(res = purrr::map(theta_init, ~do_mcmc_mh_q1(theta_init = .x)))
+# res_nest
+# res_nest %>% 
+#   unnest() %>% 
+#   filter(theta_current > -1.9) %>% 
+#   ggplot() +
+#   aes(x = theta_current) +
+#   geom_histogram() +
+#   scale_y_continuous(labels = scales::comma) +
+#   facet_wrap(~theta_init) +
+#   labs(
+#     x = 'theta',
+#     y = 'Frequency'
+#   )
 ```
 
 
 ```{r q1-a-viz-debug-1, include=F, echo=F, eval=F}
-# res_mcmc_mh_q1 %>% filter(is_accepted)
-res_mcmc_mh_q1 %>% 
-  ggplot() +
-  aes(x = idx, y = theta_current) +
-  geom_point() +
-  geom_line()
-
-res_mcmc_mh_q1 %>% 
-  sample_frac(0.1) %>% 
-  # select_if(is.numeric) %>% 
-  gather(key = 'key', value = 'value', -idx) %>% 
-  ggplot() +
-  aes(x = idx, y = value) +
-  geom_point() +
-  facet_wrap(~key, scales = 'free')
-
-res_mcmc_mh_q1 %>% 
-  # select_if(is.numeric) %>% 
-  gather(key = 'key', value = 'value', -idx) %>% 
-  ggplot() +
-  aes(x = value) +
-  geom_histogram() +
-  facet_wrap(~key, scales = 'free')
+# # res_mcmc_mh_q1 %>% filter(is_accepted)
+# res_mcmc_mh_q1 %>% 
+#   ggplot() +
+#   aes(x = idx, y = theta_current) +
+#   geom_point() +
+#   geom_line()
+# 
+# res_mcmc_mh_q1 %>% 
+#   sample_frac(0.1) %>% 
+#   # select_if(is.numeric) %>% 
+#   gather(key = 'key', value = 'value', -idx) %>% 
+#   ggplot() +
+#   aes(x = idx, y = value) +
+#   geom_point() +
+#   facet_wrap(~key, scales = 'free')
+# 
+# res_mcmc_mh_q1 %>% 
+#   # select_if(is.numeric) %>% 
+#   gather(key = 'key', value = 'value', -idx) %>% 
+#   ggplot() +
+#   aes(x = value) +
+#   geom_histogram() +
+#   facet_wrap(~key, scales = 'free')
 ```
 
 ```{r q1-a-viz-1-prep, include=F, echo=F, eval=T}
@@ -490,6 +511,8 @@ eval_viz_q1 <- !fs::file_exists(path_viz_q1)
 theme_custom <- function(...) {
   theme_light() +
     theme(
+      legend.position = 'bottom',
+      legend.title = element_blank(),
       axis.title.x = element_text(hjust = 1),
       axis.title.y = element_text(hjust = 1),
       ...
@@ -497,26 +520,23 @@ theme_custom <- function(...) {
 }
 ```
 
-```{r q1-a-viz-0, include=T, echo=F, eval=eval_viz_q1}
-res_mcmc_mh_q1 <-
-  res_mcmc_mh_q1 %>% 
-  filter(theta_current > -1.9) 
-```
-
-
 ```{r q1-a-viz-1, include=T, echo=T, eval=eval_viz_q1}
 viz_mcmc_mh_q1 <-
   res_mcmc_mh_q1 %>% 
   ggplot() +
   aes(x = theta_current) +
-  geom_histogram() +
-  scale_y_continuous(labels = scales::comma) +
+  geom_histogram(binwidth = 0.05) +
+  geom_vline(aes(xintercept = y_mean, color = 'Mean of y'), size = 2) +
+  geom_vline(aes(xintercept = theta_post_mean, color = 'Mean of theta'), size = 2) +
+  scale_color_manual(values = c('red', 'blue')) +
+  guides(color = guide_legend(override.aes = list(size = 2))) +
+  scale_y_continuous(labels = scales::comma, expand = c(0, 0, 0, 10)) +
+  # coord_cartesian(expand = FALSE) +
   theme_custom() +
   labs(
     x = 'theta',
     y = 'Frequency'
   )
-viz_mcmc_mh_q1
 ```
 
 ```{r q1-a-viz-1-export, include=F, echo=F, eval=eval_viz_q1}
@@ -536,6 +556,9 @@ viz_mcmc_mh_q1
 ```{r q1-a-viz-1-show-2, include=T, echo=F, eval=T}
 knitr::include_graphics(path_viz_q1)
 ```
+Note that the posterior mean $\hat{\theta}$ = `r theta_mean_chr` is close to the mean of the observations $\hat{y}$ = `r y_mean_chr`.
+
+
 
 # 2. Gibbs Sampler and High/Low Protein Diet in Rats.
 
@@ -580,7 +603,7 @@ $$
 Assume that $\theta_1$ and $\theta_2$ have normal priors $\mathcal{N}(\theta_{10}, 1/\tau_{10})$ and $\mathcal{N}(\theta_{20}, 1/\tau_{20})$, respectively. Take prior means as $\theta_{10} = \theta_{20} = 110$ (apriori no preference) and precisions as $\tau_{10} = \tau_{20} = 1/100$.<br/>
 Assume that $\tau_1$ and $\tau_2$ have the gamma $\mathcal{Ga}(a_1, b_1)$ and $\mathcal{Ga}(a_2, b_2)$ priors with shapes $a_1 = a_2 - 0.01$ and rates $b_1 = b_2 = 4$.<br/>
 (a) Construct Gibbs sampler that will sample $\theta_1, \tau_1, \theta_2$, and $\tau_2$ from their posteriors.<br/>
-(b) Find sample differences $\theta_1 - theta_2$. Proportion of positive differences approximates the posterior probability of hypothesis $H_0 : \theta_1 > \theta_2$. What is this proportion if the number of simulations is 10,000, with burn-in of 500?<br/>
+(b) Find sample differences $\theta_1 - \theta_2$. Proportion of positive differences approximates the posterior probability of hypothesis $H_0 : \theta_1 > \theta_2$. What is this proportion if the number of simulations is 10,000, with burn-in of 500?<br/>
 (c) Using sample quantiles find the 95% equitailed credible set for $\theta_1 - \theta_2$. Does this set contain 0?<br/><br/>
 Hint: No WinBUGS should be used (except maybe to check your results). Use Octave (MATLAB), or R, or Python here. You may want to consult Handout GIBBS.pdf from the course web repository.
 </instructions>
@@ -794,9 +817,6 @@ do_mcmc_gibbs_q2 <-
       ...
     )
   }
-# TODO: Remove these lines.
-# undebug(compute_tau_new_1)
-# res_mcmc_gibbs_q2 <- do_mcmc_gibbs_q2()
 ```
 
 ```{r q2-ab-3, include=T, echo=T, eval=T}
@@ -876,13 +896,11 @@ y_2_mean_chr <- format_num(y_2_mean, digits = 0)
 y_2_mean_chr
 ```
 
-As a quick check of the validity of our results, we can compare the posterior means of $\theta_1$ and $\theta_2$ (from the Gibbs sampling results) with those of the observations $y_1$ and $y_2$ and the priors $\theta_1, \theta_2 = 110$. We find that $\hat{\theta_1}$ = `r theta_1_mean_chr`, which is between the observed mean $\hat{y_1}$ = `r y_1_mean_chr` and the prior 110; and we find that $\hat{\theta_2}$ = `r theta_2_mean_chr`, which is between the observed mean $\hat{y_2}$ = `r y_2_mean_chr` and 110. This is what we should have expected.
+As a quick check of the validity of our results, we can compare the posterior means of $\theta_1$ and $\theta_2$ (from the Gibbs sampling results) with those of the observations $y_1$ and $y_2$ and the priors $\theta_{10} = \theta_{20} = 110$. We find that $\hat{\theta_1}$ = `r theta_1_mean_chr`, which is between the observed mean $\hat{y_1}$ = `r y_1_mean_chr` and the prior 110; and we find that $\hat{\theta_2}$ = `r theta_2_mean_chr`, which is between the observed mean $\hat{y_2}$ = `r y_2_mean_chr` and 110. This is what we should have expected.
 
 ### b
 
-<response>
-See the code and its output below.
-</response>
+We can calculate the proportion as follows.
 
 ```{r q2-b-1, include=T, echo=T, eval=T}
 res_mcmc_gibbs_q2_calc <-
@@ -891,7 +909,7 @@ res_mcmc_gibbs_q2_calc <-
     theta_diff = theta_1 - theta_2
   ) %>% 
   mutate(
-    h_0 = ifelse(theta_diff > 0, TRUE, FALSE)
+    h_0 = ifelse(theta_diff > 0, 1, 0)
   )
 ```
 
@@ -903,7 +921,23 @@ h_0_q2 <-
 h_0_q2
 ```
 
+```{r q2-b-2-hide, include=F, echo=F, eval=T}
+h_0_q2_frac <- h_0_q2 %>% pull(frac)
+h_0_q2_frac
+h_0_q2_frac_chr <- h_0_q2_frac %>% format_num(3)
+h_0_q2_frac_chr
+h_0_q2_pct_chr <- (h_0_q2_frac * 100) %>% format_num(1)
+h_0_q2_pct_chr
+```
+
+<response>
+We find that the proportion of positive differences is `r h_0_q2_frac_chr` (i.e. `r h_0_q2_pct_chr`%).
+</response>
+
+
 ### c
+
+We can calculate the credible set as follows.
 
 ```{r q2-c-1, include=T, echo=T, eval=T}
 equi_credible_set_q2 <-
@@ -919,20 +953,18 @@ equi_credible_set_q2 <-
 equi_credible_set_q2
 ```
 
-```{r q2-c-2, include=T, echo=F, eval=T}
+```{r q2-c-2, include=F, echo=F, eval=T}
 credible_set_q2 <- equi_credible_set_q2 %>% select(l, u) %>% c()
 credible_set_q2
 ```
 
 ```{r q2-c-3, include=F, echo=F, eval=T}
-credible_set_chr_q2 <- format_num(credible_set_q2)
+credible_set_chr_q2 <- credible_set_q2 %>% format_num(2)
 credible_set_chr_q2
 ```
 
 <response>
 We find that the 95% equitailed credible set is [`r credible_set_chr_q2[1]`, `r credible_set_chr_q2[2]`]. Indeed, this set does include 0.
 </response>
-
-The possibility of 0
 
 

@@ -66,6 +66,12 @@ model <- 'model {
 path_model <- 'model.txt'
 write_lines(model, path_model)
 
+
+path_res_sim <- 'output/res_sim.rds'
+if(fs::file_exists(path_res_sim)) {
+  
+} else {
+
 inits <- NULL
 params <-
   c(
@@ -92,6 +98,10 @@ res_sim <-
     n.burnin = 1000
   )
 res_sim$summary
+}
 
-path_res_sim <- 'output/res_sim.rds'
 teproj::export_path(res_sim, path_res_sim)
+
+res_sim$summary %>% as.matrix()
+
+plot(res_sim$sims.list$lvl_h)
