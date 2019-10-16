@@ -198,8 +198,8 @@ library(tidyverse)
 # Data, constants, hyperparameters, and helper functions.
 y <- c(-2, -3, 4, -7, 0, 4)
 
-n_mcmc_q1 <- 10000L
 n_burnin_q1 <- 500L
+n_mcmc_q1 <- 10000L + n_burnin_q1
 
 m <- 2
 tau <- 1 / 4
@@ -527,7 +527,7 @@ viz_mcmc_mh_q1 <-
   aes(x = theta_current) +
   geom_histogram(binwidth = 0.05) +
   geom_vline(aes(xintercept = y_mean, color = 'Mean of y'), size = 2) +
-  geom_vline(aes(xintercept = theta_post_mean, color = 'Mean of theta'), size = 2) +
+  geom_vline(aes(xintercept = theta_mean, color = 'Mean of theta'), size = 2) +
   scale_color_manual(values = c('red', 'blue')) +
   guides(color = guide_legend(override.aes = list(size = 2))) +
   scale_y_continuous(labels = scales::comma, expand = c(0, 0, 0, 10)) +
@@ -621,8 +621,8 @@ See the code and its output below.
 y_1 <- c(134, 146, 104, 119, 124, 161, 107, 107, 83, 113, 129, 97, 123)
 y_2 <- c(70, 118, 101, 85, 107, 132, 94)
 
-n_mcmc_q2 <- 10000
-n_burnin_q2 <- 500
+n_burnin_q2 <- 500L
+n_mcmc_q2 <- 10000L + n_burnin_q2
 
 theta_1_0 <- 110
 theta_2_0 <- theta_1_0
