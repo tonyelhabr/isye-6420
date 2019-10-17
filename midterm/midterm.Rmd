@@ -1,0 +1,160 @@
+---
+title: 'ISYE 6420: Midterm'
+author: 'aelhabr3'
+output:
+  html_document:
+    css: ../styles_hw.css
+    theme: cosmo
+    highlight: haddock
+    toc: false
+---
+
+```{r setup, include=F, cache=F}
+knitr::opts_knit$set(root.dir = here::here())
+knitr::opts_chunk$set(
+  # rows.print = 25,
+  # rows.print = 25,
+  echo = TRUE,
+  # cache = FALSE,
+  cache = TRUE,
+  include = TRUE,
+  fig.show = 'asis',
+  fig.align = 'center',
+  fig.width = 8,
+  # size = "small",
+  # fig.height = 5,
+  # fig.width = 5,
+  # out.width = 5,
+  fig.asp = 0.75,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r postprocess, include=F, echo=F, cache=F}
+.path_sans_ext <- file.path('midterm')
+.path_rmd <- paste0(.path_sans_ext, '.Rmd')
+# spelling::spell_check_files(.path_rmd)
+```
+
+```{r setup-1, include=F, echo=F, eval=T}
+format_num <- function(x, digits = 4) {
+  fmt <- sprintf('%%.%df', digits)
+  sprintf(fmt, x)
+}
+```
+
+# 1. Emily, Car, Stock Market, Sweepstakes, Vacation and Bayes.
+
+```{r q1-1, include=T, echo=T, eval=T}
+library(tidyverse)
+
+states_w_lott <- 
+  crossing(
+    lott = c('yes', 'no'),
+    vaca = c('yes', 'no')
+  ) %>% 
+  mutate_at(
+    vars(lott),
+    list(p_lott = ~case_when(
+      . == 'yes' ~ 0.001,
+      . == 'no' ~ 1 - 0.001
+    ))
+  ) %>% 
+  mutate_at(
+    vars(vaca),
+    list(p_vaca = ~case_when(
+      lott == 'yes' & vaca == 'yes' ~ 0.99,
+      lott == 'yes' & vaca == 'no' ~ 1 - 0.99,
+      lott == 'no' ~ NA_real_
+    ))
+  ) %>% 
+  mutate(
+    p_vaca_cum = p_lott * p_vaca
+  )
+states_w_lott
+
+p_vaca_cum_w_lott <- 
+  states_w_lott %>%
+  filter(vaca == 'yes') %>% 
+  filter(!is.na(p_vaca_cum)) %>% 
+  group_by(vaca) %>% 
+  summarise_at(vars(p_vaca_cum), sum) %>% 
+  ungroup() %>% 
+  pull(p_vaca_cum)
+p_vaca_cum_w_lott
+
+states_wo_lott <-
+  crossing(
+    grade = c('a', 'b', 'c'),
+    market = c('bullish', 'bearish'),
+    car = c('yes', 'no'),
+    vaca = c('yes', 'no')
+  ) %>% 
+  mutate_at(
+    vars(grade),
+    list(p_grade = ~case_when(
+      . == 'a' ~ 0.6,
+      . == 'b' ~ 0.3,
+      . == 'c' ~ 0.1
+    ))
+  ) %>% 
+  mutate_at(
+    vars(market),
+    list(p_market = ~0.5)
+  ) %>% 
+  mutate_at(
+    vars(car),
+    list(p_car = ~case_when(
+      grade == 'a' & market == 'bullish' ~ 0.8,
+      grade == 'a' & market == 'bearish' ~ 0.5,
+      grade == 'b' & market == 'bullish' ~ 0.5,
+      grade == 'b' & market == 'bearish' ~ 0.3,
+      grade == 'c' & market == 'bullish' ~ 0.2,
+      grade == 'c' & market == 'bearish' ~ 0.1
+    ))
+  ) %>% 
+  mutate_at(
+    vars(vaca),
+    list(p_vaca = ~case_when(
+      car == 'yes' & . == 'yes' ~ 0.7,
+      car == 'yes' & . == 'no' ~ 1 - 0.7,
+      car == 'no' & . == 'yes' ~ 0.2,
+      car == 'no' & . == 'no' ~ 1 - 0.2
+    ))
+  ) %>% 
+  mutate(
+    p_car_cum = p_grade * p_market * p_car,
+    p_vaca_cum = p_grade * p_market * p_car * p_vaca
+  )
+states_wo_lott
+
+p_vaca_cum_wo_lott <- 
+  states_wo_lott %>% 
+  group_by(vaca) %>% 
+  summarise_at(vars(p_vaca_cum), sum) %>% 
+  ungroup() %>% 
+  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
+  filter(vaca == 'yes') %>% 
+  pull(p_vaca_cum)
+p_vaca_cum_wo_lott
+
+p_car_cum_wo_lott <- 
+  states_wo_lott %>% 
+  group_by(car) %>% 
+  summarise_at(vars(p_vaca_cum), sum) %>% 
+  ungroup() %>% 
+  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
+  filter(car == 'yes') %>% 
+  pull(p_vaca_cum)
+p_car_cum_wo_lott
+
+p_y <- p_vaca_cum_w_lott + p_vaca_cum_w_lott
+
+states_wo_lott %>% group_by(car) %>% summarise_at(vars(p_vaca_cum), sum)
+states_wo_lott %>% summarise_at(vars(p_vaca_cum), sum)
+states_wo_lott %>% summarise_at(vars(p_car_cum), sum)
+
+```
+
+
