@@ -1,0 +1,177 @@
+---
+title: 'ISYE 6420: Homework 3'
+author: 'aelhabr3'
+output:
+  html_document:
+    css: ../styles_hw.css
+    theme: cosmo
+    highlight: haddock
+    toc: false
+---
+
+```{r setup, include=F, cache=F}
+knitr::opts_knit$set(root.dir = here::here())
+knitr::opts_chunk$set(
+  # rows.print = 25,
+  # rows.print = 25,
+  echo = TRUE,
+  # cache = FALSE,
+  cache = TRUE,
+  include = TRUE,
+  fig.show = "asis",
+  fig.align = "center",
+  fig.width = 8,
+  # size = "small",
+  fig.height = 5,
+  # fig.width = 5,
+  # out.width = 5,
+  # fig.asp = 0.75,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r postprocess, include=F, echo=F, cache=F}
+.path_sans_ext <- file.path('hw03')
+.path_rmd <- paste0(.path_sans_ext, '.Rmd')
+# spelling::spell_check_files(.path_rmd)
+```
+
+```{r setup-0, include=F, echo=F, eval=T}
+library(tidyverse)
+format_num <- function(x, digits = 4) {
+  fmt <- sprintf('%%.%df', digits)
+  sprintf(fmt, x)
+}
+```
+
+# 1. Estimating the Precision Parameter of a Rayleigh Distribution.
+
+```{r setup-1, include=F, echo=F, eval=T}
+library(tidyverse)
+```
+## Response
+
+### a
+
+### b
+
+### c
+
+```{r q1-c-1}
+compute_equi_credible_set_gamma <- function(alpha, beta, level = 0.95) {
+  q_buffer <- (1 - level) / 2
+  q_l <- (1 - level) - q_buffer
+  q_u <- level + q_buffer
+  res <-
+    c(
+      l = qgamma(q_l, shape = alpha, rate = beta),
+      u = qgamma(q_u, shape = alpha, rate = beta)
+    )
+}
+alpha_1 <- 5
+lambda_1 <- 1
+beta_1 <- lambda_1 + 27
+credible_set_1 <- compute_equi_credible_set_gamma(alpha_1, beta_1)
+credible_set_1
+```
+
+# 2. Estimating Chemotherapy Response Rates
+
+## Instructions
+
+## Response
+
+```{r q2-a-1}
+alpha_0 <- 31.5
+beta_0 <- 3.5
+compute_beta_mu <- function(alpha, beta) {
+  alpha / (alpha + beta)
+}
+mu_0 <- compute_beta_mu(alpha_0, beta_0)
+mu_0
+```
+
+### a
+
+```{r q2-a-2}
+n <- 30
+x <- 22
+alpha_1 <- x + alpha_0
+beta_1 <- n - x + beta_0
+mu_1 <- compute_beta_mu(alpha_1, beta_1)
+mu_1
+```
+
+### b
+
+```{r q2-b-1}
+compute_equi_credible_set_beta <- function(alpha, beta, level = 0.95) {
+  q_buffer <- (1 - level) / 2
+  q_l <- (1 - level) - q_buffer
+  q_u <- level + q_buffer
+  res <-
+    c(
+      l = qbeta(q_l, alpha, beta),
+      u = qbeta(q_u, alpha, beta)
+    )
+}
+
+credible_set_1 <- compute_equi_credible_set_beta(alpha_1, beta_1)
+credible_set_1
+```
+
+### c
+
+
+```{r q2-c-1}
+p_h_split <- 4/5
+
+p_prior_h1 <- pbeta(p_h_split, alpha_0, beta_0, lower.tail = TRUE)
+p_prior_h1
+p_prior_h0 <- 1 - p_prior_h1
+p_prior_h0
+
+p_post_h1 <- pbeta(p_h_split, alpha_1, beta_1, lower.tail = TRUE)
+p_post_h1
+p_post_h0 <- 1 - p_post_h1
+p_post_h0
+
+bayes_factor_num <- p_post_h1 / p_post_h0
+bayes_factor_num
+bayes_factor_den <- p_prior_h1 / p_prior_h0
+bayes_factor_den
+bayes_factor <- bayes_factor_num / bayes_factor_den
+bayes_factor
+bayes_factor_log10 <- log10(bayes_factor)
+bayes_factor_log10
+```
+
+
+### d
+
+
+### Aside
+
+```{r hw03-q2-1, include=T, echo=T, eval=F}
+model <- function() {
+  x ~ dbin(p, n)
+	p ~ dbeta(31.5, 3.5)
+	h_1 <- step(4/5 - p)
+}
+data <- list(x = 22, n = 30)
+inits <- NULL
+params <- c('h_1', 'p')
+res_sim <-
+  R2OpenBUGS::bugs(
+    data = data,
+    inits = inits,
+    model.file = model,
+    parameters.to.save = params,
+    DIC = FALSE,
+    n.chains = 1,
+    n.iter = 10000,
+    n.burnin = 1000
+  )
+res_sim$summary
+```

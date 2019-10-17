@@ -12,8 +12,6 @@ output:
 ```{r setup, include=F, cache=F}
 knitr::opts_knit$set(root.dir = here::here())
 knitr::opts_chunk$set(
-  # rows.print = 25,
-  # rows.print = 25,
   echo = TRUE,
   # cache = FALSE,
   cache = TRUE,
@@ -46,9 +44,129 @@ format_num <- function(x, digits = 4) {
 
 # 1. Emily, Car, Stock Market, Sweepstakes, Vacation and Bayes.
 
-```{r q1-1, include=T, echo=T, eval=T}
-library(tidyverse)
+## Response
 
+### a
+
+```{r setup-2}
+library(tidyverse)
+```
+
+```{r q1-0}
+p_a <- 0.6
+p_b <- 0.3
+p_c <- 0.1
+p_bull <- 0.5
+p_bear <- 0.5
+p_car_given_a_bull <- 0.8
+p_car_given_b_bull <- 0.5
+p_car_given_c_bull <- 0.2
+p_car_given_a_bear <- 0.5
+p_car_given_b_bear <- 0.3
+p_car_given_c_bear <- 0.1
+p_vaca_given_car <- 0.7
+p_vaca_given_no_car <- 0.2
+```
+
+```{r q1-a-1}
+states_wo_lott <-
+  crossing(
+    grade = c('a', 'b', 'c'),
+    market = c('bull', 'bear'),
+    car = c('yes', 'no'),
+    vaca = c('yes', 'no')
+  ) %>% 
+  mutate_at(
+    vars(grade),
+    list(p_grade = ~case_when(
+      . == 'a' ~ 0.6,
+      . == 'b' ~ 0.3,
+      . == 'c' ~ 0.1
+    ))
+  ) %>% 
+  mutate_at(
+    vars(market),
+    list(p_market = ~case_when(
+      . == 'bull' ~ 0.5,
+      . == 'bear' ~ 0.5
+    ))
+  ) %>% 
+  mutate_at(
+    vars(market),
+    list(p_market = ~0.5)
+  ) %>% 
+  mutate_at(
+    vars(car),
+    list(p_car = ~case_when(
+      grade == 'a' & market == 'bull' & . == 'yes' ~ p_car_given_a_bull,
+      grade == 'a' & market == 'bull' & . == 'no' ~ 1 - p_car_given_a_bull,
+      grade == 'a' & market == 'bear' & . == 'yes' ~ p_car_given_a_bear,
+      grade == 'a' & market == 'bear' & . == 'no' ~ 1 - p_car_given_a_bear,
+      grade == 'b' & market == 'bull' & . == 'yes' ~ p_car_given_b_bull,
+      grade == 'b' & market == 'bull' & . == 'no' ~ 1 - p_car_given_b_bull,
+      grade == 'b' & market == 'bear' & . == 'yes' ~ p_car_given_b_bear,
+      grade == 'b' & market == 'bear' & . == 'no' ~ 1 - p_car_given_b_bear,
+      grade == 'c' & market == 'bull' & . == 'yes' ~ p_car_given_c_bull,
+      grade == 'c' & market == 'bull' & . == 'no' ~ 1 - p_car_given_c_bull,
+      grade == 'c' & market == 'bear' & . == 'yes' ~ p_car_given_c_bear,
+      grade == 'c' & market == 'bear' & . == 'no' ~ 1 - p_car_given_c_bear
+    ))
+  ) %>% 
+  mutate_at(
+    vars(vaca),
+    list(p_vaca = ~case_when(
+      car == 'yes' & . == 'yes' ~ p_vaca_given_car,
+      car == 'yes' & . == 'no' ~ 1 - p_vaca_given_car,
+      car == 'no' & . == 'yes' ~ p_vaca_given_no_car,
+      car == 'no' & . == 'no' ~ 1 - p_vaca_given_no_car
+    ))
+  ) %>% 
+  mutate(
+    p_car_cum = p_grade * p_market * p_car,
+    p_vaca_cum = p_grade * p_market * p_car * p_vaca
+  ) %>% 
+  mutate_at(vars(grade), ~factor(.)) %>% 
+  mutate_at(vars(market), ~factor(., levels = c('bull', 'bear'))) %>% 
+  mutate_at(vars(car, vaca), ~factor(., levels = c('yes', 'no'))) %>% 
+  arrange(grade, market, car, vaca)
+states_wo_lott
+```
+
+```{r q1-a-1-debug, include=F, echo=F}
+states_wo_lott %>% group_by(car) %>% summarise_at(vars(p_vaca_cum), sum)
+states_wo_lott %>% summarise_at(vars(p_vaca_cum), sum)
+states_wo_lott %>% summarise_at(vars(p_car_cum), sum)
+```
+
+
+```{r q1-a-2}
+p_vaca <- 
+  states_wo_lott %>% 
+  group_by(vaca) %>% 
+  summarise_at(vars(p_vaca_cum), sum) %>% 
+  ungroup() %>% 
+  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
+  filter(vaca == 'yes') %>% 
+  pull(p_vaca_cum)
+p_vaca
+
+p_car <- 
+  states_wo_lott %>% 
+  group_by(car) %>% 
+  summarise_at(vars(p_vaca_cum), sum) %>% 
+  ungroup() %>% 
+  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
+  filter(car == 'yes') %>% 
+  pull(p_vaca_cum)
+p_car
+
+p_car_given_vaca <- (p_vaca_given_car * p_car) / p_vaca
+p_car_given_vaca
+```
+
+### b
+
+```{r q1-states_w_lott-1}
 states_w_lott <- 
   crossing(
     lott = c('yes', 'no'),
@@ -71,10 +189,12 @@ states_w_lott <-
   ) %>% 
   mutate(
     p_vaca_cum = p_lott * p_vaca
-  )
+  ) %>% 
+  mutate_at(vars(lott, vaca), ~factor(., levels = c('yes', 'no'))) %>% 
+  arrange(lott, vaca)
 states_w_lott
 
-p_vaca_cum_w_lott <- 
+p_lott_given_vaca <- 
   states_w_lott %>%
   filter(vaca == 'yes') %>% 
   filter(!is.na(p_vaca_cum)) %>% 
@@ -82,79 +202,414 @@ p_vaca_cum_w_lott <-
   summarise_at(vars(p_vaca_cum), sum) %>% 
   ungroup() %>% 
   pull(p_vaca_cum)
-p_vaca_cum_w_lott
+p_lott_given_vaca
+```
 
-states_wo_lott <-
-  crossing(
-    grade = c('a', 'b', 'c'),
-    market = c('bullish', 'bearish'),
-    car = c('yes', 'no'),
-    vaca = c('yes', 'no')
-  ) %>% 
-  mutate_at(
-    vars(grade),
-    list(p_grade = ~case_when(
-      . == 'a' ~ 0.6,
-      . == 'b' ~ 0.3,
-      . == 'c' ~ 0.1
-    ))
-  ) %>% 
-  mutate_at(
-    vars(market),
-    list(p_market = ~0.5)
-  ) %>% 
-  mutate_at(
-    vars(car),
-    list(p_car = ~case_when(
-      grade == 'a' & market == 'bullish' ~ 0.8,
-      grade == 'a' & market == 'bearish' ~ 0.5,
-      grade == 'b' & market == 'bullish' ~ 0.5,
-      grade == 'b' & market == 'bearish' ~ 0.3,
-      grade == 'c' & market == 'bullish' ~ 0.2,
-      grade == 'c' & market == 'bearish' ~ 0.1
-    ))
-  ) %>% 
-  mutate_at(
-    vars(vaca),
-    list(p_vaca = ~case_when(
-      car == 'yes' & . == 'yes' ~ 0.7,
-      car == 'yes' & . == 'no' ~ 1 - 0.7,
-      car == 'no' & . == 'yes' ~ 0.2,
-      car == 'no' & . == 'no' ~ 1 - 0.2
-    ))
-  ) %>% 
-  mutate(
-    p_car_cum = p_grade * p_market * p_car,
-    p_vaca_cum = p_grade * p_market * p_car * p_vaca
-  )
-states_wo_lott
+### c
 
-p_vaca_cum_wo_lott <- 
+```{r q1-c-1-debug, include=F, echo=F}
+p_b_debug <- 
   states_wo_lott %>% 
-  group_by(vaca) %>% 
+  group_by(grade) %>% 
   summarise_at(vars(p_vaca_cum), sum) %>% 
   ungroup() %>% 
   mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
-  filter(vaca == 'yes') %>% 
+  filter(grade == 'b') %>% 
   pull(p_vaca_cum)
-p_vaca_cum_wo_lott
+p_b_debug
+```
 
-p_car_cum_wo_lott <- 
+```{r q1-c-1}
+p_vaca_given_b <- 
   states_wo_lott %>% 
-  group_by(car) %>% 
+  group_by(vaca, grade) %>% 
   summarise_at(vars(p_vaca_cum), sum) %>% 
   ungroup() %>% 
+  group_by(grade) %>% 
   mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
-  filter(car == 'yes') %>% 
+  ungroup() %>% 
+  filter(vaca == 'yes', grade == 'b') %>%
   pull(p_vaca_cum)
-p_car_cum_wo_lott
+p_vaca_given_b
 
-p_y <- p_vaca_cum_w_lott + p_vaca_cum_w_lott
-
-states_wo_lott %>% group_by(car) %>% summarise_at(vars(p_vaca_cum), sum)
-states_wo_lott %>% summarise_at(vars(p_vaca_cum), sum)
-states_wo_lott %>% summarise_at(vars(p_car_cum), sum)
-
+p_b_given_vaca <- (p_vaca_given_b * p_b) / p_vaca
+p_b_given_vaca
 ```
 
 
+### d
+
+```{r q1-d-1-debug, include=F, echo=F}
+p_bear_debug <- 
+  states_wo_lott %>% 
+  group_by(market) %>% 
+  summarise_at(vars(p_vaca_cum), sum) %>% 
+  ungroup() %>% 
+  filter(market == 'bear') %>% 
+  pull(p_vaca_cum)
+p_bear_debug
+```
+
+```{r q1-d-1}
+p_vaca_given_bear <- 
+  states_wo_lott %>% 
+  group_by(vaca, market) %>% 
+  summarise_at(vars(p_vaca_cum), sum) %>% 
+  ungroup() %>% 
+  group_by(market) %>% 
+  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
+  ungroup() %>% 
+  filter(vaca == 'yes', market == 'bear') %>%
+  pull(p_vaca_cum)
+p_vaca_given_bear
+
+p_b_given_vaca <- (p_vaca_given_bear * p_bear) / p_vaca
+p_b_given_vaca
+```
+
+# 2. Trials until Fourth Success.
+
+## Response
+
+Given $X = (X_1, \dots, X_n)$ is a sample from $\mathcal{NB}(m, \theta)$ and $\theta \sim \mathcal{Be}(a, b)$, the posterior for $\theta$ is $\mathcal{Be}(a + m n, b + \sum_{i=1}^n x_i$ distribution.
+
+...
+
+Here $n = 11$, $m = 4$, ...
+
+### a
+
+```{r q2-0}
+m <- 4
+x <- c(5, 2, 2, 0, 1, 4, 3, 5, 0, 7, 1)
+n <- length(x)
+# p_h_split <- 0.8
+p_h_split <- 0.6
+
+.compute_a_post <- function(a, m, n) {
+  a + m * n
+}
+
+compute_a_post <- function(a, .m = m, .n = n) {
+  .compute_a_post(a, .m, .n)
+}
+
+# compute_a_post <- function(a, ..., .x = x) {
+#   a + sum(.x)
+# }
+
+.compute_b_post <- function(b, x) {
+  b + sum(x)
+}
+
+# compute_b_post <- function(b, ..., .m = m, .n = n) {
+#   b + .m * .n
+# }
+
+compute_b_post <- function(b, .x = x, ...) {
+  .compute_b_post(b = b, x = .x)
+}
+
+compute_equi_credible_set_beta <- function(alpha, beta, level = 0.95) {
+  q_buffer <- (1 - level) / 2
+  q_l <- (1 - level) - q_buffer
+  q_u <- level + q_buffer
+  res <-
+    c(
+      l = qbeta(q_l, alpha, beta),
+      u = qbeta(q_u, alpha, beta)
+    )
+}
+
+.compute_p_h1 <- function(a, b, p) {
+  pbeta(p, a, b, lower.tail = TRUE)
+}
+
+compute_p_h1 <- function(a, b, .p_h_split = p_h_split) {
+  .compute_p_h1(a, b, .p_h_split)
+}
+
+compute_q2 <- function(a_0, b_0) {
+  # a_0 <- 9
+  # b_0 <- 1
+  a_1 <- compute_a_post(a_0)
+  b_1 <- compute_b_post(b_0)
+  credible_set <- compute_equi_credible_set_beta(a_1, b_1)
+  p_prior_h1 <- compute_p_h1(a_0, b_0)
+  p_prior_h0 <- 1 - p_prior_h1
+  p_post_h1 <- compute_p_h1(a_1, b_1)
+  p_post_h0 <- 1 - p_post_h1
+  bayes_factor_num <- p_post_h1 / p_post_h0
+  bayes_factor_den <- p_prior_h1 / p_prior_h0
+  bayes_factor <- bayes_factor_num / bayes_factor_den
+  res <- 
+    list(
+      a_0 = a_0,
+      b_0 = b_0,
+      a_1 = a_1,
+      b_1 = b_1,
+      mu_prior = a_0 / (a_0 + b_0),
+      mu_post = a_1 / (a_1 + b_1),
+      credible_set_l = credible_set['l'],
+      credible_set_u = credible_set['u'],
+      p_prior_h0 = p_prior_h0,
+      p_prior_h1 = p_prior_h1,
+      p_post_h0 = p_post_h0,
+      p_post_h1 = p_post_h1,
+      bayes_factor = bayes_factor,
+      bayes_factor_log10 = log10(bayes_factor)
+    )
+  res
+}
+```
+
+```{r q2-a-0-debug}
+n_success <- n * m
+n_fail <- sum(x)
+n_total <- n_success + n_fail
+mu_actual <- n_success / n_total
+mu_actual
+```
+
+```{r q2-a-1}
+a_0_a <- 1
+b_0_a <- a_0_a
+res_a <- compute_q2(a_0_a, b_0_a)
+res_a
+```
+
+```{r q2-a-1-debug, include=F, echo=F}
+stopifnot(res_a$mu_post > res_a$mu_prior)
+stopifnot(mu_actual > res_a$mu_post)
+```
+
+### b
+
+```{r q2-b-1}
+a_0_b <- 0.5
+b_0_b <- a_0_b
+res_b <- compute_q2(a_0_b, b_0_b)
+res_b
+```
+
+```{r q2-b-1-debug, include=F, echo=F}
+stopifnot(res_b$mu_post > res_b$mu_prior)
+stopifnot(mu_actual > res_b$mu_post)
+```
+
+### c
+
+```{r q2-c-1}
+a_0_c <- 9
+b_0_c <- 1
+res_c <- compute_q2(a_0_c, b_0_c)
+res_c
+```
+
+```{r  q2-c-1-debug, include=F, echo=F}
+stopifnot(res_c$mu_post < res_c$mu_prior)
+stopifnot(mu_actual < res_c$mu_post)
+```
+
+# 3. Penguins.
+
+```{r q3-1}
+# Data, constants, hyperparameters, and functions.
+y <- c(41, 44, 43, 47, 43, 46, 45, 42, 45, 45, 43, 45, 47, 40)
+
+n_burnin <- 100L
+n_mcmc <- 10000L + n_burnin
+
+mu_0 <- 110
+tau_0 <- 1 / 100
+a_0 <- 0.01
+b_0 <- 4
+
+.compute_mu_new <- function(mu_i, tau_i, mu_0, tau_0, y_sum, n_obs) {
+  mu_tau_0 <- mu_0 * tau_0
+  mu_rnorm_num <- tau_i * y_sum + mu_tau_0
+  mu_rnorm_den <- tau_0 + n_obs * tau_i
+  mu_rnorm <- mu_rnorm_num / mu_rnorm_den
+  sigma2_rnorm <- 1 / (tau_0 + n_obs * tau_i)
+  sigma_rnorm <- sqrt(sigma2_rnorm)
+  rnorm(1, mu_rnorm, sigma_rnorm)
+}
+
+y_sum <- sum(y)
+n_obs <- length(y)
+compute_mu_new <-
+  function(mu_i,
+           tau_i,
+           .mu_0 = mu_1_0,
+           .tau_0 = tau_1_0,
+           .y_sum = y_sum_1,
+           .n_obs = n_obs_1) {
+    .compute_mu_new(
+      mu_i,
+      tau_i,
+      mu_0 = .mu_0,
+      tau_0 = .tau_0,
+      y_sum = .y_sum,
+      n_obs = .n_obs
+    )
+  }
+
+.compute_tau_new <- function(mu_new, y, a_0, b_0, n_obs) {
+  shape_rgamma <- a_0 + 0.5 * n_obs
+  rate_rgamma  <- b_0 + 0.5 * sum((y - mu_new) ^ 2)
+  rgamma(1, shape = shape_rgamma, rate = rate_rgamma) 
+}
+
+compute_tau_new <-
+  function(mu_new,
+           .y = y,
+           .a_0 = a_0,
+           .b_0 = b_0,
+           .n_obs = n_obs) {
+    .compute_tau_new(
+      mu_new = mu_new,
+      y = .y,
+      a_0 = .a_0,
+      b_0 = .b_0,
+      n_obs = .n_obs
+    )
+  }
+
+mu_init <- mean(y_1)
+tau_1_init <- 1 / sd(y_1)
+```
+
+```{r q3-2}
+is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
+  abs(x - round(x)) < tol
+}
+
+.do_mcmc_gibbs_q2 <-
+  function(n_mcmc,
+           n_burnin,
+           mu_init,
+           tau_init) {
+    n_burnin <- 100L
+    n_mcmc <- 10000L + n_burnin
+    mu_init <- 0
+    tau_init <- 0
+    stopifnot(is_likeinteger(n_mcmc))
+    if (!is.null(n_burnin)) {
+      stopifnot(is_likeinteger(n_burnin))
+      stopifnot(n_burnin < n_mcmc)
+    }
+    stopifnot(is.numeric(mu_init))
+    stopifnot(is.numeric(tau_init))
+    cols_mat_mcmc <- c('theta', 'tau')
+    mat_mcmc <- matrix(nrow = n_mcmc, ncol = length(cols_mat_mcmc))
+    
+    colnames(mat_mcmc) <- cols_mat_mcmc
+    mu_i <- mu_init
+    tau_i <- tau_init
+    y_sum <- sum(y)
+    n_obs <- length(y)
+    for (i in 1:n_mcmc) {
+      mu_new <- compute_mu_new(mu_i = mu_i, tau_i = tau_i)
+      tau_new <-compute_tau_new(mu_new = mu_new)
+      mat_mcmc[i,] <- c(mu_new, tau_new)
+      mu_i <- mu_new
+      tau_i <- tau_new
+    }
+    res_mcmc <-
+      mat_mcmc %>% 
+      as_tibble() %>% 
+      mutate(idx = row_number()) %>% 
+      select(idx, everything())
+    
+    if (!is.null(n_burnin)) {
+      idx_slice <- (n_burnin + 1):nrow(mat_mcmc)
+      res_mcmc <- res_mcmc %>% slice(idx_slice)
+    }
+    
+    res_mcmc
+  }
+
+do_mcmc_gibbs <-
+  function(...,
+           .n_mcmc = n_mcmc,
+           .n_burnin = n_burnin,
+           .mu_init = mu_init,
+           .tau_init = tau_init) {
+    .do_mcmc_gibbs_q2(
+      n_mcmc = .n_mcmc,
+      n_burnin = .n_burnin,
+      mu_init = .mu_init,
+      tau_init = .tau_init,
+      ...
+    )
+  }
+```
+
+```{r q2}
+res_mcmc_gibbs <- do_mcmc_gibbs()
+res_mcmc_gibbs
+```
+
+```{r q3-4, include=F, echo=F, eval=F}
+res_mcmc_gibbs %>% summarise_all(mean)
+```
+
+```{r q3-viz-1-prep, include=F, echo=F, eval=T}
+path_viz <- 'viz_mcmc_gibbs.png'
+w_viz <- w_viz_q1
+h_viz <- h_viz_q1
+eval_viz <- !fs::file_exists(path_viz)
+```
+
+```{r q3-viz-1, include=T, echo=T, eval=eval_viz}
+viz_mcmc_gibbs <-
+  res_mcmc_gibbs %>% 
+  gather(key = 'key', value = 'value', -idx) %>% 
+  ggplot() +
+  aes(x = value) +
+  geom_histogram() +
+  scale_y_continuous(labels = scales::comma) +
+  theme_custom() +
+  facet_wrap(~key, scales = 'free') +
+  labs(
+    x = NULL,
+    y = 'Frequency'
+  )
+```
+
+```{r q3-viz-1-export, include=F, echo=F, eval=eval_viz}
+teproj::export_ext_png(
+  viz_mcmc_gibbs,
+  path = path_viz,
+  units = 'in',
+  width = w_viz,
+  height = h_viz
+)
+```
+
+```{r q3-viz-1-show-1, include=T, echo=T, eval=F}
+viz_mcmc_gibbs
+```
+
+```{r q3-viz-1-show-2, include=T, echo=F, eval=T}
+knitr::include_graphics(path_viz)
+```
+
+```{r q3-5, include=F, echo=F, eval=T}
+mcmc_gibbs <-
+  res_mcmc_gibbs %>% 
+  summarise_at(vars(-idx), list(sum = ~sum(.), mean = ~mean(.))) %>% 
+  gather() %>% 
+  deframe()
+mcmc_gibbs
+
+mu_mean <- mcmc_gibbs[['mu_mean']]
+mu_mean
+mu_mean_chr <- format_num(mu_1_mean, digits = 1)
+mu_mean_chr
+
+y_mean <- mean(y)
+y_mean
+y_mean_chr <- format_num(y_mean, digits = 0)
+y_mean_chr
+```
