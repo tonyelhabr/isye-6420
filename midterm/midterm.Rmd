@@ -52,11 +52,11 @@ Emily is taking Bayesian Analysis course...
 
 ## Response
 
-Below I give my response in terms of exact calculation, using `R` to perform calculations. In the notation and code that follows, I use `a`, `b`, `c` for Emily's `grade`; `bull` and `bear` to indicate bullish orbearish `market`; `yes` or `no` to indicate whether Emily's uncle buys here a `car`, whether she goes on `vaca`tion (to Redington Shores), and wins the `lott`ery (i.e. sweepstakes).
+Below I give my response in terms of exact calculation, using `R` to perform calculations. In the notation and code that follows, I use `a`, `b`, `c` for Emily's `grade`; `bull` and `bear` to indicate bullish or bearish `market`; `yes` or `no` to indicate whether Emily's uncle buys here a `car`, whether she goes on `vaca`tion (to Redington Shores), and wins the `lott`ery (i.e. sweepstakes).
 
 ### a
 
-Notationally, we want to find $\Pr(\text{car=yes|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
+We want to find $\Pr(\text{car=yes|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
 
 $$
 \begin{aligned}
@@ -65,7 +65,7 @@ $$
 \end{aligned}
 $$
 
-Next, we could delineate all possible scenarios in a mannter, such as follows,
+Next, we could delineate all possible scenarios in a manner, such as follows,
 
 $$
 \begin{array}{l}
@@ -84,12 +84,12 @@ $$
 \end{array}
 $$
 
-or even with probability tree diagram.
-However, because noting all scenarios and probabilities in such a manner can be tedious, I think it might be easier to first show the code defining these things and provide an explanation afterwards.
+or even with a probability tree diagram. However, because noting all scenarios and probabilities in such a manner can be tedious, I think it might be easier to first show the code defining these things and provide an explanation afterwards.
 
 
 ```{r setup-2}
 library(tidyverse)
+set.seed(42)
 ```
 
 ```{r q1-0}
@@ -181,7 +181,7 @@ states_wo_lott
 options(tibble.print_min = opt_old)
 ```
 
-The data.frame `states_wo_lott` describes all possible scenarios (24 total) and probabilities. (Note that the `p_*` columns describe the probabilites, and the `p` column is the product of these.) This data.frame is essentially equivalent to a probability tree diagram partitioning out the entire sample space.
+The data.frame `states_wo_lott` describes all possible scenarios (24 total) and probabilities. (Note that the `p_*` columns describe the probabilities, and the `p` column is the product of these.) This data.frame is essentially equivalent to a probability tree diagram partitioning out the entire sample space.
 
 In case the reader has any doubts about the probabilities in the data.frame, We can do a quick check of the code and show that the probabilities of all scenarios sum up to 1.
 
@@ -202,7 +202,7 @@ states_wo_lott %>%
   select(grade, market, car, vaca, p_grade, p_market, p_car, p_vaca, p)
 ```
 
-And we can easily view the probabilites of the going on vacation or not.
+And we can easily view the probabilities of the going on vacation or not.
 
 ```{r q1-a-2-pre}
 states_wo_lott_vaca <-
@@ -226,9 +226,9 @@ p_vaca_chr <- format_num(p_vaca)
 p_vaca_chr
 ```
 
-Summing up the probabilities for the scenarios where Emily does go on vacation gives us $P(\text{vaca|yes})$ = `p_vaca_chr`, which is the denomiator of the Bayes' equation noted above.
+Summing up the probabilities for the scenarios where Emily does go on vacation gives us $P(\text{vaca|yes})$ = `p_vaca_chr`, which is the denominator of the Bayes' equation noted above.
 
-Next, we can view the marginal probabilites of Emily getting a car or not.
+Next, we can view the marginal probabilities of Emily getting a car or not.
 
 
 ```{r q1-a-3-pre}
@@ -282,7 +282,7 @@ $$
 \end{aligned}
 $$
 
-We are already given two of the quantities that we'll need--the terms in the numberator, $\Pr(\text{vaca=yes|grade=b}) = 0.99$ and $\Pr(\text{grade=b}) = 0.001$. The denominator terms $\Pr^{\prime}(\text{vaca=yes})$ is equivalent to the sum of the product of the numberator terms and $\Pr(\text{vaca=yes})$ found in part a. (Note the differentation of terms with the prime symbol $^{\prime}$.
+We are already given two of the quantities that we'll need--the terms in the numerator, $\Pr(\text{vaca=yes|grade=b}) = 0.99$ and $\Pr(\text{grade=b}) = 0.001$. The denominator terms $\Pr^{\prime}(\text{vaca=yes})$ is equivalent to the sum of the product of the numberator terms and $\Pr(\text{vaca=yes})$ found in part a. (Note the differentation of terms with the prime symbol $^{\prime}$.
 
 
 ```{r q1-b-1, include=F, echo=F}
@@ -464,7 +464,7 @@ f(x)=\left(\begin{array}{c}{m+x-1} \\ {x}\end{array}\right) p^{m}(1-p)^{x}, x=0,
 \end{aligned}
 $$
 
-Let random variable $X$ with negative binomial distribution represent the numnber of failures before the $m$th success in $n$ Bernoulli experiments. The likelihood is proportional to $p^{m n} (1 - p) ^ \sum_{i=1}^n x_i$. Prior $\pi(p) \propto p^{a-1} (1 - p) ^ {b - 1}$ results in a posterior proportional to $p^{m n+a-1}(1-p) ^{\sum_{i=1}^{n} x_{i}+b-1}$.
+Let random variable $X$ with negative binomial distribution represent the nunber of failures before the $m$th success in $n$ Bernoulli experiments. The likelihood is proportional to $p^{m n} (1 - p) ^ \sum_{i=1}^n x_i$. Prior $\pi(p) \propto p^{a-1} (1 - p) ^ {b - 1}$ results in a posterior proportional to $p^{m n+a-1}(1-p) ^{\sum_{i=1}^{n} x_{i}+b-1}$.
 
 $$
 \begin{aligned}
@@ -615,7 +615,7 @@ res_a
 <response>
 For (1), we find that $p_{Bayes}$ = `r format_num(res_a$mu_post, 4)` (corresponding to `mu_post` in `res_a`). For (2), we find that the 95% credible set $C$ = [`r format_num(res_a$credible_set_l, 4)`, `r format_num(res_a$credible_set_u, 4)`] (corresponding to `credible_set_l` and `credible_set_u` respectively). For (3), we find that the posterior probability of the hypothesis $H_1 : p$ < `r p_split` is $p_{H1}$ = `r format_num(res_a$p_post_h1, 4)` (corresponding to `p_post_h1`), which is much larger than that for the the hypothesis $H_0 p \geq$ `r p_split`), $p_{H0}$ = `r format_num(res_a$p_post_h0, 4)` (corresponding to `p_post_h0`).
 </response>
-Furthermore, we note that the log of the Bayes Factor $B_{10}$ (in favor of $H_1$ compared to $H_0$) provides decisive evidence in favor of $H_1$. $\log_{10}(B_{10}) > 2$ (and because $\log_{10}(B_{01}) < 0.5$) we can say that there is very poor experimental evidence against the hypothesis $H_1$.
+Furthermore, we note that the log of the Bayes Factor $B_{10}$ (in favor of $H_1$ compared to $H_0$) provides decisive evidence in favor of $H_1$. $\log_{10}(B_{10}) > 2$ (and because $\log_{10}(B_{01}) < 0.5$), we can say that there is very poor experimental evidence against the hypothesis $H_1$.
 
 ### b
 
@@ -642,7 +642,7 @@ stopifnot(mu_actual > res_b$mu_post)
 <response>
 For (1), we find that $p_{Bayes}$ = `r format_num(res_b$mu_post, 4)`. For (2), we find that the 95% credible set $C$ = [`r format_num(res_b$credible_set_l, 4)`, `r format_num(res_b$credible_set_u, 4)`]. For (3), we find that the posterior probability of the hypothesis $H_1$ is $p_{H1}$ = `r format_num(res_b$p_post_h1, 4)`, which is much larger than that for the the hypothesis $H_0$, $p_{H0}$ = `r format_num(res_b$p_post_h0, 4)`.
 </response>
-Furthermore, we note that the log of the Bayes Factor $B_{10}$ (in favor of $H_1$ compared to $H_0$) provides decisive evidence in favor of $H_1$. $\log_{10}(B_{10}) > 2$ (and because $\log_{10}(B_{01}) < 0.5$) we can say that there is very poor experimental evidence against the hypothesis $H_1$.
+Furthermore, we note that the log of the Bayes Factor $B_{10}$ provides decisive evidence in favor of $H_1$. $\log_{10}(B_{10}) > 2$, we can say that there is very poor experimental evidence against the hypothesis $H_1$.
 
 ### c
 
@@ -664,7 +664,7 @@ res_c
 <response>
 For (1), we find that $p_{Bayes}$ = `r format_num(res_c$mu_post, 4)`. For (2), we find that the 95% credible set $C$ = [`r format_num(res_c$credible_set_l, 4)`, `r format_num(res_c$credible_set_u, 4)`]. For (3), we find that the posterior probability of the hypothesis $H_1$ is $p_{H1}$ = `r format_num(res_c$p_post_h1, 4)`, which is much larger than that for the the hypothesis $H_0$, $p_{H0}$ = `r format_num(res_c$p_post_h0, 4)`.
 </response>
-Furthermore, we note that the log of the Bayes Factor $B_{10}$ (in favor of $H_1$ compared to $H_0$) provides decisive evidence in favor of $H_1$. $\log_{10}(B_{10}) > 2$ (and because $\log_{10}(B_{01}) < 0.5$) we can say that there is very poor experimental evidence against the hypothesis $H_1$.
+Furthermore, we note that the log of the Bayes Factor $B_{10}$ provides decisive evidence in favor of $H_1$. $\log_{10}(B_{10}) > 2$, we can say that there is very poor experimental evidence against the hypothesis $H_1$.
 
 
 # 3. Penguins.
@@ -677,9 +677,14 @@ A researcher is interested in testing ...
 
 ## Response
 
-```{r q3-1}
+
+```{r q3-1-prep, include=F, echo=F}
 # Data, constants, hyperparameters, and functions.
 y <- c(41, 44, 43, 47, 43, 46, 45, 42, 45, 45, 43, 45, 47, 40)
+y_sum <- sum(y)
+y_sum
+n_obs <- length(y)
+n_obs
 
 n_burnin <- 100L
 n_mcmc <- 10000L + n_burnin
@@ -688,7 +693,87 @@ mu_0 <- 45
 tau_0 <- 1 / (2^2)
 a_0 <- 4
 b_0 <- 2
+```
 
+
+In what follows I derive the full conditional expressions for $\mu$ and $\tau$, closely following the guide provided by the Gibbs handout from class.
+
+Per the instructions, we make the assumption that the measurements $y_i \dots y_n$ come from the normal distribution $\mathcal{N}(\mu, 1/\tau)$. (Note that $n$ = `r n_obs` here.) Furthermore, we assume $\mu \sim \mathcal{N}(\mu_0, 1 / \tau_0)$ (where $\mu_0$ = `r mu_0` and $\tau_0$ = `r 1 / tau_0`, per the instructions), and the precision parameter $\tau \sim \mathcal{Ga}(a_0, b_0)$ (where $a$ = `r a_0` and $b$ = `r b_0`).
+
+Now, in preparation of expressing the joint distribution, we define the likelihood of $\mu$ as
+
+$$
+\mathcal{L}(\mu | y_1, \ldots y_n)=\prod_{i=1}^{n} f(y_i| \mu, \tau) \propto \tau^{n/2} \exp \left\{-\tau / 2 \sum_{i=1}^n\left(y_i-\mu\right)^{2}\right\}.
+$$
+
+Thus, the joint distribution is
+
+
+$$
+\begin{aligned}
+f(y, \mu, \tau) &=\left\{\prod_{i=1}^{n} f\left(y_{i} | \mu, \tau\right)\right\} \pi(\mu) \pi(\tau) \\
+& \propto \tau^{n / 2} \exp \left\{-\tau / 2 \sum_{i=1}^{n}\left(y_{i}-\mu\right)^{2}\right\} \exp \left\{-\left(\mu-\mu_{0}\right)^{2} / 2\right\} \tau^{a_0-1} \exp \{-b_0 \tau\}
+\end{aligned}
+$$
+
+After selecting the terms from the joint distribution expression that contain $mu$ and normalizing, we find that
+
+$$
+\begin{aligned}
+\pi(\mu | \tau, y)
+
+& \propto \exp \left\{-\frac{\tau}{2} \sum_{i=1}^{n}\left(y_{i}-\mu\right)^{2}\right\} \exp \left\{-\frac{\tau_{0}}{2}\left(\mu-\mu_{0}\right)^{2}\right\} \\
+
+& \propto \exp \left\{-\frac{1}{2}\left(\tau_{0}+n \tau\right)\left(\mu-\frac{\tau \sum y_{i}+\tau_{0} \mu_{0}}{\tau_{0}+n \tau}\right)^{2}\right\}
+\end{aligned}
+$$
+which is the kernel for the $\mathcal{N}\left(\frac{\tau \sum y_{i}+\tau_{0} \mu_{0}}{\tau_{0}+n \tau}, \frac{1}{\tau_{0}+n \tau}\right)$ distribution. Plugging in the provided numbers for $y_i, \dots, y_n$, $\mu_0$, $\tau_0$ and $n$, we can write the full conditional for $\mu$ explicitly as
+
+$$
+\begin{aligned}
+\mu | \tau, y
+
+& \sim \mathcal{N}\left(\frac{\tau (616) + (2^{-2}) (45)}{(2^{-2})+(14) \tau}, \frac{1}{(2^-2)+(14)\tau}\right) \\
+
+& \sim \mathcal{N}\left(\frac{616 \tau + 11.25)}{0.25 + 14 \tau},\frac{1}{0.25 + 14\tau}\right)
+
+\end{aligned}
+$$
+
+
+Next, we can derive the full conditional for $\tau$ as follows.
+
+$$
+\begin{aligned}
+\pi(\tau | \mu, y)
+
+& \propto \tau^{n / 2} \exp \left\{-\tau / 2 \sum_{i=1}^{n}\left(y_{i}-\mu\right)^{2}\right\} \tau^{a_0-1} \exp \{-b_0 \tau\} \\
+
+& = \tau^{n / 2+a_0-1} \exp \left\{-\tau\left[b+\frac{1}{2} \sum_{i=1}^{n}\left(y_{i}-\mu\right)^{2}\right]\right\}
+\end{aligned}
+$$
+
+which is a kernel for the $\mathcal{Ga}\left(a_0+n / 2, b_0+\frac{1}{2} \sum_{i=1}^{n}\left(y_{i}-\mu\right)^{2}\right)$ distribution. We can write this explicitly as
+
+$$
+\begin{aligned}
+\tau | \mu, y)
+
+& \sim \mathcal{Ga}\left((4) + (14) / 2, (2) + \frac{1}{2} \sum_{i=1}^{(14)} (y_i - \mu)\right)^2 \\
+
+& \sim \mathcal{Ga}\left(18, 2 + \frac{1}{2} \sum_{i=1}^{14} (y_i - \mu)\right)^2
+
+\end{aligned}
+$$
+
+
+Please see the code and its output below for the implementation of a Gibbs sampler for this problem. Discussion of the output follows.
+
+```{r q3-1-prep-show, ref.label='q3-1-prep'}
+```
+
+
+```{r q3-1}
 .compute_mu_new <- function(mu_i, tau_i, mu_0, tau_0, y_sum, n_obs) {
   mu_tau_0 <- mu_0 * tau_0
   mu_rnorm_num <- tau_i * y_sum + mu_tau_0
@@ -699,7 +784,6 @@ b_0 <- 2
   rnorm(1, mu_rnorm, sigma_rnorm)
 }
 
-y_sum <- sum(y)
 n_obs <- length(y)
 compute_mu_new <-
   function(mu_i,
@@ -890,4 +974,70 @@ y_mean
 y_mean_chr <- format_num(y_mean, digits = 0)
 y_mean_chr
 ```
-As a quick check of the validity of our results, we can compare the posterior means of $\mu$ (from the Gibbs sampling results) with those of the observations $y$ and the prior $\mu_0 = 45$. We find that $\hat{\mu}$ = `r mu_mean_chr`, which is between the observed mean $\hat{y}$ = `r y_mean_chr` and the prior. This is what we should have expected.
+As a quick check of the validity of our results, we can compare the posterior mean $\hat{\mu}$ (from the Gibbs sampling results) with those of the observations $y$ and the prior $\mu_0$ = `r mu_0`. We find that $\hat{\mu}$ = `r mu_mean_chr`, which is between the observed mean $\hat{y}$ = `r y_mean_chr` and the prior. This is what we should have expected.
+
+### a
+
+```{r q3-a-1-prep, include=F, echo=F}
+mu_split <- 45
+```
+
+
+To approximate the posterior probability $p_{H_{0}}$ of the hypothesis $H_0 : \mu$ < `r mu_split`, we calculate the fraction of samples where this condition is met.
+
+```{r q3-a-1-prep-show, ref.label='q3-a-1-prep'}
+```
+
+```{r q3-a-1}
+h_0 <-
+  res_mcmc_gibbs %>% 
+  mutate(h_0 = ifelse(mu > mu_split, 1, 0)) %>% 
+  summarise(n_h_0 = sum(h_0), n = n()) %>% 
+  mutate(frac = n_h_0 / n) %>% 
+  select(n_h_0, frac)
+h_0
+```
+
+
+```{r q3-a-1-post, include=F, echo=F}
+h_0_frac <- h_0 %>% pull(frac)
+h_0_frac
+h_0_frac_chr <- h_0_frac %>% format_num(3)
+h_0_frac_chr
+h_0_pct_chr <- (h_0_frac * 100) %>% format_num(1)
+h_0_pct_chr
+```
+<response>
+We find that the posterior probability $p_{H_{0}}$ = `r h_0_frac_chr` (i.e. `r h_0_pct_chr`%).
+</response>This very high probability checks out with the histogram from above, which shows a large majority of $\mu$ samples with values smaller than `r mu_split`.
+
+
+### b
+
+We can calculate the 95% credible set for $\tau$ as follows.
+
+```{r q3-b-1}
+equi_credible_set <-
+  res_mcmc_gibbs %>% 
+  summarise_at(vars(tau), list(mean = mean, sd = sd)) %>% 
+  mutate(
+    l = qnorm(0.025, mean, sd),
+    u = qnorm(0.975, mean, sd)
+  )
+equi_credible_set
+```
+
+```{r q3-b-2, include=F, echo=F}
+credible_set <- equi_credible_set %>% select(l, u) %>% c()
+credible_set
+```
+
+```{r q3-b-3, include=F, echo=F}
+credible_set_chr <- format_num(credible_set)
+credible_set_chr
+```
+
+<response>
+We find that the 95% equitailed credible set is [`r credible_set_chr[1]`, `r credible_set_chr[2]`].
+</response>
+
