@@ -1,0 +1,56 @@
+---
+output: html_document
+---
+
+We can create a data.frame for lottery scenarios (`states_w_lott` in the code below), akin to that created in part a (for the non-lottery scenarios).
+
+```{r q1-b-1}
+p_lott <- 0.001
+p_vaca_given_lott <- 0.99
+states_w_lott <- 
+  crossing(
+    lott = c('yes', 'no'),
+    vaca = c('yes', 'no')
+  ) %>% 
+  mutate_at(
+    vars(lott),
+    list(p_lott = ~case_when(
+      . == 'yes' ~ p_lott,
+      . == 'no' ~ 1 -p_lott
+    ))
+  ) %>% 
+  mutate_at(
+    vars(vaca),
+    list(p_vaca = ~case_when(
+      lott == 'yes' & vaca == 'yes' ~ p_vaca_given_lott,
+      lott == 'yes' & vaca == 'no' ~ 1 - p_vaca_given_lott,
+      lott == 'no' ~ NA_real_
+    ))
+  ) %>% 
+  mutate(
+    p = p_lott * p_vaca
+  ) %>% 
+  mutate_at(vars(lott, vaca), ~factor(., levels = c('yes', 'no'))) %>% 
+  arrange(lott, vaca)
+states_w_lott
+```
+
+Note that these probabilities won't sum up to 1, but to `r p_lott`, i.e. the probability of winning the lottery, instead. Also, note that there are "NA" probabilities for the cases where the lottery is not won. This relates to the independence of the lottery and non-lottery scenarios, i.e. if Emily does not win the lottery, she may still end up going on vacation, but the set of possibilities is described by the non-lottery scenarios (so the lottery scenarios are "not applicable").
+
+```{r q1-b-2-pre}
+states_w_lott_vaca <- 
+  states_w_lott %>%
+  filter(!is.na(p)) %>% 
+  group_by(vaca) %>% 
+  summarise_at(vars(p), sum) %>% 
+  ungroup()
+states_w_lott_vaca
+```
+
+```{r q1-b-2, include=F, echo=F}
+p_lott_given_vaca <-
+  states_w_lott_vaca %>% 
+  filter(vaca == 'yes') %>% 
+  pull(p)
+p_lott_given_vaca
+```

@@ -3,7 +3,7 @@ title: 'ISYE 6420: Midterm'
 author: 'aelhabr3'
 output:
   html_document:
-    css: ../styles_hw.css
+    css: ../hws/styles_hw.css
     theme: cosmo
     highlight: haddock
     toc: false
@@ -44,9 +44,49 @@ format_num <- function(x, digits = 4) {
 
 # 1. Emily, Car, Stock Market, Sweepstakes, Vacation and Bayes.
 
+## Instructions
+
+<instructions>
+Emily is taking Bayesian Analysis course...
+</instructions>
+
 ## Response
 
+Below I give my response in terms of exact calculation, using `R` to perform calculations. In the notation and code that follows, I use `a`, `b`, `c` for Emily's `grade`; `bull` and `bear` to indicate bullish orbearish `market`; `yes` or `no` to indicate whether Emily's uncle buys here a `car`, whether she goes on `vaca`tion (to Redington Shores), and wins the `lott`ery (i.e. sweepstakes).
+
 ### a
+
+Notationally, we want to find $\Pr(\text{car=yes|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
+
+$$
+\begin{aligned}
+\Pr(\text{car=yes|vaca=yes}) &
+= \frac{\Pr(\text{vaca=yes|car=yes}) \Pr(\text{car=yes})}{\Pr(\text{vaca=yes})}
+\end{aligned}
+$$
+
+Next, we could delineate all possible scenarios in a mannter, such as follows,
+
+$$
+\begin{array}{l}
+\text{Scenario A: grade=a,market=bull,car=yes,vaca=yes} \\
+\text{Scenario B: grade=a,market=bear,car=yes,vaca=yes} \\
+\dots,
+\end{array}
+$$
+
+or more directly such as follows,
+
+$$
+\begin{array}{l}
+\Pr_{1} & = & \Pr(\text{vaca=yes|car=yes}) * \Pr(\text{car=yes|market=bull}) \times \sum_g^{a,b,c} \Pr(\text{car=yes|grade=g}) \\
+\Pr_{2} & = & \dots,
+\end{array}
+$$
+
+or even with probability tree diagram.
+However, because noting all scenarios and probabilities in such a manner can be tedious, I think it might be easier to first show the code defining these things and provide an explanation afterwards.
+
 
 ```{r setup-2}
 library(tidyverse)
@@ -66,6 +106,11 @@ p_car_given_b_bear <- 0.3
 p_car_given_c_bear <- 0.1
 p_vaca_given_car <- 0.7
 p_vaca_given_no_car <- 0.2
+```
+
+```{r q1-a-1-pre, include=F, echo=F}
+opt_old <- getOption('tibble.print_min')
+options(tibble.print_min = Inf)
 ```
 
 ```{r q1-a-1}
@@ -122,8 +167,8 @@ states_wo_lott <-
     ))
   ) %>% 
   mutate(
-    p_car_cum = p_grade * p_market * p_car,
-    p_vaca_cum = p_grade * p_market * p_car * p_vaca
+    # p_car_cum = p_grade * p_market * p_car,
+    p = p_grade * p_market * p_car * p_vaca
   ) %>% 
   mutate_at(vars(grade), ~factor(.)) %>% 
   mutate_at(vars(market), ~factor(., levels = c('bull', 'bear'))) %>% 
@@ -132,159 +177,344 @@ states_wo_lott <-
 states_wo_lott
 ```
 
-```{r q1-a-1-debug, include=F, echo=F}
-states_wo_lott %>% group_by(car) %>% summarise_at(vars(p_vaca_cum), sum)
-states_wo_lott %>% summarise_at(vars(p_vaca_cum), sum)
-states_wo_lott %>% summarise_at(vars(p_car_cum), sum)
+```{r q1-a-1-post, include=F, echo=F}
+options(tibble.print_min = opt_old)
 ```
 
+The data.frame `states_wo_lott` describes all possible scenarios (24 total) and probabilities. (Note that the `p_*` columns describe the probabilites, and the `p` column is the product of these.) This data.frame is essentially equivalent to a probability tree diagram partitioning out the entire sample space.
+
+In case the reader has any doubts about the probabilities in the data.frame, We can do a quick check of the code and show that the probabilities of all scenarios sum up to 1.
+
+```{r q1-a-1-check}
+states_wo_lott %>% summarise_at(vars(p), sum) %>% pull(p)
+```
+
+<i>
+Also, before moving on, I should note that we can disregarding the case where Emily goes on vacation after winning the lottery because it is independent of the non-lottery scenarios. ("Independently, Emily
+may be a lucky winner...".)
+</i>
+
+Now, to begin filling in numbers for our Bayes' equation above, let's begin by finding $P(\text{vaca|yes})$ Filtering for just the `vaca == 'yes'` scenarios, we find that ther are `r nrow(states_wo_lott %>% filter(vaca == 'yes'))` records.
+
+```{r q1-a-1-expl}
+states_wo_lott %>% 
+  filter(vaca == 'yes') %>% 
+  select(grade, market, car, vaca, p_grade, p_market, p_car, p_vaca, p)
+```
+
+And we can easily view the probabilites of the going on vacation or not.
+
+```{r q1-a-2-pre}
+states_wo_lott_vaca <-
+  states_wo_lott %>% 
+  group_by(vaca) %>% 
+  summarise_at(vars(p), sum) %>% 
+  ungroup()
+states_wo_lott_vaca
+```
 
 ```{r q1-a-2}
 p_vaca <- 
-  states_wo_lott %>% 
-  group_by(vaca) %>% 
-  summarise_at(vars(p_vaca_cum), sum) %>% 
-  ungroup() %>% 
-  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
+  states_wo_lott_vaca %>% 
   filter(vaca == 'yes') %>% 
-  pull(p_vaca_cum)
+  pull(p)
 p_vaca
+```
 
-p_car <- 
+```{r q1-a-2-chr, include=F, echo=F}
+p_vaca_chr <- format_num(p_vaca)
+p_vaca_chr
+```
+
+Summing up the probabilities for the scenarios where Emily does go on vacation gives us $P(\text{vaca|yes})$ = `p_vaca_chr`, which is the denomiator of the Bayes' equation noted above.
+
+Next, we can view the marginal probabilites of Emily getting a car or not.
+
+
+```{r q1-a-3-pre}
+states_wo_lott_car <-
   states_wo_lott %>% 
   group_by(car) %>% 
-  summarise_at(vars(p_vaca_cum), sum) %>% 
-  ungroup() %>% 
-  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
-  filter(car == 'yes') %>% 
-  pull(p_vaca_cum)
-p_car
+  summarise_at(vars(p), sum) %>% 
+  ungroup()
+states_wo_lott_car
+```
 
+```{r q1-a-3}
+p_car <- 
+  states_wo_lott_car %>% 
+  filter(car == 'yes') %>% 
+  pull(p)
+p_car
+```
+
+```{r q1-a-3-chr, include=F, echo=F}
+p_car_chr <- format_num(p_car)
+p_car_chr
+```
+
+We see that the probability of $\Pr(\text{car=yes})$ = `r p_car_chr`, which is a term we need for the numerator of our Bayes' equation.
+
+Finally, since we already have $\Pr(\text{vaca=yes|car=yes})$ = `r p_vaca_given_car`, we can now "plug-and-chug" to calculate $\Pr(\text{car=yes|vaca=yes})$.
+
+```{r q1-a-4}
 p_car_given_vaca <- (p_vaca_given_car * p_car) / p_vaca
 p_car_given_vaca
 ```
 
-### b
-
-```{r q1-states_w_lott-1}
-states_w_lott <- 
-  crossing(
-    lott = c('yes', 'no'),
-    vaca = c('yes', 'no')
-  ) %>% 
-  mutate_at(
-    vars(lott),
-    list(p_lott = ~case_when(
-      . == 'yes' ~ 0.001,
-      . == 'no' ~ 1 - 0.001
-    ))
-  ) %>% 
-  mutate_at(
-    vars(vaca),
-    list(p_vaca = ~case_when(
-      lott == 'yes' & vaca == 'yes' ~ 0.99,
-      lott == 'yes' & vaca == 'no' ~ 1 - 0.99,
-      lott == 'no' ~ NA_real_
-    ))
-  ) %>% 
-  mutate(
-    p_vaca_cum = p_lott * p_vaca
-  ) %>% 
-  mutate_at(vars(lott, vaca), ~factor(., levels = c('yes', 'no'))) %>% 
-  arrange(lott, vaca)
-states_w_lott
-
-p_lott_given_vaca <- 
-  states_w_lott %>%
-  filter(vaca == 'yes') %>% 
-  filter(!is.na(p_vaca_cum)) %>% 
-  group_by(vaca) %>% 
-  summarise_at(vars(p_vaca_cum), sum) %>% 
-  ungroup() %>% 
-  pull(p_vaca_cum)
-p_lott_given_vaca
+```{r q1-a-4-chr, include=F, echo=F}
+p_car_given_vaca_chr <- format_num(p_car_given_vaca)
+p_car_given_vaca_chr
 ```
 
+<response>
+Thus, we find that $\Pr(\text{car=yes|vaca=yes})$ = `r p_car_given_vaca_chr`.
+</response>
+
+### b
+
+We want to find $\Pr(\text{car=yes|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
+
+$$
+\begin{aligned}
+\Pr(\text{grade=b|vaca=yes}) &
+= \frac{\Pr(\text{vaca=yes|grade=b}) \Pr(\text{grade=b})}{\Pr^{\prime}(\text{vaca=yes})}
+\end{aligned}
+$$
+
+We are already given two of the quantities that we'll need--the terms in the numberator, $\Pr(\text{vaca=yes|grade=b}) = 0.99$ and $\Pr(\text{grade=b}) = 0.001$. The denominator terms $\Pr^{\prime}(\text{vaca=yes})$ is equivalent to the sum of the product of the numberator terms and $\Pr(\text{vaca=yes})$ found in part a. (Note the differentation of terms with the prime symbol $^{\prime}$.
+
+
+```{r q1-b-1, include=F, echo=F}
+p_lott <- 0.001
+p_vaca_given_lott <- 0.99
+p_vaca_and_lott <- p_lott * p_vaca_given_lott
+p_vaca_and_lott
+p_lott_given_vaca <- p_vaca_and_lott / (p_vaca_and_lott + p_vaca)
+p_lott_given_vaca
+p_lott_given_vaca_chr <- format_num(p_lott_given_vaca)
+p_lott_given_vaca_chr 
+```
+
+$$
+\begin{aligned}
+\Pr(\text{grade=b|vaca=yes})
+&= \frac{\Pr(\text{vaca=yes|grade=b}) \Pr(\text{grade=b})}{\Pr^{\prime}(\text{vaca=yes})} \\
+&= \frac{\Pr(\text{vaca=yes|grade=b}) \Pr(\text{grade=b})}{\Pr(\text{vaca=yes|grade=b}) \Pr(\text{grade=b}) + \Pr(\text{vaca=yes})} \\
+&= \frac{(0.99) (0.001)}{(0.99) (0.001) + (0.4625)} \\
+&= `r p_lott_given_vaca_chr`.
+\end{aligned}
+$$
+
+<response>
+Thus, we have shown that $\Pr(\text{car=yes|vaca= yes})$ = `r p_lott_given_vaca_chr`.
+</response>
+
 ### c
+
+We want to find $\Pr(\text{grade=b|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
+
+$$
+\begin{aligned}
+\Pr(\text{grade=b|vaca=yes}) &
+= \frac{\Pr(\text{vaca=yes|grade=b}) \Pr(\text{grade=b})}{\Pr^{\prime}(\text{vaca=yes})}
+\end{aligned}
+$$
 
 ```{r q1-c-1-debug, include=F, echo=F}
 p_b_debug <- 
   states_wo_lott %>% 
   group_by(grade) %>% 
-  summarise_at(vars(p_vaca_cum), sum) %>% 
+  summarise_at(vars(p), sum) %>% 
   ungroup() %>% 
-  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
+  mutate_at(vars(p), ~(. / sum(.))) %>% 
   filter(grade == 'b') %>% 
-  pull(p_vaca_cum)
+  pull(p)
 p_b_debug
 ```
 
-```{r q1-c-1}
-p_vaca_given_b <- 
+```{r q1-c-1-pre}
+p_vaca_given_grade <- 
   states_wo_lott %>% 
   group_by(vaca, grade) %>% 
-  summarise_at(vars(p_vaca_cum), sum) %>% 
+  summarise_at(vars(p), sum) %>% 
   ungroup() %>% 
   group_by(grade) %>% 
-  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
+  mutate_at(vars(p), ~(. / sum(.))) %>% 
   ungroup() %>% 
-  filter(vaca == 'yes', grade == 'b') %>%
-  pull(p_vaca_cum)
-p_vaca_given_b
+  arrange(grade, vaca)
+p_vaca_given_grade
+```
 
+```{r q1-c-1}
+p_vaca_given_b <-
+  p_vaca_given_grade %>% 
+  filter(vaca == 'yes', grade == 'b') %>%
+  pull(p)
+p_vaca_given_b
+```
+
+```{r q1-c-1-chr, include=F, echo=F}
+p_vaca_given_b_chr <- format_num(p_vaca_given_b)
+p_vaca_given_b_chr
+```
+
+We see that the probability of $\Pr(\text{vaca=yes|grade=b})$ = `r p_vaca_given_b_chr`, which is a term we need for the numerator of our Bayes' equation.
+
+Finally, since we already have $\Pr(\text{grade=b})$ = `r p_b`, we can now calculate $\Pr(\text{car=yes|vaca=yes})$.
+
+```{r q1-c-2}
 p_b_given_vaca <- (p_vaca_given_b * p_b) / p_vaca
 p_b_given_vaca
 ```
 
+```{r q1-c-2-chr, include=F, echo=F}
+p_b_given_vaca_chr <- format_num(p_b_given_vaca)
+p_b_given_vaca_chr
+```
+
+<response>
+Thus, we find that $\Pr(\text{grade=b|vaca=yes})$ = `r p_b_given_vaca_chr`.
+</response>
 
 ### d
+
+We want to find $\Pr(\text{market=bear|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
+
+$$
+\begin{aligned}
+\Pr(\text{market=bear|vaca=yes}) &
+= \frac{\Pr(\text{vaca=yes|market=bear}) \Pr(\text{market=bear})}{\Pr^{\prime}(\text{vaca=yes})}
+\end{aligned}
+$$
 
 ```{r q1-d-1-debug, include=F, echo=F}
 p_bear_debug <- 
   states_wo_lott %>% 
   group_by(market) %>% 
-  summarise_at(vars(p_vaca_cum), sum) %>% 
+  summarise_at(vars(p), sum) %>% 
   ungroup() %>% 
   filter(market == 'bear') %>% 
-  pull(p_vaca_cum)
+  pull(p)
 p_bear_debug
 ```
 
-```{r q1-d-1}
-p_vaca_given_bear <- 
+```{r q1-d-1-pre}
+states_wo_lott_bear <- 
   states_wo_lott %>% 
   group_by(vaca, market) %>% 
-  summarise_at(vars(p_vaca_cum), sum) %>% 
+  summarise_at(vars(p), sum) %>% 
   ungroup() %>% 
   group_by(market) %>% 
-  mutate_at(vars(p_vaca_cum), ~(. / sum(.))) %>% 
+  mutate_at(vars(p), ~(. / sum(.))) %>% 
   ungroup() %>% 
-  filter(vaca == 'yes', market == 'bear') %>%
-  pull(p_vaca_cum)
-p_vaca_given_bear
-
-p_b_given_vaca <- (p_vaca_given_bear * p_bear) / p_vaca
-p_b_given_vaca
+  arrange(market, vaca)
+states_wo_lott_bear
 ```
+
+```{r q1-d-1}
+p_vaca_given_bear <-
+  states_wo_lott_bear %>% 
+  filter(vaca == 'yes', market == 'bear') %>%
+  pull(p)
+p_vaca_given_bear
+```
+
+```{r q1-d-1-chr, include=F, echo=F}
+p_vaca_given_bear_chr <- format_num(p_vaca_given_bear)
+p_vaca_given_bear_chr
+```
+
+We see that the probability of $\Pr(\text{vaca=yes|market=bear})$ = `r p_vaca_given_bear_chr`, which is a term we need for the numerator of our Bayes' equation.
+
+Finally, since we already have $\Pr(\text{market=bear})$ = `r p_bear`, we can now calculate $\Pr(\text{car=yes|vaca=yes})$.
+
+```{r q1-d-2}
+p_bear_given_vaca <- (p_vaca_given_bear * p_bear) / p_vaca
+p_bear_given_vaca
+```
+
+```{r q1-d-2-chr, include=F, echo=F}
+p_bear_given_vaca_chr <- format_num(p_bear_given_vaca)
+p_bear_given_vaca_chr
+```
+
+<response>
+Thus, we find that $\Pr(\text{market=bear|vaca=yes})$ = `r p_bear_given_vaca_chr`.
+</response>
+
 
 # 2. Trials until Fourth Success.
 
+## Instructions
+
+<instructions>
+The number of failures until the fourth success in a series of independent trials ...
+</instructions>
+
 ## Response
 
-Given $X = (X_1, \dots, X_n)$ is a sample from $\mathcal{NB}(m, \theta)$ and $\theta \sim \mathcal{Be}(a, b)$, the posterior for $\theta$ is $\mathcal{Be}(a + m n, b + \sum_{i=1}^n x_i$ distribution.
+Given $X = (X_1, \dots, X_n)$ is a sample from $\mathcal{NB}(m, p)$ and $p \sim \mathcal{Be}(a, b)$, the posterior for $p$ is $\mathcal{Be}(a + m n, b + \sum_{i=1}^n x_i$. The proof of this relationship is provided in an an exercise from earlier %>%  in the semester. It goes as follows.
 
-...
+The negative binomial distribution $\mathcal{NB}(m, p)$ is given by the pmf
 
-Here $n = 11$, $m = 4$, ...
+$$
+\begin{aligned}
+f(x)=\left(\begin{array}{c}{m+x-1} \\ {x}\end{array}\right) p^{m}(1-p)^{x}, x=0,1,2, \ldots
+\end{aligned}
+$$
+
+Let random variable $X$ with negative binomial distribution represent the numnber of failures before the $m$th success in $n$ Bernoulli experiments. The likelihood is proportional to $p^{m n} (1 - p) ^ \sum_{i=1}^n x_i$. Prior $\pi(p) \propto p^{a-1} (1 - p) ^ {b - 1}$ results in a posterior proportional to $p^{m n+a-1}(1-p) ^{\sum_{i=1}^{n} x_{i}+b-1}$.
+
+$$
+\begin{aligned}
+p^{m n}(1-p) ^ {\sum_{i=1}^{n} x_{i}} \times p^{a-1}(1-p)^{b-1}=p^{m n+a-1}(1-p) ^{\sum_{i=1}^{n} x_{i}+b-1}
+\end{aligned}
+$$
+
+This is a kernel of the beta distribution $\mathcal{Be}(a+mn, b + \sum_{i=1}^n x_i)$.
+
+For this problem set-up, note that $n = 11$, $m = 4$, and $x = [5, 2, 2, 0, 1, 4, 3, 1, 2, 5, 0, 7, 1]$.
+
+
+In the subsections that follow, I calculate (1) the Bayes estimator $p_{Bayes}$, (2) the 95% credible set for $p$, and (3) the posterior probability of hypothesis $H : p \geq 0.8$ (along with several other things not explicitly required, such as the Bayes factor $B_{01}$). Each of these concepts deserve some brief discussion beforehand.
+
+
+Regarding (1), the Bayes estimator $p_{Bayes}$ is simply the expected value of $p$ under the posterior distribution, i.e. the posterior mean. The expected value of arbitrary random variable $z$ for a Beta distribution is $\operatorname{E}[Z] = \frac{a}{a+b}$. Thus, for this setup, $p_{Bayes} = \operatorname{E}[p_{\text{posterior}}] = \frac{a+mn}{b + \sum_{i=1}^n x_i}$.
+
+Regarding (2), the equitailed credible set $C$ is based on the posterior distribution. This means that the set $C = [L, U]$ contains the true parameter with $1-\alpha$ probability. (In this problem, we let $\alpha=0.05$). Formally, an equitailed credible set is calculated as follows.
+
+$$
+\begin{array}{c}
+\int_{-\infty}^{L} \pi(p|x) dp \leq \frac{\alpha}{2}, 
+\int_{U}^{+\infty} \pi(p|x) dp \leq \frac{\alpha}{2} \\
+\text{ s.t. }
+\Pr(p \in \left[L, U\right] | X) \geq 1 - \alpha
+\end{array}
+$$
+
+Regarding (3), to test the one-sided (null) hypothesis $H_0 : p \geq p_{split}$ (here, $p_{split} = 0.8$--against the (alternative) alternative $H_1 : p < p_{split}$, we simply choose the hypothesis with larger posterior probability. We can go further by calculating the Bayes Factor $B_{01}$ in favor of $H_0$ (or the Bayes Factor $B_{10}$ in favor of $H_1$) and calibrate our deduction in favor or/against $H_0$ using tables like the one shown in lecture.
+
+```{r q2-bayes-calibration-table, include=T, echo=F, eval=T}
+knitr::include_graphics('bayes_calibration.png')
+```
 
 ### a
+
+```{r q2-a-1-prep, include=F, echo=F}
+a_0_a <- 1
+b_0_a <- a_0_a
+```
+
+The following code implements all parts of the instructions. Specifically `compute_q2()` calls other functions to compute the required components---(1) `compute_beta_mu()` for $p_{Bayes}$, `compute_equi_credible_set_b()` for the 95% credible set, and (3) `compute_p_h1()` for the hypothesis test.
+The results in this subsection are just for the priors $a = b$ = `r a_0_a`. The following subsections show the results for the other sets of priors. Discussion of the findings are included after the code and results.
 
 ```{r q2-0}
 m <- 4
 x <- c(5, 2, 2, 0, 1, 4, 3, 5, 0, 7, 1)
-n <- length(x)
-p_h_split <- 0.8
-# p_h_split <- 0.6
+n <- length(x) # This is 11.
+p_split <- 0.8
+# p_split <- 0.6
 
 .compute_a_post <- function(a, m, n) {
   a + m * n
@@ -294,30 +524,26 @@ compute_a_post <- function(a, .m = m, .n = n) {
   .compute_a_post(a, .m, .n)
 }
 
-# compute_a_post <- function(a, ..., .x = x) {
-#   a + sum(.x)
-# }
-
 .compute_b_post <- function(b, x) {
   b + sum(x)
 }
-
-# compute_b_post <- function(b, ..., .m = m, .n = n) {
-#   b + .m * .n
-# }
 
 compute_b_post <- function(b, .x = x, ...) {
   .compute_b_post(b = b, x = .x)
 }
 
-compute_equi_credible_set_beta <- function(alpha, beta, level = 0.95) {
+compute_beta_mu <- function(a, b) {
+  a / (a + b)
+}
+
+compute_equi_credible_set_beta <- function(a, b, level = 0.95) {
   q_buffer <- (1 - level) / 2
   q_l <- (1 - level) - q_buffer
   q_u <- level + q_buffer
   res <-
     c(
-      l = qbeta(q_l, alpha, beta),
-      u = qbeta(q_u, alpha, beta)
+      l = qbeta(q_l, a, b),
+      u = qbeta(q_u, a, b)
     )
 }
 
@@ -325,8 +551,8 @@ compute_equi_credible_set_beta <- function(alpha, beta, level = 0.95) {
   pbeta(p, a, b, lower.tail = TRUE)
 }
 
-compute_p_h1 <- function(a, b, .p_h_split = p_h_split) {
-  .compute_p_h1(a, b, .p_h_split)
+compute_p_h1 <- function(a, b, .p_split = p_split) {
+  .compute_p_h1(a, b, .p_split)
 }
 
 compute_q2 <- function(a_0, b_0) {
@@ -334,6 +560,8 @@ compute_q2 <- function(a_0, b_0) {
   # b_0 <- 1
   a_1 <- compute_a_post(a_0)
   b_1 <- compute_b_post(b_0)
+  mu_prior <- compute_beta_mu(a_0, b_0)
+  mu_post <- compute_beta_mu(a_1, b_1)
   credible_set <- compute_equi_credible_set_beta(a_1, b_1)
   p_prior_h1 <- compute_p_h1(a_0, b_0)
   p_prior_h0 <- 1 - p_prior_h1
@@ -368,7 +596,7 @@ compute_q2 <- function(a_0, b_0) {
 }
 ```
 
-```{r q2-a-0-debug}
+```{r q2-a-0-debug, include=F, echo=F}
 n_success <- n * m
 n_fail <- sum(x)
 n_total <- n_success + n_fail
@@ -376,25 +604,32 @@ mu_actual <- n_success / n_total
 mu_actual
 ```
 
+```{r q2-a-1-prep-show, ref.label='q2-a-1-prep'}
+```
+
 ```{r q2-a-1}
-a_0_a <- 1
-b_0_a <- a_0_a
 res_a <- compute_q2(a_0_a, b_0_a)
 res_a
 ```
 
-```{r q2-a-1-debug, include=F, echo=F}
-stopifnot(res_a$mu_post > res_a$mu_prior)
-stopifnot(mu_actual > res_a$mu_post)
-```
-
-Because $\log_{10}(B_{10}) > 2$ (and because $\log_{10}(B_{01}) < 0.5$) we can say that there is very poor experimental evidence against the hypothesis $H_1$.
+<response>
+For (1), we find that $p_{Bayes}$ = `r format_num(res_a$mu_post, 4)` (corresponding to `mu_post` in `res_a`). For (2), we find that the 95% credible set $C$ = [`r format_num(res_a$credible_set_l, 4)`, `r format_num(res_a$credible_set_u, 4)`] (corresponding to `credible_set_l` and `credible_set_u` respectively). For (3), we find that the posterior probability of the hypothesis $H_1 : p$ < `r p_split` is $p_{H1}$ = `r format_num(res_a$p_post_h1, 4)` (corresponding to `p_post_h1`), which is much larger than that for the the hypothesis $H_0 p \geq$ `r p_split`), $p_{H0}$ = `r format_num(res_a$p_post_h0, 4)` (corresponding to `p_post_h0`).
+</response>
+Furthermore, we note that the log of the Bayes Factor $B_{10}$ (in favor of $H_1$ compared to $H_0$) provides decisive evidence in favor of $H_1$. $\log_{10}(B_{10}) > 2$ (and because $\log_{10}(B_{01}) < 0.5$) we can say that there is very poor experimental evidence against the hypothesis $H_1$.
 
 ### b
 
-```{r q2-b-1}
+```{r q2-b-1-prep, include=F, echo=F}
 a_0_b <- 0.5
 b_0_b <- a_0_b
+```
+
+See the code and output below for the same calculations performed in part a for priors $a = b$ = `r a_0_b`
+
+```{r q2-b-1-prep-show, ref.label='q2-b-1-prep'}
+```
+
+```{r q2-b-1}
 res_b <- compute_q2(a_0_b, b_0_b)
 res_b
 ```
@@ -404,21 +639,43 @@ stopifnot(res_b$mu_post > res_b$mu_prior)
 stopifnot(mu_actual > res_b$mu_post)
 ```
 
+<response>
+For (1), we find that $p_{Bayes}$ = `r format_num(res_b$mu_post, 4)`. For (2), we find that the 95% credible set $C$ = [`r format_num(res_b$credible_set_l, 4)`, `r format_num(res_b$credible_set_u, 4)`]. For (3), we find that the posterior probability of the hypothesis $H_1$ is $p_{H1}$ = `r format_num(res_b$p_post_h1, 4)`, which is much larger than that for the the hypothesis $H_0$, $p_{H0}$ = `r format_num(res_b$p_post_h0, 4)`.
+</response>
+Furthermore, we note that the log of the Bayes Factor $B_{10}$ (in favor of $H_1$ compared to $H_0$) provides decisive evidence in favor of $H_1$. $\log_{10}(B_{10}) > 2$ (and because $\log_{10}(B_{01}) < 0.5$) we can say that there is very poor experimental evidence against the hypothesis $H_1$.
+
 ### c
 
-```{r q2-c-1}
+```{r q2-c-1-prep, include=F, echo=F}
 a_0_c <- 9
 b_0_c <- 1
+```
+
+See the code and output below for the same calculations performed in part a for priors $a$ = `r a_0_c` and $b$ = `r b_0_c`.
+
+```{r q2-c-1-prep-show, ref.label='q2-c-1-prep'}
+```
+
+```{r q2-c-1}
 res_c <- compute_q2(a_0_c, b_0_c)
 res_c
 ```
 
-```{r  q2-c-1-debug, include=F, echo=F}
-stopifnot(res_c$mu_post < res_c$mu_prior)
-stopifnot(mu_actual < res_c$mu_post)
-```
+<response>
+For (1), we find that $p_{Bayes}$ = `r format_num(res_c$mu_post, 4)`. For (2), we find that the 95% credible set $C$ = [`r format_num(res_c$credible_set_l, 4)`, `r format_num(res_c$credible_set_u, 4)`]. For (3), we find that the posterior probability of the hypothesis $H_1$ is $p_{H1}$ = `r format_num(res_c$p_post_h1, 4)`, which is much larger than that for the the hypothesis $H_0$, $p_{H0}$ = `r format_num(res_c$p_post_h0, 4)`.
+</response>
+Furthermore, we note that the log of the Bayes Factor $B_{10}$ (in favor of $H_1$ compared to $H_0$) provides decisive evidence in favor of $H_1$. $\log_{10}(B_{10}) > 2$ (and because $\log_{10}(B_{01}) < 0.5$) we can say that there is very poor experimental evidence against the hypothesis $H_1$.
+
 
 # 3. Penguins.
+
+## Instructions
+
+<instructions>
+A researcher is interested in testing ...
+</instruction>
+
+## Response
 
 ```{r q3-1}
 # Data, constants, hyperparameters, and functions.
