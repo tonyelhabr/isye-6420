@@ -283,8 +283,8 @@ Here $n = 11$, $m = 4$, ...
 m <- 4
 x <- c(5, 2, 2, 0, 1, 4, 3, 5, 0, 7, 1)
 n <- length(x)
-# p_h_split <- 0.8
-p_h_split <- 0.6
+p_h_split <- 0.8
+# p_h_split <- 0.6
 
 .compute_a_post <- function(a, m, n) {
   a + m * n
@@ -339,9 +339,12 @@ compute_q2 <- function(a_0, b_0) {
   p_prior_h0 <- 1 - p_prior_h1
   p_post_h1 <- compute_p_h1(a_1, b_1)
   p_post_h0 <- 1 - p_post_h1
-  bayes_factor_num <- p_post_h1 / p_post_h0
-  bayes_factor_den <- p_prior_h1 / p_prior_h0
-  bayes_factor <- bayes_factor_num / bayes_factor_den
+  b_01_num <- p_post_h0 / p_post_h1 
+  b_01_den <- p_prior_h0 / p_prior_h1
+  b_01 <- b_01_num / b_01_den
+  b_10_num <- p_post_h1 / p_post_h0
+  b_10_den <- p_prior_h1 / p_prior_h0
+  b_10 <- b_10_num / b_10_den
   res <- 
     list(
       a_0 = a_0,
@@ -356,8 +359,10 @@ compute_q2 <- function(a_0, b_0) {
       p_prior_h1 = p_prior_h1,
       p_post_h0 = p_post_h0,
       p_post_h1 = p_post_h1,
-      bayes_factor = bayes_factor,
-      bayes_factor_log10 = log10(bayes_factor)
+      b_01 = b_01,
+      b_10 = b_10,
+      b_01_log10 = log10(b_01),
+      b_10_log10 = log10(b_10)
     )
   res
 }
@@ -382,6 +387,8 @@ res_a
 stopifnot(res_a$mu_post > res_a$mu_prior)
 stopifnot(mu_actual > res_a$mu_post)
 ```
+
+Because $\log_{10}(B_{10}) > 2$ (and because $\log_{10}(B_{01}) < 0.5$) we can say that there is very poor experimental evidence against the hypothesis $H_1$.
 
 ### b
 
@@ -420,10 +427,10 @@ y <- c(41, 44, 43, 47, 43, 46, 45, 42, 45, 45, 43, 45, 47, 40)
 n_burnin <- 100L
 n_mcmc <- 10000L + n_burnin
 
-mu_0 <- 110
-tau_0 <- 1 / 100
-a_0 <- 0.01
-b_0 <- 4
+mu_0 <- 45
+tau_0 <- 1 / (2^2)
+a_0 <- 4
+b_0 <- 2
 
 .compute_mu_new <- function(mu_i, tau_i, mu_0, tau_0, y_sum, n_obs) {
   mu_tau_0 <- mu_0 * tau_0
@@ -440,10 +447,10 @@ n_obs <- length(y)
 compute_mu_new <-
   function(mu_i,
            tau_i,
-           .mu_0 = mu_1_0,
-           .tau_0 = tau_1_0,
-           .y_sum = y_sum_1,
-           .n_obs = n_obs_1) {
+           .mu_0 = mu_0,
+           .tau_0 = tau_0,
+           .y_sum = y_sum,
+           .n_obs = n_obs) {
     .compute_mu_new(
       mu_i,
       tau_i,
@@ -475,8 +482,8 @@ compute_tau_new <-
     )
   }
 
-mu_init <- mean(y_1)
-tau_1_init <- 1 / sd(y_1)
+mu_init <- mean(y)
+tau_init <- 1 / sd(y)
 ```
 
 ```{r q3-2}
@@ -489,10 +496,10 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
            n_burnin,
            mu_init,
            tau_init) {
-    n_burnin <- 100L
-    n_mcmc <- 10000L + n_burnin
-    mu_init <- 0
-    tau_init <- 0
+    # n_burnin <- 100L
+    # n_mcmc <- 10000L + n_burnin
+    # mu_init <- 0
+    # tau_init <- 0
     stopifnot(is_likeinteger(n_mcmc))
     if (!is.null(n_burnin)) {
       stopifnot(is_likeinteger(n_burnin))
@@ -500,7 +507,7 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
     }
     stopifnot(is.numeric(mu_init))
     stopifnot(is.numeric(tau_init))
-    cols_mat_mcmc <- c('theta', 'tau')
+    cols_mat_mcmc <- c('mu', 'tau')
     mat_mcmc <- matrix(nrow = n_mcmc, ncol = length(cols_mat_mcmc))
     
     colnames(mat_mcmc) <- cols_mat_mcmc
@@ -545,7 +552,7 @@ do_mcmc_gibbs <-
   }
 ```
 
-```{r q2}
+```{r q3-3}
 res_mcmc_gibbs <- do_mcmc_gibbs()
 res_mcmc_gibbs
 ```
@@ -554,14 +561,27 @@ res_mcmc_gibbs
 res_mcmc_gibbs %>% summarise_all(mean)
 ```
 
-```{r q3-viz-1-prep, include=F, echo=F, eval=T}
+```{r q3-viz-1-prep, include=F, echo=F}
 path_viz <- 'viz_mcmc_gibbs.png'
-w_viz <- w_viz_q1
-h_viz <- h_viz_q1
+w_viz <- 8
+h_viz <- 4
 eval_viz <- !fs::file_exists(path_viz)
 ```
 
-```{r q3-viz-1, include=T, echo=T, eval=eval_viz}
+```{r viz-funcs-0}
+theme_custom <- function(...) {
+  theme_light() +
+    theme(
+      legend.position = 'bottom',
+      legend.title = element_blank(),
+      axis.title.x = element_text(hjust = 1),
+      axis.title.y = element_text(hjust = 1),
+      ...
+    )
+}
+```
+
+```{r q3-viz-1, eval=eval_viz}
 viz_mcmc_gibbs <-
   res_mcmc_gibbs %>% 
   gather(key = 'key', value = 'value', -idx) %>% 
@@ -595,17 +615,17 @@ viz_mcmc_gibbs
 knitr::include_graphics(path_viz)
 ```
 
-```{r q3-5, include=F, echo=F, eval=T}
+```{r q3-5, eval=T}
 mcmc_gibbs <-
   res_mcmc_gibbs %>% 
-  summarise_at(vars(-idx), list(sum = ~sum(.), mean = ~mean(.))) %>% 
+  summarise_at(vars(-idx), list(mean = ~mean(.))) %>% 
   gather() %>% 
   deframe()
 mcmc_gibbs
 
 mu_mean <- mcmc_gibbs[['mu_mean']]
 mu_mean
-mu_mean_chr <- format_num(mu_1_mean, digits = 1)
+mu_mean_chr <- format_num(mu_mean, digits = 1)
 mu_mean_chr
 
 y_mean <- mean(y)
@@ -613,3 +633,4 @@ y_mean
 y_mean_chr <- format_num(y_mean, digits = 0)
 y_mean_chr
 ```
+As a quick check of the validity of our results, we can compare the posterior means of $\mu$ (from the Gibbs sampling results) with those of the observations $y$ and the prior $\mu_0 = 45$. We find that $\hat{\mu}$ = `r mu_mean_chr`, which is between the observed mean $\hat{y}$ = `r y_mean_chr` and the prior. This is what we should have expected.
