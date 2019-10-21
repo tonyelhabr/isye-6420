@@ -529,7 +529,7 @@ Regarding (3), to test the one-sided (null) hypothesis $H_0 : p \geq p_{split}$ 
 knitr::include_graphics('bayes_calibration.png')
 ```
 
-The following code implements all parts of the instructions. Specifically `compute_q2()` calls other functions to compute the required components---(1) `compute_beta_mu()` for $p_{\text{Bayes}}$, `compute_equi_credible_set_b()` for the 95% credible set, and (3) `compute_p_h1()` for the hypothesis test. Discussion of the findings for each set of priors is included in the following subsections.
+The following code implements all parts of the instructions. Specifically `do_q2()` calls other functions to compute the required components---(1) `compute_beta_mu()` for $p_{\text{Bayes}}$, `compute_equi_credible_set_beta()` for the 95% credible set, and (3) `compute_p_h1()` for the hypothesis test. Discussion of the findings for each set of priors is included in the following subsections.
 
 ```{r q2-0}
 set.seed(42)
@@ -595,7 +595,7 @@ compute_p_h1 <- function(a, b, .p_split = p_split) {
   .compute_p_h1(a, b, .p_split)
 }
 
-compute_q2 <- function(a_0, b_0) {
+do_q2 <- function(a_0, b_0) {
   a_1 <- compute_a_post(a_0)
   b_1 <- compute_b_post(b_0)
   mu_prior <- compute_beta_mu(a_0, b_0)
@@ -614,10 +614,10 @@ compute_q2 <- function(a_0, b_0) {
   b_10 <- b_10_num / b_10_den
   res <- 
     list(
-      a_0 = a_0,
-      b_0 = b_0,
-      a_1 = a_1,
-      b_1 = b_1,
+      # a_prior = a_0,
+      # b_prior = b_0,
+      a_post = a_1,
+      b_post = b_1,
       mu_prior = mu_prior,
       mu_post = mu_post,
       credible_set_l = credible_set_beta['l'],
@@ -626,8 +626,8 @@ compute_q2 <- function(a_0, b_0) {
       p_prior_h1 = p_prior_h1,
       p_post_h0 = p_post_h0,
       p_post_h1 = p_post_h1,
-      b_01 = b_01,
-      b_10 = b_10,
+      # b_01 = b_01,
+      # b_10 = b_10,
       b_01_log10 = log10(b_01),
       b_10_log10 = log10(b_10)
     )
@@ -663,9 +663,50 @@ The results in this subsection are just for the priors $a = b$ = `r a_0_a`. (The
 
 
 ```{r q2-a-1}
-res_a <- compute_q2(a_0_a, b_0_a)
+res_a <- do_q2(a_0_a, b_0_a)
 res_a
 ```
+
+The `R` package `{R2OpenBUGS}` was also used to computer the posterior probabilities. See the code and output below.
+
+```{r q2-a-2, eval=F}
+model <- function() {
+  p ~ dbeta(a, b)
+  for(i in 1:n){
+    x[i] ~ dnegbin(p, m)
+  }
+  p_h_0 <- step(p - 0.8)
+  p_h_1 <- step(0.8 - p)
+}
+data <- list(a = 0.5, b = 0.5, m = 4, n = 11, x = c(5, 2, 2, 0, 1, 4, 3, 5, 0, 7, 1))
+inits <- NULL
+params <- c('p_h_0', 'p_h_1', 'p')
+res_sim <-
+  R2OpenBUGS::bugs(
+    data = data,
+    inits = inits,
+    model.file = model,
+    parameters.to.save = params,
+    DIC = FALSE,
+    # debug = TRUE,
+    n.chains = 1,
+    n.iter = 10000,
+    n.burnin = 1000
+  )
+res_sim$summary
+```
+
+```{r q2-a-2-hide, include=F, echo=F, eval=F}
+clipr::write_clip(knitr::kable(res_sim$summary))
+```
+
+
+|      |      mean|        sd|   2.5%|    25%|    50%|      75%|     97.5%|
+|:-----|---------:|---------:|------:|------:|------:|--------:|---------:|
+|p_h_0 | 0.0000000| 0.0000000| 0.0000| 0.0000| 0.0000| 0.000000| 0.0000000|
+|p_h_1 | 1.0000000| 0.0000000| 1.0000| 1.0000| 1.0000| 1.000000| 1.0000000|
+|p     | 0.5922603| 0.0561095| 0.4783| 0.5552| 0.5936| 0.630625| 0.7009025|
+
 
 <response>
 For (1), we find that $p_{\text{Bayes}}$ = `r format_num(res_a$mu_post, 4)` (corresponding to `mu_post` in `res_a`).<br/>For (2), we find that the 95% credible set $C$ = [`r format_num(res_a$credible_set_l, 4)`, `r format_num(res_a$credible_set_u, 4)`] (corresponding to `credible_set_l` and `credible_set_u` respectively).<br/>For (3), we find that the posterior probability of the hypothesis $H_1 : p$ < `r p_split` is $p_{H_1}$ = `r format_num(res_a$p_post_h1, 4)` (corresponding to `p_post_h1`), which is much larger than that for the the hypothesis $H_0 : p \geq$ `r p_split`), $p_{H_0}$ = `r format_num(res_a$p_post_h0, 4)` (corresponding to `p_post_h0`).
@@ -686,14 +727,18 @@ See the code and output below for the same calculations performed in part a for 
 ```
 
 ```{r q2-b-1}
-res_b <- compute_q2(a_0_b, b_0_b)
+res_b <- do_q2(a_0_b, b_0_b)
 res_b
 ```
 
-```{r q2-b-1-debug, include=F, echo=F}
-stopifnot(res_b$mu_post > res_b$mu_prior)
-stopifnot(mu_actual > res_b$mu_post)
-```
+Again, `{R2OpenBUGS}` was used to check the results. (The code is the same as in part a, with the exception of `a` and `b` variables in the data.)
+
+|      |      mean|        sd|      2.5%|    25%|    50%|    75%|    97.5%|
+|:-----|---------:|---------:|---------:|------:|------:|------:|--------:|
+|p_h_0 | 0.0000000| 0.0000000| 0.0000000| 0.0000| 0.0000| 0.0000| 0.000000|
+|p_h_1 | 1.0000000| 0.0000000| 1.0000000| 1.0000| 1.0000| 1.0000| 1.000000|
+|p     | 0.5936116| 0.0563999| 0.4795975| 0.5563| 0.5949| 0.6323| 0.702805|
+
 
 <response>
 For (1), we find that $p_{\text{Bayes}}$ = `r format_num(res_b$mu_post, 4)`.<br/>For (2), we find that the 95% credible set $C$ = [`r format_num(res_b$credible_set_l, 4)`, `r format_num(res_b$credible_set_u, 4)`].<br/>F For (3), we find that the posterior probability of the hypothesis $H_1$ is $p_{H_1}$ = `r format_num(res_b$p_post_h1, 4)`, which is much larger than that for the the hypothesis $H_0$, $p_{H_0}$ = `r format_num(res_b$p_post_h0, 4)`.
@@ -714,9 +759,18 @@ See the code and output below for the same calculations performed in part a for 
 ```
 
 ```{r q2-c-1}
-res_c <- compute_q2(a_0_c, b_0_c)
+res_c <- do_q2(a_0_c, b_0_c)
 res_c
 ```
+
+And the output from `{R2OpenBUGS}` is shown below.
+
+|      |      mean|        sd|      2.5%|    25%|     50%|    75%|     97.5%|
+|:-----|---------:|---------:|---------:|------:|-------:|------:|---------:|
+|p_h_0 | 0.0001111| 0.0105409| 0.0000000| 0.0000| 0.00000| 0.0000| 0.0000000|
+|p_h_1 | 0.9998889| 0.0105409| 1.0000000| 1.0000| 1.00000| 1.0000| 1.0000000|
+|p     | 0.6312816| 0.0521394| 0.5269975| 0.5965| 0.63235| 0.6676| 0.7291025|
+
 
 <response>
 For (1), we find that $p_{\text{Bayes}}$ = `r format_num(res_c$mu_post, 4)`.<br/>For (2), we find that the 95% credible set $C$ = [`r format_num(res_c$credible_set_l, 4)`, `r format_num(res_c$credible_set_u, 4)`].<br/>For (3), we find that the posterior probability of the hypothesis $H_1$ is $p_{H_1}$ = `r format_num(res_c$p_post_h1, 4)`, which is much larger than that for the the hypothesis $H_0$, $p_{H_0}$ = `r format_num(res_c$p_post_h0, 4)`.
@@ -856,10 +910,15 @@ compute_mu_new <-
     )
   }
 
-.compute_tau_new <- function(mu_new, y, a_0, b_0, n_obs) {
+.compute_tau_new <- function(mu_new, y, a_0, b_0, n_obs, scale = TRUE) {
   shape_rgamma <- a_0 + 0.5 * n_obs
-  rate_rgamma  <- b_0 + 0.5 * sum((y - mu_new) ^ 2)
-  rgamma(1, shape = shape_rgamma, rate = rate_rgamma) 
+  z_rgamma  <- b_0 + 0.5 * sum((y - mu_new) ^ 2)
+  if(scale) {
+    res <- rgamma(1, shape = shape_rgamma, scale = z_rgamma) 
+  } else {
+    res <- rgamma(1, shape = shape_rgamma, rate = z_rgamma)
+  }
+  res
 }
 
 compute_tau_new <-
@@ -867,15 +926,20 @@ compute_tau_new <-
            .y = y,
            .a_0 = a_0,
            .b_0 = b_0,
-           .n_obs = n_obs) {
+           .n_obs = n_obs,
+           scale = TRUE) {
     .compute_tau_new(
       mu_new = mu_new,
       y = .y,
       a_0 = .a_0,
       b_0 = .b_0,
-      n_obs = .n_obs
+      n_obs = .n_obs,
+      scale = scale
     )
   }
+
+compute_tau_new_scale <- purrr::partial(compute_tau_new, scale = TRUE)
+compute_tau_new_rate <- purrr::partial(compute_tau_new, scale = FALSE)
 
 mu_init <- mean(y)
 tau_init <- 1 / sd(y)
@@ -912,7 +976,7 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
     n_obs <- length(y)
     for (i in 1:n_mcmc) {
       mu_new <- compute_mu_new(mu_i = mu_i, tau_i = tau_i)
-      tau_new <-compute_tau_new(mu_new = mu_new)
+      tau_new <- compute_tau_new(mu_new = mu_new)
       mat_mcmc[i,] <- c(mu_new, tau_new)
       mu_i <- mu_new
       tau_i <- tau_new
