@@ -285,6 +285,15 @@ p_car_given_vaca_chr
 Thus, we find that $\Pr(\text{car=yes|vaca=yes})$ = `r p_car_given_vaca_chr`.
 </response>
 
+$$
+\begin{aligned}
+\Pr(\text{car=yes|vaca=yes})
+& = \frac{\Pr(\text{vaca=yes|car=yes}) \Pr(\text{car=yes})}{\Pr(\text{vaca=yes})} \\
+& = \frac{(`r p_vaca_given_car`)(`r p_car_chr`)}{`r p_vaca_chr`} \\
+& = `r p_car_given_vaca_chr`
+\end{aligned}
+$$
+
 ### b
 
 We want to find $\Pr(\text{lott=yes|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
@@ -315,7 +324,7 @@ $$
 \Pr(\text{lott=yes|vaca=yes})
 &= \frac{\Pr(\text{vaca=yes|lott=yes}) \Pr(\text{lott=yes})}{\Pr^{\prime}(\text{vaca=yes})} \\
 &= \frac{\Pr(\text{vaca=yes|lott=yes}) \Pr(\text{lott=yes})}{\Pr(\text{vaca=yes|lott=yes}) \Pr(\text{lott=yes}) + \Pr(\text{vaca=yes})} \\
-&= \frac{(0.99) (0.001)}{(0.99) (0.001) + (0.4625)} \\
+&= \frac{(`r p_vaca_given_lott`) (`r p_lott`)}{(`r p_vaca_given_lott`) (`r p_lott`) + (`r p_vaca_chr`)} \\
 &= `r p_lott_given_vaca_chr`.
 \end{aligned}
 $$
@@ -395,6 +404,15 @@ p_b_given_vaca_chr
 Thus, we find that $\Pr(\text{grade=b|vaca=yes})$ = `r p_b_given_vaca_chr`.
 </response>
 
+$$
+\begin{aligned}
+\Pr(\text{grade=b|vaca=yes})
+& = \frac{\Pr(\text{vaca=yes|grade=b}) \Pr(\text{grade=b})}{\Pr(\text{vaca=yes})} \\
+& = \frac{(`r p_vaca_given_b_chr`) (`r p_b`)}{`r p_vaca_chr`)} \\
+& = `r p_b_given_vaca_chr`
+\end{aligned}
+$$
+
 ### d
 
 We want to find $\Pr(\text{market=bear|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
@@ -461,6 +479,14 @@ p_bear_given_vaca_chr
 Thus, we find that $\Pr(\text{market=bear|vaca=yes})$ = `r p_bear_given_vaca_chr`.
 </response>
 
+$$
+\begin{aligned}
+\Pr(\text{market=bear|vaca=yes})
+& = \frac{\Pr(\text{vaca=yes|market=bear}) \Pr(\text{market=bear})}{\Pr(\text{vaca=yes})} \\
+& = \frac{(`r p_vaca_given_bear_chr`)(`r p_bear`)}{(`r p_vaca_chr`)} \\
+& = `r p_bear_given_vaca_chr`
+\end{aligned}
+$$
 
 # 2. Trials until Fourth Success.
 
@@ -804,7 +830,7 @@ y_sum
 n_obs <- length(y)
 n_obs
 
-n_burnin <- 100L
+n_burnin <- 1000L
 n_mcmc <- 10000L + n_burnin
 
 mu_0 <- 45
@@ -875,7 +901,7 @@ $$
 $$
 
 
-Please see the code and its output below for the implementation of a Gibbs sampler for this problem. Discussion of the output follows.
+Please see the code and its output below for the implementation of a Gibbs sampler for this problem. Discussion of the output follows. <b>IMPORTANT: Note that I use variable suffixes `_1` and `_2` (starting with `do_mcmc_gibbs*()` to differentiate between calculations where I define $\tau$ as the `rate` parameter in R's `rgamma()` function (which seems to make a lot more sense to me given the prior and despite the instructions indicating that it is the scale parameter) and calculations where $\tau$ is defined as the `scale` parameter (which seems to make less sense to me).</b>
 
 ```{r q3-1-prep-show, ref.label='q3-1-prep'}
 ```
@@ -938,9 +964,6 @@ compute_tau_new <-
     )
   }
 
-compute_tau_new_scale <- purrr::partial(compute_tau_new, scale = TRUE)
-compute_tau_new_rate <- purrr::partial(compute_tau_new, scale = FALSE)
-
 mu_init <- mean(y)
 tau_init <- 1 / sd(y)
 ```
@@ -954,11 +977,8 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
   function(n_mcmc,
            n_burnin,
            mu_init,
-           tau_init) {
-    # n_burnin <- 100L
-    # n_mcmc <- 10000L + n_burnin
-    # mu_init <- 0
-    # tau_init <- 0
+           tau_init,
+           scale = TRUE) {
     stopifnot(is_likeinteger(n_mcmc))
     if (!is.null(n_burnin)) {
       stopifnot(is_likeinteger(n_burnin))
@@ -976,7 +996,7 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
     n_obs <- length(y)
     for (i in 1:n_mcmc) {
       mu_new <- compute_mu_new(mu_i = mu_i, tau_i = tau_i)
-      tau_new <- compute_tau_new(mu_new = mu_new)
+      tau_new <- compute_tau_new(mu_new = mu_new, scale = scale)
       mat_mcmc[i,] <- c(mu_new, tau_new)
       mu_i <- mu_new
       tau_i <- tau_new
@@ -995,36 +1015,62 @@ is_likeinteger <- function(x, tol = .Machine$double.eps^0.5) {
     res_mcmc
   }
 
-do_mcmc_gibbs <-
+do_mcmc_gibbs_1 <-
   function(...,
            .n_mcmc = n_mcmc,
            .n_burnin = n_burnin,
            .mu_init = mu_init,
-           .tau_init = tau_init) {
+           .tau_init = tau_init, 
+           .scale = FALSE) {
     .do_mcmc_gibbs(
       n_mcmc = .n_mcmc,
       n_burnin = .n_burnin,
       mu_init = .mu_init,
       tau_init = .tau_init,
+      scale = .scale,
+      ...
+    )
+  }
+
+do_mcmc_gibbs_2 <-
+  function(...,
+           .n_mcmc = n_mcmc,
+           .n_burnin = n_burnin,
+           .mu_init = mu_init,
+           .tau_init = tau_init,
+           .scale = TRUE) {
+    .do_mcmc_gibbs(
+      n_mcmc = .n_mcmc,
+      n_burnin = .n_burnin,
+      mu_init = .mu_init,
+      tau_init = .tau_init,
+      scale = .scale,
       ...
     )
   }
 ```
 
 ```{r q3-3}
-res_mcmc_gibbs <- do_mcmc_gibbs()
-res_mcmc_gibbs
+# Treating tau as `rate` parameter.
+res_mcmc_gibbs_1 <- do_mcmc_gibbs_1()
+res_mcmc_gibbs_1
+# Treating tau as `scale` parameter.
+res_mcmc_gibbs_2 <- do_mcmc_gibbs_2()
+res_mcmc_gibbs_2
 ```
 
 ```{r q3-4, include=F, echo=F, eval=F}
-res_mcmc_gibbs %>% summarise_all(mean)
+res_mcmc_gibbs_1 %>% summarise_all(mean)
+res_mcmc_gibbs_2 %>% summarise_all(mean)
 ```
 
 ```{r q3-viz-1-prep, include=F, echo=F}
-path_viz <- 'viz_mcmc_gibbs.png'
+path_viz_1 <- 'viz_mcmc_gibbs_1.png'
+path_viz_2 <- 'viz_mcmc_gibbs_2.png'
 w_viz <- 6
 h_viz <- 4
-eval_viz <- !fs::file_exists(path_viz)
+eval_viz_1 <- !fs::file_exists(path_viz_1)
+eval_viz_2 <- !fs::file_exists(path_viz_2)
 ```
 
 ```{r viz-funcs-0}
@@ -1040,9 +1086,9 @@ theme_custom <- function(...) {
 }
 ```
 
-```{r q3-viz-1, eval=eval_viz}
-viz_mcmc_gibbs <-
-  res_mcmc_gibbs %>% 
+```{r q3-viz-1, eval=eval_viz_1}
+viz_mcmc_gibbs_1 <-
+  res_mcmc_gibbs_1 %>% 
   gather(key = 'key', value = 'value', -idx) %>% 
   ggplot() +
   aes(x = value) +
@@ -1051,15 +1097,16 @@ viz_mcmc_gibbs <-
   theme_custom() +
   facet_wrap(~key, scales = 'free') +
   labs(
+    caption = 'tau treated as `rate` paremeter in R\'s `rgamma()` function.',
     x = NULL,
     y = 'Frequency'
   )
 ```
 
-```{r q3-viz-1-export, include=F, echo=F, eval=eval_viz}
+```{r q3-viz-1-export, include=F, echo=F, eval=eval_viz_1}
 teproj::export_ext_png(
-  viz_mcmc_gibbs,
-  path = path_viz,
+  viz_mcmc_gibbs_1,
+  path = path_viz_1,
   units = 'in',
   width = w_viz,
   height = h_viz
@@ -1067,22 +1114,63 @@ teproj::export_ext_png(
 ```
 
 ```{r q3-viz-1-show-1, eval=F}
-viz_mcmc_gibbs
+viz_mcmc_gibbs_1
 ```
 
 ```{r q3-viz-1-show-2, include=T, echo=F}
-knitr::include_graphics(path_viz)
+knitr::include_graphics(path_viz_1)
+```
+
+```{r q3-viz-2, eval=eval_viz_2}
+viz_mcmc_gibbs_2 <-
+  res_mcmc_gibbs_2 %>% 
+  gather(key = 'key', value = 'value', -idx) %>% 
+  ggplot() +
+  aes(x = value) +
+  geom_histogram() +
+  scale_y_continuous(labels = scales::comma) +
+  theme_custom() +
+  facet_wrap(~key, scales = 'free') +
+  labs(
+    caption = 'tau treated as `scale` paremeter in R\'s `rgamma()` function.',
+    x = NULL,
+    y = 'Frequency'
+  )
+```
+
+```{r q3-viz-2-export, include=F, echo=F, eval=eval_viz_2}
+teproj::export_ext_png(
+  viz_mcmc_gibbs_2,
+  path = path_viz_2,
+  units = 'in',
+  width = w_viz,
+  height = h_viz
+)
+```
+
+```{r q3-viz-2-show-1, eval=F}
+viz_mcmc_gibbs_2
+```
+
+```{r q3-viz-2-show-2, include=T, echo=F}
+knitr::include_graphics(path_viz_2)
 ```
 
 As a quick check of the validity of our results, we can compare the posterior mean $\hat{\mu}$ (from the Gibbs sampling results) with those of the observations $y$ and the prior $\mu_0$.
 
 
 ```{r q3-5}
-mcmc_gibb_mu_mean <-
-  res_mcmc_gibbs %>% 
+mcmc_gibb_mu_mean_1 <-
+  res_mcmc_gibbs_1 %>% 
   summarise_at(vars(mu), ~mean(.)) %>% 
   pull(mu)
-mcmc_gibb_mu_mean
+mcmc_gibb_mu_mean_1
+
+mcmc_gibb_mu_mean_2 <-
+  res_mcmc_gibbs_2 %>% 
+  summarise_at(vars(mu), ~mean(.)) %>% 
+  pull(mu)
+mcmc_gibb_mu_mean_2
 
 y_mean <- mean(y)
 y_mean
@@ -1093,14 +1181,16 @@ y_mean
 ```
 
 ```{r q3-5-chr, include=F, echo=F}
-mcmc_gibb_mu_mean_chr <- format_num(mcmc_gibb_mu_mean, digits = 4)
-mcmc_gibb_mu_mean_chr
+mcmc_gibb_mu_mean_1_chr <- format_num(mcmc_gibb_mu_mean_1, digits = 4)
+mcmc_gibb_mu_mean_1_chr
+mcmc_gibb_mu_mean_2_chr <- format_num(mcmc_gibb_mu_mean_2, digits = 4)
+mcmc_gibb_mu_mean_2_chr
 
 y_mean_chr <- format_num(y_mean, digits = 0)
 y_mean_chr
 ```
 
-We find that $\hat{\mu}$ = `r mcmc_gibb_mu_mean_chr`, which is between the observed mean $\hat{y}$ = `r y_mean_chr` and the prior $\mu_0$ = `r mu_0`. This is what we should have expected.
+We find that $\hat{\mu}$ = `r mcmc_gibb_mu_mean_1_chr`, which is between the observed mean $\hat{y}$ = `r y_mean_chr` and the prior $\mu_0$ = `r mu_0`. This is what we should have expected. (Note that $\hat{\mu}$ = `r mcmc_gibb_mu_mean_2_chr` in the second set of calculations, which is a big reason why I believe that tau should not be treated as the `scale` parameter for R's `rgamma()` function.)
 
 ### a
 
@@ -1109,79 +1199,92 @@ mu_split <- 45
 ```
 
 
-To approximate the posterior probability $p_{H_{0}}$ of the hypothesis $H_0 : \mu$ < `r mu_split`, we calculate the fraction of samples where this condition is met.
+To approximate the posterior probability $p_{H_{0}}$ of the hypothesis $H_0 : \mu$ < `r mu_split`, we calculate the fraction of samples where this condition is met. (Note that $\tau$ does not matter here, so we don't show calculations for the two methods of calculating the posterior of $\tau$.)
 
 ```{r q3-a-1-prep-show, ref.label='q3-a-1-prep'}
 ```
 
 ```{r q3-a-1}
-h_0 <-
-  res_mcmc_gibbs %>% 
+h_0_1 <-
+  res_mcmc_gibbs_1 %>% 
   mutate(h_0 = ifelse(mu < mu_split, 1, 0)) %>% 
   summarise(n_h_0 = sum(h_0), n = n()) %>% 
   mutate(frac = n_h_0 / n) %>% 
   select(n_h_0, frac)
-h_0
+h_0_1
 ```
-
 
 ```{r q3-a-1-post, include=F, echo=F}
-p_h_0 <- h_0 %>% pull(frac)
-p_h_0
-p_h_0_chr <- p_h_0 %>% format_num(3)
-p_h_0_chr
-p_h_0_pct_chr <- (p_h_0 * 100) %>% format_num(1)
-p_h_0_pct_chr
+p_h_0_1 <- h_0_1 %>% pull(frac)
+p_h_0_1
+p_h_0_1_chr <- p_h_0_1 %>% format_num(3)
+p_h_0_1_chr
+p_h_0_1_pct_chr <- (p_h_0_1 * 100) %>% format_num(1)
+p_h_0_1_pct_chr
 ```
 <response>
-We find that the posterior probability is $p_{H_{0}}$ = `r p_h_0_chr` (i.e. `r p_h_0_pct_chr`%).
+We find that the posterior probability is $p_{H_{0}}$ = `r p_h_0_1_chr` (i.e. `r p_h_0_1_pct_chr`%).
 </response>This very large probability is illustrated by the histogram from above, which shows a large majority of $\mu$ samples with values less than `r mu_split`.
 
 Additionally, we may calculate the Bayes Factor $B_{01}$ in favor of hypothesis $H_0$.
 
 ```{r q3-a-2}
-p_h_0 <- h_0 %>% pull(frac)
-p_h_1 <- 1 - p_h_0
-b_01 <- p_h_0 / p_h_1
-b_01_log10 <- log10(b_01)
-b_01_log10
+p_h_0_1 <- h_0_1 %>% pull(frac)
+p_h_1_1 <- 1 - p_h_0_1
+b_01_1 <- p_h_0_1 / p_h_1_1
+b_01_1_log10 <- log10(b_01_1)
+b_01_1_log10
 ```
 
 ```{r q3-a-2-post, include=F, echo=F}
-b_01_log10_chr <- format_num(b_01_log10)
-b_01_log10_chr
+b_01_1_log10_chr <- format_num(b_01_1_log10)
+b_01_1_log10_chr
 ```
 
-We deduce that there is strong evidence against the alternative hypothesis $H_1 \geq$ `r mu_split`---or equivalently, in favor of $H_0$---because $1.5 < \log_{10}(B_{01})$ = `r b_01_log10_chr` $\leq 2$.
+We deduce that there is strong evidence against the alternative hypothesis $H_1 \geq$ `r mu_split`---or equivalently, in favor of $H_0$---because $1.5 < \log_{10}(B_{01})$ = `r b_01_1_log10_chr` $\leq 2$.
 
 
 ### b
 
-We can calculate the 95% equitailed credible set for $\tau$ as follows.
+We can calculate the 95% equitailed credible set for $\tau$ (trying both methods, as described before) as follows.
 
 ```{r q3-b-1}
-equi_credible_set <-
-  res_mcmc_gibbs %>% 
+equi_credible_set_1 <-
+  res_mcmc_gibbs_1 %>% 
   summarise_at(
     vars(tau), 
     list(
       l = ~quantile(., 0.025), 
       u = ~quantile(., 0.975)
     ))
-equi_credible_set
+equi_credible_set_1
+
+equi_credible_set_2 <-
+  res_mcmc_gibbs_2 %>% 
+  summarise_at(
+    vars(tau), 
+    list(
+      l = ~quantile(., 0.025), 
+      u = ~quantile(., 0.975)
+    ))
+equi_credible_set_2
 ```
 
 ```{r q3-b-2, include=F, echo=F}
-credible_set <- equi_credible_set %>% select(l, u) %>% c()
-credible_set
+credible_set_1 <- equi_credible_set_1 %>% select(l, u) %>% c()
+credible_set_1
+credible_set_2 <- equi_credible_set_2 %>% select(l, u) %>% c()
+credible_set_2
 ```
 
 ```{r q3-b-3, include=F, echo=F}
-credible_set_chr <- format_num(credible_set)
-credible_set_chr
+credible_set_1_chr <- format_num(credible_set_1)
+credible_set_1_chr
+credible_set_2_chr <- format_num(credible_set_2)
+credible_set_2_chr
 ```
 
 <response>
-We find that the 95% equitailed credible set is [`r credible_set_chr[1]`, `r credible_set_chr[2]`].
-</response>
-(If we had exact posterior estimates for $a$ and $b$ for the $\mathcal{Ga}$ posterior distribution, we could have possibly used `R`'s `qgamma()` function to compute the interval.)
+We find that the 95% equitailed credible set is [`r credible_set_1_chr[1]`, `r credible_set_1_chr[2]`].
+</response>(For the second set of $\tau$ calculations, this is [`r credible_set_2_chr[1]`, `r credible_set_2_chr[2]`].)
+If we had exact posterior estimates for $a$ and $b$ for the $\mathcal{Ga}$ posterior distribution, we could have possibly used `R`'s `qgamma()` function to compute the interval.
