@@ -52,7 +52,7 @@ Emily is taking Bayesian Analysis course...
 
 ## Response
 
-Below I give my response in terms of exact calculation, using `R` to perform calculations. In the notation and code that follows, I use `a`, `b`, `c` for Emily's `grade`; `bull` and `bear` to indicate bullish or bearish `market`; `yes` or `no` to indicate whether Emily's uncle buys here a `car`, whether she goes on `vaca`tion (to Redington Shores), and wins the `lott`ery (i.e. sweepstakes).
+Below I give my response in terms of exact calculation, using `R` to perform calculations. In the notation and code that follows, I use `a`, `b`, `c` for Emily's `grade`; `bull` and `bear` to indicate bullish or bearish `market`; `yes` or `no` to indicate whether Emily's uncle buys here a `car` and whether she goes on `vaca`tion (to Redington Shores); and `win` or `lose` to indicate if she wins the `lott`ery (i.e. sweepstakes).
 
 ### a
 
@@ -60,32 +60,21 @@ We want to find $\Pr(\text{car=yes|vaca=yes})$. This can be calculated using Bay
 
 $$
 \begin{aligned}
-\Pr(\text{car=yes|vaca=yes}) &
-= \frac{\Pr(\text{vaca=yes|car=yes}) \Pr(\text{car=yes})}{\Pr(\text{vaca=yes})}
+\Pr(\text{car=yes|vaca=yes})
+& = \frac{\Pr(\text{vaca=yes|car=yes}) \Pr(\text{car=yes})}{\Pr(\text{vaca=yes})} \\
+& = \frac{\Pr(\text{vaca=yes,car=yes})}{\Pr(\text{vaca=yes})}
 \end{aligned}
 $$
 
-Next, we could delineate all possible scenarios in a manner, such as follows,
+In the code that follows, I delineate all possible scenarios in a manner, calculating the joint probability for each. This is essentially like drawing a tree diagram or notating all scenarios such as follows.
 
 $$
 \begin{array}{l}
-\text{Scenario A: grade=a,market=bull,car=yes,vaca=yes} \\
-\text{Scenario B: grade=a,market=bear,car=yes,vaca=yes} \\
+\text{Scenario A: lott=win,grade=a,market=bull,car=yes,vaca=yes} \\
+\text{Scenario B: lott=win,grade=a,market=bear,car=yes,vaca=yes} \\
 \dots,
 \end{array}
 $$
-
-or more directly such as follows,
-
-$$
-\begin{array}{l}
-\Pr_{1} & = & \Pr(\text{vaca=yes|car=yes}) \times \Pr(\text{car=yes|market=bull}) \times \sum_g^{a,b,c} \Pr(\text{car=yes|grade=g}) \\
-\Pr_{2} & = & \dots,
-\end{array}
-$$
-
-or even with a probability tree diagram. However, because noting all scenarios and probabilities in such a manner can be tedious, I think it might be easier to first show the code defining these things and provide an explanation afterwards.
-
 
 ```{r setup-2}
 library(tidyverse)
@@ -105,6 +94,8 @@ p_car_given_b_bear <- 0.3
 p_car_given_c_bear <- 0.1
 p_vaca_given_car <- 0.7
 p_vaca_given_no_car <- 0.2
+p_lott <- 0.001
+p_vaca_given_lott <- 0.99
 ```
 
 ```{r q1-a-1-pre, include=F, echo=F}
@@ -113,12 +104,20 @@ options(tibble.print_min = Inf)
 ```
 
 ```{r q1-a-1}
-states_wo_lott <-
+states <-
   crossing(
+    lott = c('win', 'lose'),
     grade = c('a', 'b', 'c'),
     market = c('bull', 'bear'),
     car = c('yes', 'no'),
     vaca = c('yes', 'no')
+  ) %>% 
+    mutate_at(
+    vars(lott),
+    list(p_lott = ~case_when(
+      . == 'win' ~ p_lott,
+      . == 'lose' ~ 1 - p_lott
+    ))
   ) %>% 
   mutate_at(
     vars(grade),
@@ -159,33 +158,37 @@ states_wo_lott <-
   mutate_at(
     vars(vaca),
     list(p_vaca = ~case_when(
-      car == 'yes' & . == 'yes' ~ p_vaca_given_car,
-      car == 'yes' & . == 'no' ~ 1 - p_vaca_given_car,
-      car == 'no' & . == 'yes' ~ p_vaca_given_no_car,
-      car == 'no' & . == 'no' ~ 1 - p_vaca_given_no_car
+      lott == 'win' & car == 'yes' & . == 'yes' ~ p_vaca_given_lott,
+      lott == 'win' & car == 'yes' & . == 'no' ~ 1 - p_vaca_given_lott,
+      lott == 'win' & car == 'no' & . == 'yes' ~ p_vaca_given_lott,
+      lott == 'win' & car == 'no' & . == 'no' ~ 1 - p_vaca_given_lott,
+      lott == 'lose' & car == 'yes' & . == 'yes' ~ p_vaca_given_car,
+      lott == 'lose' & car == 'yes' & . == 'no' ~ 1 - p_vaca_given_car,
+      lott == 'lose' & car == 'no' & . == 'yes' ~ p_vaca_given_no_car,
+      lott == 'lose' & car == 'no' & . == 'no' ~ 1 - p_vaca_given_no_car
     ))
   ) %>% 
   mutate(
-    # p_car_cum = p_grade * p_market * p_car,
-    p = p_grade * p_market * p_car * p_vaca
+    p = p_lott * p_grade * p_market * p_car * p_vaca
   ) %>% 
+  mutate_at(vars(lott), ~factor(., levels = c('lose', 'win'))) %>%
   mutate_at(vars(grade), ~factor(.)) %>% 
   mutate_at(vars(market), ~factor(., levels = c('bull', 'bear'))) %>% 
   mutate_at(vars(car, vaca), ~factor(., levels = c('yes', 'no'))) %>% 
-  arrange(grade, market, car, vaca)
-states_wo_lott
+  arrange(lott, grade, market, car, vaca)
+states
 ```
 
 ```{r q1-a-1-post, include=F, echo=F}
 options(tibble.print_min = opt_old)
 ```
 
-The data.frame `states_wo_lott` describes all possible scenarios (24 total) and probabilities. (Note that the `p_*` columns describe the probabilities, and the `p` column is the product of these.) This data.frame is essentially equivalent to a probability tree diagram partitioning out the entire sample space.
+The data.frame `states` describes all possible scenarios (24 total) and probabilities. (Note that the `p_*` columns describe the probabilities, and the `p` column is the product of these.) This data.frame is essentially equivalent to a probability tree diagram partitioning out the entire sample space.
 
 In case the reader has any doubts about the probabilities in the data.frame, we can do a quick check of the code and show that the probabilities of all scenarios sum up to 1.
 
 ```{r q1-a-1-check}
-states_wo_lott %>% summarise_at(vars(p), sum) %>% pull(p)
+states %>% summarise_at(vars(p), sum) %>% pull(p)
 ```
 
 <i>
@@ -193,28 +196,44 @@ Also, before moving on, I should note that we can disregarding the case where Em
 may be a lucky winner...".)
 </i>
 
-Now, to begin filling in numbers for our Bayes' equation above, let's begin by finding $\Pr(\text{vaca|yes})$. Filtering for just the `vaca == 'yes'` scenarios, we find that ther are `r nrow(dplyr::filter(states_wo_lott, vaca == 'yes'))` records.
+Now, to begin filling in numbers for our Bayes' equation above, let's begin by finding $\Pr(\text{vaca|yes})$. Filtering for just the `vaca == 'yes'` scenarios, we find that ther are `r nrow(dplyr::filter(states, vaca == 'yes'))` records.
 
 ```{r q1-a-1-expl}
-states_wo_lott %>% 
-  filter(vaca == 'yes') %>% 
-  select(grade, market, car, vaca, p_grade, p_market, p_car, p_vaca, p)
+states %>% filter(vaca == 'yes')
+```
+
+```{r q1-a-1-expl-debug, include=F, echo=F, eval=F}
+states %>% 
+  mutate(rn = row_number()) %>% 
+  filter(rn %in% c(3,7,11,15,19,23,27,31,35,39,43,47)) #  vaca = no
+
+states %>% 
+  mutate(rn = row_number()) %>% 
+  filter(rn %in% c(1,5,9,13,17,21,25,29,33,37,41,45)) # vaca  = yes
+  
+states %>% 
+  mutate(rn = row_number()) %>% 
+  filter(rn %in% seq(1,24,2))
+
+states %>% 
+  mutate(rn = row_number()) %>% 
+  filter(rn %in% seq(25,48,2))
 ```
 
 And we can view the marginal probabilities of the going on vacation or not by summing by group.
 
 ```{r q1-a-2-pre}
-states_wo_lott_vaca <-
-  states_wo_lott %>% 
+states_vaca <-
+  states %>% 
   group_by(vaca) %>% 
   summarise_at(vars(p), sum) %>% 
   ungroup()
-states_wo_lott_vaca
+states_vaca
 ```
 
 ```{r q1-a-2}
 p_vaca <- 
-  states_wo_lott_vaca %>% 
+  states_vaca %>% 
   filter(vaca == 'yes') %>% 
   pull(p)
 p_vaca
@@ -227,60 +246,28 @@ p_vaca_chr
 
 Summing up the probabilities for the scenarios where Emily does go on vacation gives us $P(\text{vaca|yes})$ = `r p_vaca_chr`, which is the denominator of the Bayes' equation noted above.
 
-Next, we can view the marginal probabilities of Emily getting a car or not
-
-```{r q1-a-3-pre-bad}
-states_wo_lott_car_bad <-
-  states_wo_lott %>% 
-  group_by(vaca, car) %>% 
-  summarise_at(vars(p), sum) %>% 
-  ungroup() %>% 
-  group_by(car) %>%
-  mutate_at(vars(p), ~(. / sum(.))) %>%
-  ungroup() %>%
-  arrange(car, vaca)
-states_wo_lott_car_bad
-```
-
-```{r q1-a-3-pre}
-states_wo_lott_car <-
-  states_wo_lott %>% 
-  group_by(car) %>% 
-  summarise_at(vars(p), sum) %>% 
-  ungroup() %>% 
-  arrange(car)
-states_wo_lott_car
-```
-
-and isolate just the value we need, i.e. when `car == 'yes'`.
+Next, we can get the joint probabilities of Emily getting a car and going on vacation.
 
 ```{r q1-a-3}
-p_car <- 
-  states_wo_lott_car %>% 
-  filter(car == 'yes') %>% 
+p_car_and_vaca <-
+  states %>% 
+  filter(car == 'yes', vaca == 'yes') %>% 
+  summarise_at(vars(p), sum) %>% 
   pull(p)
-p_car
+p_car_and_vaca
 ```
 
 ```{r q1-a-3-chr, include=F, echo=F}
-p_car_chr <- format_num(p_car, 3)
-p_car_chr
+p_car_and_vaca_chr <- format_num(p_car_and_vaca, 3)
+p_car_and_vaca_chr
 ```
 
-We see that the probability of $\Pr(\text{car=yes})$ = `r p_car_chr`, which is a term we need for the numerator of our Bayes' equation.
+We see that the probability of $\Pr(\text{car=yes,vaca=yes})$ = `r p_car_and_vaca_chr`, which is a term we need for the numerator of our Bayes' equation.
 
 Finally, since we already have $\Pr(\text{vaca=yes|car=yes})$ = `r p_vaca_given_car`, we can now "plug-and-chug" to calculate $\Pr(\text{car=yes|vaca=yes})$.
 
-```{r q1-ab-1, include=F, echo=F, eval=F}
-p_lott <- 0.001
-p_vaca_given_lott <- 0.99
-p_vaca_and_lott <- p_lott * p_vaca_given_lott
-p_vaca_and_lott
-```
-
-
 ```{r q1-a-4}
-p_car_given_vaca <- (p_vaca_given_car * p_car) / p_vaca
+p_car_given_vaca <- p_car_and_vaca / p_vaca
 p_car_given_vaca
 ```
 
@@ -296,49 +283,53 @@ Thus, we find that $\Pr(\text{car=yes|vaca=yes})$ = `r p_car_given_vaca_chr`.
 $$
 \begin{aligned}
 \Pr(\text{car=yes|vaca=yes})
-& = \frac{\Pr(\text{vaca=yes|car=yes}) \Pr(\text{car=yes})}{\Pr(\text{vaca=yes})} \\
-& = \frac{(`r p_vaca_given_car`)(`r p_car_chr`)}{`r p_vaca_chr`} \\
+& = \frac{\Pr(\text{vaca=yes,car=yes})}{\Pr(\text{vaca=yes})} \\
+& = \frac{(`r p_car_and_vaca`)}{`r p_vaca_chr`} \\
 & = `r p_car_given_vaca_chr`
 \end{aligned}
 $$
 
 ### b
 
-We want to find $\Pr(\text{lott=yes|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
+We want to find $\Pr(\text{lott=win|vaca=yes})$. This can be calculated using Bayes' theorem as follows.
 
 $$
 \begin{aligned}
-\Pr(\text{lott=yes|vaca=yes}) &
-= \frac{\Pr(\text{vaca=yes|lott=yes}) \Pr(\text{lott=yes})}{\Pr^{\prime}(\text{vaca=yes})}
+\Pr(\text{lott=win|vaca=yes})
+&= \frac{\Pr(\text{vaca=yes|lott=win}) \Pr(\text{lott=win})}{\Pr(\text{vaca=yes})} \\
+&= \frac{\Pr(\text{vaca=yes,lott=win})}{\Pr(\text{vaca=yes})}
 \end{aligned}
 $$
 
-We are already given two of the quantities that we'll need---namely, the terms in the numerator, $\Pr(\text{vaca=yes|lott=yes}) = 0.99$ and $\Pr(\text{lott=yes}) = 0.001$. The denominator term $\Pr^{\prime}(\text{vaca=yes})$ is equivalent to the sum of the product of the numerator terms and $\Pr(\text{vaca=yes})$ found in part a. (Note the distinction of the $\Pr(\text{vaca=yes})$ from part a and the one here with the prime symbol $^{\prime}$.)
-
-
-```{r q1-b-1, include=F, echo=F}
-p_lott <- 0.001
-p_vaca_given_lott <- 0.99
-p_vaca_and_lott <- p_lott * p_vaca_given_lott
+```{r q1-b-1}
+p_vaca_and_lott <-
+  states %>% 
+  mutate(rn = row_number()) %>% 
+  filter(vaca == 'yes', lott == 'win') %>% 
+  summarise_at(vars(p), sum) %>% 
+  pull(p)
 p_vaca_and_lott
-p_lott_given_vaca <- p_vaca_and_lott / (p_vaca_and_lott + p_vaca)
+
+p_lott_given_vaca <- p_vaca_and_lott / p_vaca
 p_lott_given_vaca
+```
+
+```{r q1-b-1-chr, include=F, echo=F}
 p_lott_given_vaca_chr <- format_num(p_lott_given_vaca)
 p_lott_given_vaca_chr 
 ```
 
 $$
 \begin{aligned}
-\Pr(\text{lott=yes|vaca=yes})
-&= \frac{\Pr(\text{vaca=yes|lott=yes}) \Pr(\text{lott=yes})}{\Pr^{\prime}(\text{vaca=yes})} \\
-&= \frac{\Pr(\text{vaca=yes|lott=yes}) \Pr(\text{lott=yes})}{\Pr(\text{vaca=yes|lott=yes}) \Pr(\text{lott=yes}) + \Pr(\text{vaca=yes})} \\
-&= \frac{(`r p_vaca_given_lott`) (`r p_lott`)}{(`r p_vaca_given_lott`) (`r p_lott`) + (`r p_vaca_chr`)} \\
+\Pr\text{(lott=win|vaca=yes})
+&= \frac{\Pr\text{(vaca=yes,lott=win})}{\Pr(\text{vaca=yes})} \\
+&= \frac{(`r p_vaca_and_lott`)}{(`r p_vaca_chr`)} \\
 &= `r p_lott_given_vaca_chr`.
 \end{aligned}
 $$
 
 <response>
-Thus, we have shown that $\Pr(\text{car=yes|vaca= yes})$ = `r p_lott_given_vaca_chr`.
+Thus, we have shown that $\Pr(\text{lott=win|vaca=yes})$ = `r p_lott_given_vaca_chr`.
 </response>
 
 ### c
@@ -354,7 +345,7 @@ $$
 
 ```{r q1-c-1-debug, include=F, echo=F}
 p_b_debug <- 
-  states_wo_lott %>% 
+  states %>% 
   group_by(grade) %>% 
   summarise_at(vars(p), sum) %>% 
   ungroup() %>% 
@@ -368,7 +359,7 @@ We can calculate marginal probabilities for each possibility of `grade` given `v
 
 ```{r q1-c-1-pre}
 p_vaca_given_grade <- 
-  states_wo_lott %>% 
+  states %>% 
   group_by(vaca, grade) %>% 
   summarise_at(vars(p), sum) %>% 
   ungroup() %>% 
@@ -416,7 +407,7 @@ $$
 \begin{aligned}
 \Pr(\text{grade=b|vaca=yes})
 & = \frac{\Pr(\text{vaca=yes|grade=b}) \Pr(\text{grade=b})}{\Pr(\text{vaca=yes})} \\
-& = \frac{(`r p_vaca_given_b_chr`) (`r p_b`)}{`r p_vaca_chr`)} \\
+& = \frac{(`r p_vaca_given_b_chr`) (`r p_b`)}{(`r p_vaca_chr`)} \\
 & = `r p_b_given_vaca_chr`
 \end{aligned}
 $$
@@ -434,7 +425,7 @@ $$
 
 ```{r q1-d-1-debug, include=F, echo=F}
 p_bear_debug <- 
-  states_wo_lott %>% 
+  states %>% 
   group_by(market) %>% 
   summarise_at(vars(p), sum) %>% 
   ungroup() %>% 
@@ -444,8 +435,8 @@ p_bear_debug
 ```
 
 ```{r q1-d-1-pre}
-states_wo_lott_bear <- 
-  states_wo_lott %>% 
+states_bear <- 
+  states %>% 
   group_by(vaca, market) %>% 
   summarise_at(vars(p), sum) %>% 
   ungroup() %>% 
@@ -453,12 +444,12 @@ states_wo_lott_bear <-
   mutate_at(vars(p), ~(. / sum(.))) %>% 
   ungroup() %>% 
   arrange(market, vaca)
-states_wo_lott_bear
+states_bear
 ```
 
 ```{r q1-d-1}
 p_vaca_given_bear <-
-  states_wo_lott_bear %>% 
+  states_bear %>% 
   filter(vaca == 'yes', market == 'bear') %>%
   pull(p)
 p_vaca_given_bear

@@ -1,8 +1,14 @@
 
+library(tidyverse)
+
 data <- 'data/epl.csv' %>% read_csv()
 data
-# tms <- data %>% tetidy::pull_distinctly(tm_h)
-# tms
+
+tms <- data %>% tetidy::pull_distinctly(tm_h)
+tms
+
+seasons <- data %>% tetidy::pull_distinctly(season)
+seasons
 
 pull2 <- function(data, ...) {
   data %>%
@@ -10,6 +16,7 @@ pull2 <- function(data, ...) {
     as.factor() %>% 
     as.integer()
 }
+
 data_list <-
   list(
     g_h = data %>% pull(g_h),
@@ -19,7 +26,7 @@ data_list <-
     season = data %>% pull2(season),
     n_tm = tms %>% length(),
     n_gm = data %>% nrow(),
-    n_season = .seasons %>% length()
+    n_season = seasons %>% length()
   )
 data_list
 
@@ -63,45 +70,70 @@ model <- 'model {
   s_sigma ~ dunif(0, 3) 
 }'
 
+
 path_model <- 'model.txt'
 write_lines(model, path_model)
 
-
 path_res_sim <- 'output/res_sim.rds'
+path_res_sim_jags <- 'output/res_sim_jags.rds'
 if(fs::file_exists(path_res_sim)) {
   
 } else {
-
-inits <- NULL
-params <-
-  c(
-    paste0('lvl_', c('h', 'a')),
-    paste0(c('', 'grp_'), 'z'),
-    paste0(c('grp_', 's_'), 'sigma')
-  )
-# params <- 
-#   c(
-#     paste0('lvl_', c('h', 'a'))
-#   )
-params
-
-res_sim <-
-  R2OpenBUGS::bugs(
-    # debug = TRUE,
-    data = data_list,
-    inits = inits,
-    model.file = path_model,
-    parameters.to.save = params,
-    DIC = FALSE,
-    n.chains = 1,
-    n.iter = 10000,
-    n.burnin = 1000
-  )
-res_sim$summary
+  
+  inits <- NULL
+  params <-
+    c(
+      paste0('lvl_', c('h', 'a')),
+      paste0(c('', 'grp_'), 'z'),
+      paste0(c('grp_', 's_'), 'sigma')
+    )
+  # params <- 
+  #   c(
+  #     paste0('lvl_', c('h', 'a'))
+  #   )
+  params
+  
+  res_sim <-
+    R2OpenBUGS::bugs(
+      # debug = TRUE,
+      data = data_list,
+      inits = inits,
+      model.file = path_model,
+      parameters.to.save = params,
+      DIC = FALSE,
+      n.chains = 1,
+      n.iter = 10000,
+      n.burnin = 1000
+    )
+  res_sim$summary
+  
+  teproj::export_path(res_sim, path_res_sim)
 }
 
-teproj::export_path(res_sim, path_res_sim)
+if(FALSE) {
+  model_jags <-
+    rjags::jags.model(textConnection(model), data = data_list, n.chains = 1, n.adapt = 5000)
+  res_sim_summ_jags <-
+    coda.samples(model_jags, variable.names = params, n.iter = 10000, thin = 2)
+  res_sim_summ_jags <-
+    res_sim_jags %>% 
+    as.matrix() %>% 
+    as_tibble()
 
-res_sim$summary %>% as.matrix()
+  res_sim_summ_jags
+  teproj::export_path(res_sim, path_res_sim_jags)
+}
 
-plot(res_sim$sims.list$lvl_h)
+
+res_sim_summ <-
+  res_sim$summary %>% 
+  as.matrix() %>% 
+  # as_tibble()
+  as_tibble(rownames = 'row') %>% 
+  remove_rownames() %>% 
+  rename_at(vars(matches('[%]')), ~str_replace_all(., '(^.*)([%]$)', '\\1') %>% paste0('q', .))
+res_sim_summ
+
+# plot(res_sim$sims.list$lvl_h)
+hist(res_sim$sims.list$lvl_h)
+hist(res_sim$sims.list$s_sigma)
