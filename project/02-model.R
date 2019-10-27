@@ -113,8 +113,9 @@ if(fs::file_exists(path_res_sim)) {
 if(FALSE) {
   model_jags <-
     rjags::jags.model(textConnection(model), data = data_list, n.chains = 1, n.adapt = 5000)
+  update(model_jags, 10000)
   res_sim_summ_jags <-
-    coda.samples(model_jags, variable.names = params, n.iter = 10000, thin = 2)
+    coda::coda.samples(model_jags, variable.names = params, n.iter = 10000, thin = 2)
   res_sim_summ_jags <-
     res_sim_jags %>% 
     as.matrix() %>% 
