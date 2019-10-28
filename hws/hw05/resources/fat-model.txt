@@ -1,0 +1,33 @@
+model{
+for(j in 1:N ){
+# four competing models
+mu[1, j] <- b1[1] + b1[2] *age[j] + b1[3]*wei[j] + b1[4]*hei[j] +
+                 b1[5]*adip[j]+b1[6]*neck[j]+ b1[7]*chest[j] +      
+                 b1[8]*abd[j]+b1[9]*hip[j]+b1[10]*thigh[j] +
+                 b1[11]*knee[j]+b1[12]*ankle[j]+b1[13]*biceps[j] +
+                 b1[14]*forea[j] + b1[15]*wrist[j]
+mu[2, j] <- b2[1]+b2[2]*wei[j]+b2[3]*adip[j]+b2[4]*abd[j] 
+mu[3, j] <- b3[1]+b3[2]*adip[j]
+mu[4, j] <- b4[1]*wei[j]+b4[2]*abd[j]+b4[3]*abd[j]+b4[4]*wrist[j]
+                 }
+# LI - Laud-Ibrahim Predictive Criterion. Smaller is better
+for(i in 1:4 ){
+    tau[i] ~ dgamma(2,32)
+    LI[i] <- sqrt(  sum(D2[i,]) + pow(sd(broz.new[i,]),2)  )
+# data sets 1-4 for different models
+                for (j in 1:N) { 
+                broz2[i,j] <- broz[j]
+                broz2[i,j]   ~ dnorm(mu[i,j],tau[i])       
+                broz.new[i,j] ~ dnorm(mu[i,j],tau[i]) 
+                D2[i,j] <- pow(broz[j]-broz.new[i,j],2)
+                                   }
+                 }
+# Compare predictive criteria between models i and j
+# Comp[i,j] is 1 when LI[i]<LI[j], i-th model better.
+for (i in 1:3) { for (j in i+1:4) {Comp[i,j] <- step(LI[j]-LI[i])}}
+# priors
+   for (j in 1:15) { b1[j] ~ dnorm(0,0.001)}
+   for(j in 1:4)    { b2[j] ~ dnorm(0,0.001)
+                          b4[j] ~ dnorm(0,0.001)}
+   for(j in 1:2) {    b3[j] ~ dnorm(0,0.001)}
+}
