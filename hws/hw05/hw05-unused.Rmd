@@ -1,0 +1,115 @@
+## 2. Body Fat from Linear Regression.
+
+### Instructions
+
+<instructions>
+Excess adiposity is a...
+</instructions>
+
+### Response
+
+Using the provided .odc file (BFReg.odc) as is, the following results were achieved.
+
+![](q2-1-output.png)
+
+```{r q1-openbugs-output-1, echo=F, include=F, eval=F}
+res_summ <-
+  tibble(
+    var = c('b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'tau'),
+    mean = c(-32.79, 0.07365, 0.7685, 1.886, -0.02377, 10.59, 0.06045),
+    sd = c(1.899, 0.007269, 0.06529, 0.07863, 0.00221, 0.2285, 0.001511),
+    MC_error = c(0.1027, 0.000155, 0.003428, 0.004179, 0.00012, 0.007549, 5.37e-06),
+    val2.5pc = c(-36.25, 0.05933, 0.651, 1.735, -0.02781, 10.15, 0.05754),
+    median = c(-32.87, 0.07369, 0.768, 1.888, -0.02384, 10.59, 0.06044),
+    val97.5pc = c(-29.48, 0.08781, 0.8912, 2.026, -0.02, 11.04, 0.06346),
+    start = c(1001, 1001, 1001, 1001, 1001, 1001, 1001),
+    sample = c(1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05)
+  ) %>% 
+  rename(` ` = var)
+res_summ %>% knitr::kable() %>% clipr::write_clip()
+```
+
+<hide>
+|    |      mean|       sd|  MC_error|  val2.5pc|    median| val97.5pc| start| sample|
+|:---|---------:|--------:|---------:|---------:|---------:|---------:|-----:|------:|
+|b0  | -32.79000| 1.899000| 0.1027000| -36.25000| -32.87000| -29.48000|  1001|  1e+05|
+|b1  |   0.07365| 0.007269| 0.0001550|   0.05933|   0.07369|   0.08781|  1001|  1e+05|
+|b2  |   0.76850| 0.065290| 0.0034280|   0.65100|   0.76800|   0.89120|  1001|  1e+05|
+|b3  |   1.88600| 0.078630| 0.0041790|   1.73500|   1.88800|   2.02600|  1001|  1e+05|
+|b4  |  -0.02377| 0.002210| 0.0001200|  -0.02781|  -0.02384|  -0.02000|  1001|  1e+05|
+|b5  |  10.59000| 0.228500| 0.0075490|  10.15000|  10.59000|  11.04000|  1001|  1e+05|
+|tau |   0.06045| 0.001511| 0.0000054|   0.05754|   0.06044|   0.06346|  1001|  1e+05|
+
+</hide>
+
+```{r q2-r, include=F, echo=F, eval=F}
+data_q2 <- 
+  'q2-data.xlsx' %>% 
+  readxl::read_excel() %>% 
+  janitor::clean_names() %>% 
+  mutate(bb = bai * bmi)
+data_q2
+fit_lm <- 
+  data_q2 %>% 
+  lm(formula(bf ~ age + bai + bmi + bb + gender), data = .)
+fit_lm
+fit_lm %>% broom::tidy()
+
+fmla_step_l_1 <- formula(bf ~ 1)
+fmla_step_u_1 <- formula(bf ~ .)
+fit_step_l_1 <- lm(fmla_step_l_1, data = data_q2)
+fit_step_u_1 <- lm(fmla_step_u_1, data = data_q2)
+fit_step <-
+  function(fit_l,
+           fit_u,
+           direction = c('both', 'backward', 'forward'),
+           fit = NULL,
+           ...) {
+    direction <- match.arg(direction)
+    if (is.null(fit)) {
+      if (direction == 'forward') {
+        fit <- fit_l
+      } else {
+        fit <- fit_u
+      }
+    }
+    step(fit, scope = list(lower = fit_l, upper = fit_u), ...)
+  }
+
+
+fit_step_partial <-
+  purrr::partial(
+    fit_step,
+    fit_l = fit_step_l_1,
+    fit_u = fit_step_u_1,
+    ... =
+  )
+
+.trace <- TRUE
+fit_step_f_partial <-
+  purrr::partial(
+    fit_step_partial,
+    trace = .trace,
+    direction = 'forward',
+    ... =
+  )
+
+# fit_step_b_partial <-
+#   purrr::partial(
+#     fit_step_partial,
+#     trace = .trace,
+#     direction = 'backward',
+#     ... = 
+#   )
+
+#+ fit_step_f_1-1
+fit_step_f_1 <- fit_step_l_1 %>% fit_step_f_partial()
+# fit_step_f_1 <- fit_step_u_1 %>% fit_step_f_partial()
+fit_step_f_1
+fit_step_f_1 %>% summary()
+
+# fit_step_b_1 <- fit_step_u_1 %>% fit_step_b_partial()
+# fit_step_b_1
+```
+
+

@@ -15,8 +15,8 @@ knitr::opts_chunk$set(
   # rows.print = 25,
   # rows.print = 25,
   echo = TRUE,
-  # cache = FALSE,
   cache = TRUE,
+  # cache.lazy = FALSE,
   include = TRUE,
   fig.show = 'asis',
   fig.align = 'center',
@@ -63,11 +63,11 @@ library(tidyverse)
 Below we create the data according to the instructions.
 
 ```{r q1-0}
-setseed(42)
+set.seed(42)
 n <- 40
 x1 <- runif(n)
 x2 <- floor(10 * runif(n)) + 1
-y <- 2 + 6 * x1 - 05 * x2 + rnorm(,n)
+y <- 2 + 6 * x1 - 0.5 * x2 + rnorm(n)
 x1 <- round(x1, 4)
 y <- round(y, 4)
 x1
@@ -81,7 +81,7 @@ y
 # .y %>% clipr::write_clip() %>% datapasta::vector_paste()
 ```
 
-```{r q1-r2openbugs-1 include=F, echo=F, eval=F}
+```{r q1-r2openbugs-1, include=F, echo=F, eval=F}
 # NOTE: This isn't working for some reason (even when copy-pasting the above values)
 # and trying `inits <- NULL`.
 model <- function() {
@@ -95,18 +95,18 @@ model <- function() {
     se[i] <- error[i] * error[i]
   }
   mse <- mean(se[k+1:n])
-  beta0 ~ dnorm(0, 0.0001)
-  beta1 ~ dnorm(0, 0.0001)
-  beta2 ~ dnorm(0, 0.0001)
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
   tau ~ dgamma(0.001, 0.001)
   sigma <- 1 / sqrt(tau)
 }
 data <- list(
-  n = .n,
-  k = 0.5 * .n,
-  x1 = .x1,
-  x2 = .x2,
-  y = .y
+  n = n,
+  k = 0.5 * n,
+  x1 = x1,
+  x2 = x2,
+  y = y
 )
 inits <- c(beta0 = 0, beta1 = 0, beta2 = 0, tau = 1)
 params <- c('se', 'mse', 'error', paste0('beta', 0:2), 'sigma')
@@ -125,11 +125,11 @@ res_sim <-
 res_sim$summary
 ```
 
-```{r q2-a-2-hide, include=F, echo=F, eval=F}
+```{r q1-hide, include=F, echo=F, eval=F}
 clipr::write_clip(knitr::kable(res_sim$summary))
 ```
 
-The OpenBUGS code looks as follows.
+The OpenBUGs code looks as follows.
 
 ```
 model{
@@ -143,9 +143,9 @@ for(i in k+1:n) {
   se[i] <- error[i] * error[i]
 }
   mse <- mean(se[k+1:n])
-  beta0 ~ dnorm(0, 0.0001)
-  beta1 ~ dnorm(0, 0.0001)
-  beta2 ~ dnorm(0, 0.0001)
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
   tau ~ dgamma(0.001, 0.001)
   sigma <- 1 / sqrt(tau)
 }
@@ -172,12 +172,12 @@ The results are as follows.
 res_summ <-
   tibble(
     var = c('beta0', 'beta1', 'beta2', 'mse', 'sigma', 'tau'),
-    mean = c(2.089, 5.591, -0.4721, 0.9194, 1.125, 0.8666),
-    sd = c(0.7401, 1.005, 0.09454, 0.2793, 0.2077, 0.298),
-    MC_error = c(0.00809, 0.009595, 0.000851, 0.002238, 0.000965, 0.001322),
-    val2.5pc = c(0.6276, 3.593, -0.6607, 0.6327, 0.8057, 0.3847),
-    median = c(2.093, 5.595, -0.4719, 0.8429, 1.096, 0.8331),
-    val97.5pc = c(3.55, 7.567, -0.2854, 1.658, 1.612, 1.541),
+    mean = c(2.09, 5.587, -0.4719, 0.9196, 1.125, 0.8667),
+    sd = c(0.7397, 1.004, 0.09452, 0.2794, 0.2076, 0.298),
+    MC_error = c(0.008082, 0.009582, 0.000851, 0.002238, 0.000964, 0.001321),
+    val2.5pc = c(0.6299, 3.59, -0.6604, 0.6327, 0.8057, 0.3848),
+    median = c(2.094, 5.591, -0.4717, 0.8431, 1.096, 0.8332),
+    val97.5pc = c(3.55, 7.56, -0.2852, 1.658, 1.612, 1.54),
     start = c(1001, 1001, 1001, 1001, 1001, 1001),
     sample = c(1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05)
   ) %>% 
@@ -189,13 +189,17 @@ res_summ %>% knitr::kable() %>% clipr::write_clip()
 <hide>
 |      |    mean|      sd| MC_error| val2.5pc|  median| val97.5pc| start| sample|
 |:-----|-------:|-------:|--------:|--------:|-------:|---------:|-----:|------:|
-|beta0 |  2.0890| 0.74010| 0.008090|   0.6276|  2.0930|    3.5500|  1001|  1e+05|
-|beta1 |  5.5910| 1.00500| 0.009595|   3.5930|  5.5950|    7.5670|  1001|  1e+05|
-|beta2 | -0.4721| 0.09454| 0.000851|  -0.6607| -0.4719|   -0.2854|  1001|  1e+05|
-|mse   |  0.9194| 0.27930| 0.002238|   0.6327|  0.8429|    1.6580|  1001|  1e+05|
-|sigma |  1.1250| 0.20770| 0.000965|   0.8057|  1.0960|    1.6120|  1001|  1e+05|
-|tau   |  0.8666| 0.29800| 0.001322|   0.3847|  0.8331|    1.5410|  1001|  1e+05|
+|beta0 |  2.0900| 0.73970| 0.008082|   0.6299|  2.0940|    3.5500|  1001|  1e+05|
+|beta1 |  5.5870| 1.00400| 0.009582|   3.5900|  5.5910|    7.5600|  1001|  1e+05|
+|beta2 | -0.4719| 0.09452| 0.000851|  -0.6604| -0.4717|   -0.2852|  1001|  1e+05|
+|mse   |  0.9196| 0.27940| 0.002238|   0.6327|  0.8431|    1.6580|  1001|  1e+05|
+|sigma |  1.1250| 0.20760| 0.000964|   0.8057|  1.0960|    1.6120|  1001|  1e+05|
+|tau   |  0.8667| 0.29800| 0.001321|   0.3848|  0.8332|    1.5400|  1001|  1e+05|
 </hide>
+
+<response>
+We observe that the Bayesian estimates of $\beta_0$, $\beta_1$, and $\beta_2$ are relatively close to their true values---2.09 compared to 2 for $\beta_0$, 5.587 compared to 6 for $\beta_2$; -0.4719 compared to -0.5 for $\beta_2$. Also, the 95% credible set for these estimates include the true values. The Bayesian estimate of $\sigma$ is also relatively close to its true value---1.12 compared to 0.8---although it's arguably not quite as close.
+</response>
 
 ## 2. Body Fat from Linear Regression.
 
@@ -207,52 +211,202 @@ Excess adiposity is a...
 
 ### Response
 
-Using the provided .odc file (BFReg.odc) as is, the following results were achieved.
+#### a
 
-![](q2-1-output.png)
+Per section *14.7.4 Bayesian Model Selection in Multiple Regression* of [Brani's book](http://statbook.gatech.edu/statb4.pdf),
 
-```{r q1-openbugs-output-1, echo=F, include=F, eval=F}
+>"Laud and Ibrahim (1995) argue that agreement of model-simulated predictions and original data should be used as a criterion for model selection. If for $y_i$ responses $y_i$'s,new are hypothetical replications according to the posterior predictive distribution of competing model parameters, then $\mathrm{LI}=\sum_{i=1}^{n}\left(\mathbb{E} \hat{y}_{i, \text { new }}-y_{i}\right)^{2}+\operatorname{Var}\left(\hat{y}_{i, \text { new }}\right)$
+measures the discrepancy between the observed and model-predicted data. A smaller LI is better."
+
+The following code implements Laud–Ibrahim (LI) Bayesian model selection. The first model---having coefficients `b1[1]`, ..., `b1[6]`---is the "full" model using all predictors. This constitutes our first "suggested" model. The other five models are univariate linear regressions for each variable individually. Our model selection process will guide us in our choice for our second suggested model.
+
+```
+model{
+  for(i in 1:N){
+    # 6 models
+    BB[i] <- BAI[i] * BMI[i]
+    mu[1, i] <- b1[1] + b1[2] * Age[i] + b1[3] * BAI[i] + b1[4] * BMI[i] + b1[5] * BB[i] + b1[6] * Gender[i]
+    mu[2, i] <- b2[1] + b2[2] * Age[i]
+    mu[3, i] <- b3[1] + b3[2] * BAI[i]
+    mu[4, i] <- b4[1] + b4[2] * BMI[i]
+    mu[5, i] <- b5[1] + b5[2] * BB[i]
+    mu[6, i] <- b6[1] + b6[2] * Gender[i]
+  }
+
+  for(i in 1:6) {
+    tau[i] ~ dgamma(0, 0.001)
+    LI[i] <- sqrt(sum(D2[i, ]) + pow(sd(BF.new[i, ]), 2))
+    
+    for(j in 1:N) {
+      BF2[i, j] <- BF[j]
+      BF2[i, j] ~ dnorm(mu[i, j], tau[i])
+      BF.new[i, j] ~ dnorm(mu[i, j], tau[i])
+      D2[i, j] <- pow(BF[j] - BF.new[i, j], 2)
+    }
+  }
+
+  # Compare predictive criteria between models i and j
+  # Comp[i,j] is 1 when LI[i]<LI[j], i-th model better.
+  for (i in 1:5) {
+    for (j in i+1:6) {
+      Comp[i, j] <- step(LI[j] - LI[i])
+    }
+  }
+
+ # priors
+  for(i in 1:6) {
+    b1[i] ~ dnorm(0, 0.001)
+  }
+  for(i in 1:2) {
+    b2[i] ~ dnorm(0, 0.001)
+    b3[i] ~ dnorm(0, 0.001)
+    b4[i] ~ dnorm(0, 0.001)
+    b5[i] ~ dnorm(0, 0.001)
+    b6[i] ~ dnorm(0, 0.001)
+  }
+}
+
+# DATA
+list(N=3200)
+
+ BFData 
+
+# INITS (initialize by loading one set  of tau's 
+#              and generating the rest of the parameters)
+list(tau=c(1, 1, 1, 1, 1, 1))
+```
+
+The results are as follows.
+
+```{r q2-a-openbugs-output-1, echo=F, include=F, eval=F}
 res_summ <-
   tibble(
-    var = c('b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'tau'),
-    mean = c(-32.79, 0.07365, 0.7685, 1.886, -0.02377, 10.59, 0.06045),
-    sd = c(1.899, 0.007269, 0.06529, 0.07863, 0.00221, 0.2285, 0.001511),
-    MC_error = c(0.1027, 0.000155, 0.003428, 0.004179, 0.00012, 0.007549, 5.37e-06),
-    val2.5pc = c(-36.25, 0.05933, 0.651, 1.735, -0.02781, 10.15, 0.05754),
-    median = c(-32.87, 0.07369, 0.768, 1.888, -0.02384, 10.59, 0.06044),
-    val97.5pc = c(-29.48, 0.08781, 0.8912, 2.026, -0.02, 11.04, 0.06346),
-    start = c(1001, 1001, 1001, 1001, 1001, 1001, 1001),
-    sample = c(1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05)
+    var = c('Comp[1,2]', 'Comp[1,3]', 'Comp[1,4]', 'Comp[1,5]', 'Comp[1,6]', 
+            'Comp[2,3]', 'Comp[2,4]', 'Comp[2,5]', 'Comp[2,6]',
+            'Comp[3,4]', 'Comp[3,5]', 'Comp[3,6]', 'Comp[4,5]', 'Comp[4,6]',
+            'Comp[5,6]', 'LI[1]', 'LI[2]', 'LI[3]', 'LI[4]', 'LI[5]', 'LI[6]',
+            'b1[1]', 'b1[2]', 'b1[3]', 'b1[4]', 'b1[5]', 'b1[6]', 'b2[1]',
+            'b2[2]', 'b3[1]', 'b3[2]', 'b4[1]', 'b4[2]', 'b5[1]', 'b5[2]',
+            'b6[1]', 'b6[2]', 'tau[1]', 'tau[2]', 'tau[3]', 'tau[4]', 'tau[5]',
+            'tau[6]'),
+    mean = c(0.9869, 0.9807, 0.985, 0.9823, 0.9857, 0, 0, 0, 0, 1, 1, 1, 0,
+             0.9933, 1, 338.8, 625.2, 439.8, 548.2, 473, 572.8, -39.18,
+             0.0661, 0.9478, 2.156, -0.0311, 10.83, 19.33, 0.2201, -5.951,
+             1.183, 3.616, 0.9617, 11.95, 0.02161, 23.7, 7.882, 0.05934, 0.01638,
+             0.03311, 0.0213, 0.02862, 0.01951),
+    sd = c(0.1137, 0.1376, 0.1217, 0.132, 0.1189, 0, 0, 0, 0, 0, 0, 0, 0,
+           0.0814, 0, 112.3, 7.859, 5.487, 6.846, 5.92, 7.159, 42.29,
+           0.05263, 1.178, 1.802, 0.04858, 1.71, 0.5187, 0.01278, 0.5438,
+           0.01867, 0.6723, 0.02615, 0.3141, 4e-04, 0.1867, 0.2543, 0.007091,
+           0.000411, 0.000828, 0.000533, 0.000717, 0.000489),
+    MC_error = c(0.006303, 0.007675, 0.006716, 0.007273, 0.006512, 3.16e-13,
+                 3.16e-13, 3.16e-13, 3.16e-13, 3.16e-13, 3.16e-13, 3.16e-13,
+                 3.16e-13, 0.000257, 3.16e-13, 6.277, 0.02354, 0.01777, 0.02144,
+                 0.01877, 0.02497, 2.371, 0.002919, 0.06605, 0.101, 0.002724,
+                 0.09523, 0.008328, 0.000205, 0.01261, 0.000433, 0.01679, 0.000652,
+                 0.003983, 5.08e-06, 0.001069, 0.001454, 0.00039, 1.3e-06,
+                 2.75e-06, 1.69e-06, 2.26e-06, 1.69e-06),
+    val2.5pc = c(1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 317.7, 609.9,
+                 429.1, 534.9, 461.5, 558.9, -80.14, 0.01459, 0.6685, 1.757,
+                 -0.07813, 10.17, 18.3, 0.1954, -7.011, 1.146, 2.322, 0.9099,
+                 11.33, 0.02083, 23.33, 7.385, 0.04816, 0.01559, 0.03151, 0.02027,
+                 0.02723, 0.01857),
+    median = c(1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 325.7, 625.2,
+               439.7, 548.1, 473, 572.8, -33.34, 0.07279, 0.7822, 1.909,
+               -0.02439, 10.62, 19.33, 0.22, -5.951, 1.183, 3.611, 0.9619, 11.95,
+               0.02161, 23.7, 7.882, 0.06036, 0.01637, 0.0331, 0.0213, 0.02861,
+               0.01951),
+    val97.5pc = c(1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 364.3, 640.7,
+                  450.6, 561.8, 484.8, 587, -29.87, 0.08723, 2.08, 3.916,
+                  -0.02031, 12.5, 20.33, 0.2454, -4.883, 1.219, 4.945, 1.012, 12.57,
+                  0.0224, 24.07, 8.379, 0.06343, 0.01719, 0.03475, 0.02236, 0.03004,
+                  0.02049),
+    start = c(1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001,
+              1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001,
+              1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001,
+              1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001,
+              1001, 1001),
+    sample = c(1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05,
+               1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05,
+               1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05,
+               1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05,
+               1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05)
   ) %>% 
   rename(` ` = var)
 res_summ %>% knitr::kable() %>% clipr::write_clip()
 ```
 
 <hide>
-|    |      mean|       sd|  MC_error|  val2.5pc|    median| val97.5pc| start| sample|
-|:---|---------:|--------:|---------:|---------:|---------:|---------:|-----:|------:|
-|b0  | -32.79000| 1.899000| 0.1027000| -36.25000| -32.87000| -29.48000|  1001|  1e+05|
-|b1  |   0.07365| 0.007269| 0.0001550|   0.05933|   0.07369|   0.08781|  1001|  1e+05|
-|b2  |   0.76850| 0.065290| 0.0034280|   0.65100|   0.76800|   0.89120|  1001|  1e+05|
-|b3  |   1.88600| 0.078630| 0.0041790|   1.73500|   1.88800|   2.02600|  1001|  1e+05|
-|b4  |  -0.02377| 0.002210| 0.0001200|  -0.02781|  -0.02384|  -0.02000|  1001|  1e+05|
-|b5  |  10.59000| 0.228500| 0.0075490|  10.15000|  10.59000|  11.04000|  1001|  1e+05|
-|tau |   0.06045| 0.001511| 0.0000054|   0.05754|   0.06044|   0.06346|  1001|  1e+05|
-
+|          |      mean|        sd|  MC_error|  val2.5pc|    median| val97.5pc| start| sample|
+|:---------|---------:|---------:|---------:|---------:|---------:|---------:|-----:|------:|
+|Comp[1,2] |   0.98690| 1.137e-01| 0.0063030|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|Comp[1,3] |   0.98070| 1.376e-01| 0.0076750|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|Comp[1,4] |   0.98500| 1.217e-01| 0.0067160|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|Comp[1,5] |   0.98230| 1.320e-01| 0.0072730|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|Comp[1,6] |   0.98570| 1.189e-01| 0.0065120|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|Comp[2,3] |   0.00000| 0.000e+00| 0.0000000|   0.00000|   0.00000|   0.00000|  1001|  1e+05|
+|Comp[2,4] |   0.00000| 0.000e+00| 0.0000000|   0.00000|   0.00000|   0.00000|  1001|  1e+05|
+|Comp[2,5] |   0.00000| 0.000e+00| 0.0000000|   0.00000|   0.00000|   0.00000|  1001|  1e+05|
+|Comp[2,6] |   0.00000| 0.000e+00| 0.0000000|   0.00000|   0.00000|   0.00000|  1001|  1e+05|
+|Comp[3,4] |   1.00000| 0.000e+00| 0.0000000|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|Comp[3,5] |   1.00000| 0.000e+00| 0.0000000|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|Comp[3,6] |   1.00000| 0.000e+00| 0.0000000|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|Comp[4,5] |   0.00000| 0.000e+00| 0.0000000|   0.00000|   0.00000|   0.00000|  1001|  1e+05|
+|Comp[4,6] |   0.99330| 8.140e-02| 0.0002570|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|Comp[5,6] |   1.00000| 0.000e+00| 0.0000000|   1.00000|   1.00000|   1.00000|  1001|  1e+05|
+|LI[1]     | 338.80000| 1.123e+02| 6.2770000| 317.70000| 325.70000| 364.30000|  1001|  1e+05|
+|LI[2]     | 625.20000| 7.859e+00| 0.0235400| 609.90000| 625.20000| 640.70000|  1001|  1e+05|
+|LI[3]     | 439.80000| 5.487e+00| 0.0177700| 429.10000| 439.70000| 450.60000|  1001|  1e+05|
+|LI[4]     | 548.20000| 6.846e+00| 0.0214400| 534.90000| 548.10000| 561.80000|  1001|  1e+05|
+|LI[5]     | 473.00000| 5.920e+00| 0.0187700| 461.50000| 473.00000| 484.80000|  1001|  1e+05|
+|LI[6]     | 572.80000| 7.159e+00| 0.0249700| 558.90000| 572.80000| 587.00000|  1001|  1e+05|
+|b1[1]     | -39.18000| 4.229e+01| 2.3710000| -80.14000| -33.34000| -29.87000|  1001|  1e+05|
+|b1[2]     |   0.06610| 5.263e-02| 0.0029190|   0.01459|   0.07279|   0.08723|  1001|  1e+05|
+|b1[3]     |   0.94780| 1.178e+00| 0.0660500|   0.66850|   0.78220|   2.08000|  1001|  1e+05|
+|b1[4]     |   2.15600| 1.802e+00| 0.1010000|   1.75700|   1.90900|   3.91600|  1001|  1e+05|
+|b1[5]     |  -0.03110| 4.858e-02| 0.0027240|  -0.07813|  -0.02439|  -0.02031|  1001|  1e+05|
+|b1[6]     |  10.83000| 1.710e+00| 0.0952300|  10.17000|  10.62000|  12.50000|  1001|  1e+05|
+|b2[1]     |  19.33000| 5.187e-01| 0.0083280|  18.30000|  19.33000|  20.33000|  1001|  1e+05|
+|b2[2]     |   0.22010| 1.278e-02| 0.0002050|   0.19540|   0.22000|   0.24540|  1001|  1e+05|
+|b3[1]     |  -5.95100| 5.438e-01| 0.0126100|  -7.01100|  -5.95100|  -4.88300|  1001|  1e+05|
+|b3[2]     |   1.18300| 1.867e-02| 0.0004330|   1.14600|   1.18300|   1.21900|  1001|  1e+05|
+|b4[1]     |   3.61600| 6.723e-01| 0.0167900|   2.32200|   3.61100|   4.94500|  1001|  1e+05|
+|b4[2]     |   0.96170| 2.615e-02| 0.0006520|   0.90990|   0.96190|   1.01200|  1001|  1e+05|
+|b5[1]     |  11.95000| 3.141e-01| 0.0039830|  11.33000|  11.95000|  12.57000|  1001|  1e+05|
+|b5[2]     |   0.02161| 4.000e-04| 0.0000051|   0.02083|   0.02161|   0.02240|  1001|  1e+05|
+|b6[1]     |  23.70000| 1.867e-01| 0.0010690|  23.33000|  23.70000|  24.07000|  1001|  1e+05|
+|b6[2]     |   7.88200| 2.543e-01| 0.0014540|   7.38500|   7.88200|   8.37900|  1001|  1e+05|
+|tau[1]    |   0.05934| 7.091e-03| 0.0003900|   0.04816|   0.06036|   0.06343|  1001|  1e+05|
+|tau[2]    |   0.01638| 4.110e-04| 0.0000013|   0.01559|   0.01637|   0.01719|  1001|  1e+05|
+|tau[3]    |   0.03311| 8.280e-04| 0.0000028|   0.03151|   0.03310|   0.03475|  1001|  1e+05|
+|tau[4]    |   0.02130| 5.330e-04| 0.0000017|   0.02027|   0.02130|   0.02236|  1001|  1e+05|
+|tau[5]    |   0.02862| 7.170e-04| 0.0000023|   0.02723|   0.02861|   0.03004|  1001|  1e+05|
+|tau[6]    |   0.01951| 4.890e-04| 0.0000017|   0.01857|   0.01951|   0.02049|  1001|  1e+05|
 </hide>
 
-```{r q2-r, include=F, echo=F, eval=F}
+Note that the posterior median values are the most important for model selection. Disregarding the first model---which would clearly be the best---we see that third model---based on `BAI`---has the lowest posterior median. And, when compared to the other univariate models via the `LI` calculation, this `BAI` model "wins out". (Note that the median `LI`'s for the third model compared to the fourth, fifth, and sixth---i.e., `LI[3, 4]`, `LI[3, 5]`, and `LI[3, 6]`---and that the `LI` of the second model when compared to the third model---i.e.`LI[1, 3]`--- has a median of 0.
+
+<response>
+Thus, we conclude that the `BAI` variable is the single best predictor (according to the LI statistic).
+</response>
+
+##### Aside
+
+We could have done several other things to determine the single best predictor
+
+1. We might have also calculated and compared the $R^2$ statistic for each univariate model, choosing the model/variable having the largest $R^2$.
+
+2. We could have used a "classical" approach where we perform (non-Bayesian) [step-wise regression](https://en.wikipedia.org/wiki/Stepwise_regression).
+
+Regarding (2), see the implementation below. We add variables to a trivial model (with no predictors) based on which variable improves the [Akaike information criterion](https://en.wikipedia.org/wiki/Akaike_information_criterion) (AIC) of the model the most. We observe from the first iteration that the `BAI` variable is added first. This agrees with our finding using the LI statistic.
+
+```{r q2-a-aside-1}
 data_q2 <- 
   'q2-data.xlsx' %>% 
   readxl::read_excel() %>% 
   janitor::clean_names() %>% 
   mutate(bb = bai * bmi)
 data_q2
-fit_lm <- 
-  data_q2 %>% 
-  lm(formula(bf ~ age + bai + bmi + bb + gender), data = .)
-fit_lm
-fit_lm %>% broom::tidy()
 
 fmla_step_l_1 <- formula(bf ~ 1)
 fmla_step_u_1 <- formula(bf ~ .)
@@ -275,7 +429,6 @@ fit_step <-
     step(fit, scope = list(lower = fit_l, upper = fit_u), ...)
   }
 
-
 fit_step_partial <-
   purrr::partial(
     fit_step,
@@ -284,33 +437,152 @@ fit_step_partial <-
     ... =
   )
 
-.trace <- TRUE
 fit_step_f_partial <-
   purrr::partial(
     fit_step_partial,
-    trace = .trace,
+    trace = TRUE,
     direction = 'forward',
     ... =
   )
 
-# fit_step_b_partial <-
-#   purrr::partial(
-#     fit_step_partial,
-#     trace = .trace,
-#     direction = 'backward',
-#     ... = 
-#   )
-
-#+ fit_step_f_1-1
 fit_step_f_1 <- fit_step_l_1 %>% fit_step_f_partial()
-# fit_step_f_1 <- fit_step_u_1 %>% fit_step_f_partial()
 fit_step_f_1
 fit_step_f_1 %>% summary()
-
-# fit_step_b_1 <- fit_step_u_1 %>% fit_step_b_partial()
-# fit_step_b_1
 ```
 
+#### b
+
+The OpenBUGs code to make the prediction for the full model is as follows. Note that this code is much closer to what is provided to use in "BFReg.odc"; only, the last two lines in the model scope (for prediction) are added.
+
+```
+model{
+  for(i in 1:N){
+    BF[i] ~ dnorm(mu[i], tau)
+    BB[i] <- BAI[i] * BMI[i]
+    mu[i] <- b0 + b1 * Age[i] + b2*BAI[i] + b3*BMI[i] + b4*BB[i] + b5* Gender[i]
+  }
+
+ # priors
+  b0 ~ dnorm(0, 0.001)
+  b1 ~ dnorm(0, 0.001)
+  b2 ~ dnorm(0, 0.001)
+  b3 ~ dnorm(0, 0.001)
+  b4 ~ dnorm(0, 0.001)
+  b5 ~ dnorm(0, 0.001)
+  tau ~ dgamma(0.001, 0.001)
+
+  # prediction
+  mupred <- b0 + b1 * (35) + b2 * (26) + b3 * (20) + b4 * (520) + b5 * (0)
+  BBpred ~ dnorm(mupred, tau)
+}
+
+# DATA
+list(N=3200)
+
+ BFData 
+
+# INITS
+list(b0=1, b1=0, b2=0, b3=0, b4=0, b5=0, tau=1)
+```
+
+See the results below.
+
+![](q2-b-1-output.png)
+
+```{r q2-b-1-openbugs-output-1, echo=F, include=F, eval=F}
+res_summ <-
+  tibble(
+    var = c('BBpred', 'b1', 'b2', 'b3', 'b4', 'b5', 'mupred', 'tau'),
+    mean = c(15.12, 0.07333, 0.7737, 1.896, -0.02403, 10.61, 15.1, 0.06046),
+    sd = c(4.057, 0.007253, 0.06177, 0.07539, 0.002109, 0.2212, 0.2154,
+           0.001512),
+    MC_error = c(0.0159, 0.000154, 0.003224, 0.004006, 0.000114, 0.007157,
+                 0.008153, 5.11e-06),
+    val2.5pc = c(7.157, 0.05913, 0.6439, 1.739, -0.0281, 10.18, 14.68, 0.05754),
+    median = c(15.13, 0.07331, 0.7744, 1.901, -0.02413, 10.6, 15.1, 0.06045),
+    val97.5pc = c(23.02, 0.08759, 0.8928, 2.036, -0.01967, 11.04, 15.53, 0.06345),
+    start = c(1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001),
+    sample = c(1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05)
+  ) %>% 
+  rename(` ` = var)
+res_summ %>% knitr::kable() %>% clipr::write_clip()
+```
+
+<hide>
+|       |     mean|       sd|  MC_error| val2.5pc|   median| val97.5pc| start| sample|
+|:------|--------:|--------:|---------:|--------:|--------:|---------:|-----:|------:|
+|BBpred | 15.12000| 4.057000| 0.0159000|  7.15700| 15.13000|  23.02000|  1001|  1e+05|
+|b1     |  0.07333| 0.007253| 0.0001540|  0.05913|  0.07331|   0.08759|  1001|  1e+05|
+|b2     |  0.77370| 0.061770| 0.0032240|  0.64390|  0.77440|   0.89280|  1001|  1e+05|
+|b3     |  1.89600| 0.075390| 0.0040060|  1.73900|  1.90100|   2.03600|  1001|  1e+05|
+|b4     | -0.02403| 0.002109| 0.0001140| -0.02810| -0.02413|  -0.01967|  1001|  1e+05|
+|b5     | 10.61000| 0.221200| 0.0071570| 10.18000| 10.60000|  11.04000|  1001|  1e+05|
+|mupred | 15.10000| 0.215400| 0.0081530| 14.68000| 15.10000|  15.53000|  1001|  1e+05|
+|tau    |  0.06046| 0.001512| 0.0000051|  0.05754|  0.06045|   0.06345|  1001|  1e+05|
+</hide>
+
+The OpenBUGs for the univariate model using `BAI` as the lone predictor is as follows. (Note that the code is nearly identical to that above; only the `mu` definitions have changes)
+
+```
+model{
+  for(i in 1:N){
+    BF[i] ~ dnorm(mu[i], tau)
+    mu[i] <- b0 + b2*BAI[i]
+  }
+
+ # priors
+  b0 ~ dnorm(0, 0.001)
+  b2 ~ dnorm(0, 0.001)
+  tau ~ dgamma(0.001, 0.001)
+
+  # prediction
+  mupred <- b0 + b2 * (26)
+  BBpred ~ dnorm(mupred, tau)
+}
+
+# DATA
+list(N=3200)
+
+ BFData 
+
+# INITS
+list(b0=1, b2=0, tau=1)
+```
+
+See the results below.
+
+![](q2-b-2-output.png)
+
+```{r q2-b-2-openbugs-output-1, echo=F, include=F, eval=F}
+res_summ <-
+  tibble(
+    var = c('BBpred', 'b0', 'b2', 'mupred', 'tau'),
+    mean = c(24.76, -5.974, 1.184, 24.8, 0.03311),
+    sd = c(5.5, 0.5617, 0.01928, 0.1104, 0.000832),
+    MC_error = c(0.01781, 0.01358, 0.000466, 0.001493, 2.71e-06),
+    val2.5pc = c(13.96, -7.081, 1.146, 24.58, 0.0315),
+    median = c(24.76, -5.966, 1.183, 24.8, 0.0331),
+    val97.5pc = c(35.52, -4.88, 1.222, 25.01, 0.03475),
+    start = c(1001, 1001, 1001, 1001, 1001),
+    sample = c(1e+05, 1e+05, 1e+05, 1e+05, 1e+05)
+  ) %>% 
+  rename(` ` = var)
+res_summ %>% knitr::kable() %>% clipr::write_clip()
+```
+
+<hide>
+|       |     mean|       sd|  MC_error| val2.5pc|  median| val97.5pc| start| sample|
+|:------|--------:|--------:|---------:|--------:|-------:|---------:|-----:|------:|
+|BBpred | 24.76000| 5.500000| 0.0178100|  13.9600| 24.7600|  35.52000|  1001|  1e+05|
+|b0     | -5.97400| 0.561700| 0.0135800|  -7.0810| -5.9660|  -4.88000|  1001|  1e+05|
+|b2     |  1.18400| 0.019280| 0.0004660|   1.1460|  1.1830|   1.22200|  1001|  1e+05|
+|mupred | 24.80000| 0.110400| 0.0014930|  24.5800| 24.8000|  25.01000|  1001|  1e+05|
+|tau    |  0.03311| 0.000832| 0.0000027|   0.0315|  0.0331|   0.03475|  1001|  1e+05|
+</hide>
+
+<response>
+We observe that the predictions---see the posterior `mean` of the `BBpred` variable in the tables above---are relatively different. The full model predicts 15.12 and the univariate `BAI` model predicts 24.76.
+</response>
 
 
 ## 3. Shocks.
@@ -326,7 +598,7 @@ An experiment was conducted...
 Below is OpenBUGs code for this problem. Note that:
 
 + "noninformative priors" is implemented as `dnorm(0.0, 0.00001)`;
-+ `pred1logit` is the untransformed prediction;
++ `pred1logit` is the un-transformed prediction;
 + `pred1logitinv` is the transformed prediction (i.e. a value between 0 and 1);
 + `x` and `response` (in the data list) is supplied "explicitly" as vectors having `n` x length(`x`) values (i.e. 70 x 6 = 420 values). The values of `response` are inferred from the number of responses $y$ and number of trials $n$ from the provided table.
 
@@ -359,19 +631,6 @@ The results are as follows.
 ![](q3-output.png)
 
 ```{r q3-openbugs-output-1, echo=F, include=F, eval=F}
-# NOTE: Use this as an alternative to the picture.
-data.frame(stringsAsFactors=FALSE,
-         var = c("beta0", "beta1", "pred1logit", "pred1logitinv"),
-        mean = c(-3.337, 1.259, -0.1891, 0.4531),
-          sd = c(0.3289, 0.1135, 0.1382, 0.03408),
-    MC_error = c(0.00175, 0.000616, 0.00059, 0.000145),
-    val2.5pc = c(-4.009, 1.05, -0.4637, 0.3861),
-      median = c(-3.328, 1.256, -0.1885, 0.453),
-   val97.5pc = c(-2.722, 1.491, 0.08033, 0.5201),
-       start = c(1001, 1001, 1001, 1001),
-      sample = c(1e+05, 1e+05, 1e+05, 1e+05)
-)
-
 res_summ <-
   tibble(
     var = c('beta0', 'beta1', 'pred1logit', 'pred1logitinv'),
@@ -396,12 +655,15 @@ res_summ %>% knitr::kable() %>% clipr::write_clip()
 |beta1         |  1.2590| 0.11350| 0.000616|   1.0500|  1.2560|   1.49100|  1001|  1e+05|
 |pred1logit    | -0.1891| 0.13820| 0.000590|  -0.4637| -0.1885|   0.08033|  1001|  1e+05|
 |pred1logitinv |  0.4531| 0.03408| 0.000145|   0.3861|  0.4530|   0.52010|  1001|  1e+05|
-
 </hide>
+
+<response>
+`pred1logitinv` in the output above represent our prediction for the proportion of responses after a shock of 2.5 milliamps. The posterior mean is 0.4531 and the 95% credible set is [0.3861, 0.52010].</response>
+As a check on these values, we note that the posterior mean and credible set for this proportion fall between the observed proportions for 2 and 3 milliamps (0.300 and 0.671 respectively).
 
 ### Aside
 
-We can carry out the equivalent calculations using `R`.
+We can carry out the equivalent calculations using `R` and verify that our results are nearly identical.
 
 ```{r q3-r-setup-0}
 .x <- 0:5
@@ -412,7 +674,7 @@ We can carry out the equivalent calculations using `R`.
 .diff
 ```
 
-```{r q3-r-setup-1-hide, include=F, echo=F, eval=F}
+```{r q3-r-setup-hide, include=F, echo=F, eval=F}
 data <-
   tibble(
     x = .x, 
@@ -439,7 +701,8 @@ data_explicit
 data_explicit %>% pull(x) %>% as.numeric() %>% datapasta::vector_paste()
 data_explicit %>% pull(response) %>% as.numeric() %>% datapasta::vector_paste()
 ```
-```{r q3-r-glm-1, include=F, echo=F, eval=F}
+
+```{r q3-r-glm-1}
 fit_glm <- glm(formula(response ~ x), data = data_explicit, family = binomial())
 fit_glm
 data_new <- tibble(x = 2.5)
