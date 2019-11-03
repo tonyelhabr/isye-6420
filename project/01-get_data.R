@@ -61,9 +61,9 @@ scrape_epl_data <- function(season = lubridate::year(Sys.Date()) - 1L) {
     mutate_at(vars(matches('season|^g_')), as.integer)
 }
 
-.seasons <- 2015L:2017L
+seasons <- 2015L:2017L
 data <-
-  tibble(season = .seasons) %>% 
+  tibble(season = seasons) %>% 
   mutate(data = purrr::map(season, scrape_epl_data)) %>% 
   unnest(data)
 data

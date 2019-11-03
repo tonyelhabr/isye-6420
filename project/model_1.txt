@@ -1,0 +1,24 @@
+model {
+  for(g in 1:n_gm) {
+    g_h[g] ~ dpois(lambda_h[tm_h[g], tm_a[g]])
+    g_a[g] ~ dpois(lambda_a[tm_h[g], tm_a[g]])
+  }
+
+  for(h in 1:n_tm) {
+    for(a in 1:n_tm) {
+      lambda_h[h, a] <- exp(baseline_h + (z[h] - z[a]))
+      lambda_a[h, a] <- exp(baseline_a + (z[a] - z[h]))
+    }
+  }
+    
+  z[1] <- 0 
+  for(t in 2:n_tm) {
+    z[t] ~ dnorm(z_all, tau_all)
+  }
+    
+  z_all ~ dnorm(0, 0.25)
+  tau_all <- 1 / pow(sigma_all, 2)
+  sigma_all ~ dunif(0, 2)
+  baseline_h ~ dnorm(0, 0.25)
+  baseline_a ~ dnorm(0, 0.25)
+}

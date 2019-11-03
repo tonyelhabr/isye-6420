@@ -30,7 +30,7 @@ data_list <-
   )
 data_list
 
-model <- 'model {
+model <- glue::glue_collapse('model {
   for(g in 1:n_gm) {
     g_h[g] ~ dpois(lambda_h[season[g], tm_h[g], tm_a[g]])
     g_a[g] ~ dpois(lambda_a[season[g], tm_h[g], tm_a[g]])
@@ -39,20 +39,20 @@ model <- 'model {
   for(s in 1:n_season) {
     for(h in 1:n_tm) {
       for(a in 1:n_tm) {
-      lambda_h[s, h, a] <- exp(lvl_h[s] + z[s, h] - z[s, a])
-      lambda_a[s, h, a] <- exp(lvl_a[s] + z[s, a] - z[s, h])
+        lambda_h[s, h, a] <- exp(lvl_h[s] + z[s, h] - z[s, a])
+        lambda_a[s, h, a] <- exp(lvl_a[s] + z[s, a] - z[s, h])
       }
     }
   }
     
   z[1, 1] <- 0 
   for(t in 2:n_tm) {
-    z[1, t] ~ dnorm(grp_z, grp_tau)
+    z[1, t] ~ dnorm(z_all, tau_all)
   }
     
-  grp_z ~ dnorm(0, 0.0625)
-  grp_tau <- 1 / pow(grp_sigma, 2)
-  grp_sigma ~ dunif(0, 3)
+  z_all ~ dnorm(0, 0.0625)
+  tau_all <- 1 / pow(sigma_all, 2)
+  sigma_all ~ dunif(0, 3)
   
   lvl_h[1] ~ dnorm(0, 0.0625)
   lvl_a[1] ~ dnorm(0, 0.0625)
@@ -60,15 +60,15 @@ model <- 'model {
   for(s in 2:n_season) {
     z[s, 1] <- 0 
     for(t in 2:n_tm) {
-      z[s, t] ~ dnorm(z[s - 1, t], s_tau)
+      z[s, t] ~ dnorm(z[s - 1, t], tau_s)
     }
-    lvl_h[s] ~ dnorm(lvl_h[s - 1], s_tau)
-    lvl_a[s] ~ dnorm(lvl_a[s - 1], s_tau)
+    lvl_h[s] ~ dnorm(lvl_h[s - 1], tau_s)
+    lvl_a[s] ~ dnorm(lvl_a[s - 1], tau_s)
   }
   
-  s_tau <- 1 / pow(s_sigma, 2) 
-  s_sigma ~ dunif(0, 3) 
-}'
+  tau_s <- 1 / pow(sigma_s, 2) 
+  sigma_s ~ dunif(0, 3) 
+}')
 
 
 path_model <- 'model.txt'
@@ -137,4 +137,4 @@ res_sim_summ
 
 # plot(res_sim$sims.list$lvl_h)
 hist(res_sim$sims.list$lvl_h)
-hist(res_sim$sims.list$s_sigma)
+hist(res_sim$sims.list$sigma_s)
