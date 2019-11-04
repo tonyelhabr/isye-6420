@@ -36,6 +36,8 @@ knitr::opts_chunk$set(
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 options(width = 200)
+# opt_old <- getOption('tibble.print_min')
+# options(tibble.print_min = 30)
 ```
 
 ```{r setup-appendix}
@@ -284,7 +286,6 @@ write_lines(model_1, path_model_1)
 model_1
 ```
 
-
 ```{r path_res_sim_1}
 path_res_sim_1 <- 'output/res_sim_1.rds'
 ```
@@ -342,11 +343,6 @@ I've implemented `model_1` in OpenBUGs directly as well (in case there were any 
 ## Model 1 Interpretation
 
 Next, I correspond the strength estimates $z$ to teams. Note that I "re-add" the zero-achored team---`r tms[1]`. I impute it's credible set quantiles using <hide>the average of all other teams' corresponding quantiles (and adjust these for a zero posterior mean)</hide>the values of the overall strength term $z_{\text{all}}$.
-
-```{r tibble-print_min}
-# opt_old <- getOption('tibble.print_min')
-# options(tibble.print_min = 30)
-```
 
 ```{r res_sim_summ_1-appendix}
 # Model 1 Interpretation
@@ -477,7 +473,7 @@ export_png(
 )
 ```
 
-```{r viz_summ_1_z_import, include=T}
+```{r viz_summ_1_z-show, include=T}
 knitr::include_graphics(path_viz_summ_1_z)
 ```
 
@@ -558,18 +554,23 @@ export_png(
 )
 ```
 
-```{r viz_summ_1_z_adj_import, include=T}
+```{r viz_summ_1_z_adj-show, include=T}
 knitr::include_graphics(path_viz_summ_1_z_adj)
 ```
+
+
+```{r do_predict-appendix-1}
+n_sim <- 1000
+```
+
+Now I make predictions of game results for the historical data given the model. Specifically, I simulate the score for both teams in each matchup (`r scales::comma(n_gm)` in all) `r scales::comma(n_sim)` times, choosing the result inferred by the mode of each side's simulated score. (For example, if the mode of the `r scales::comma(n_sim)` simulated scores for the away team  is 1 and that of the home team is 2, then the predicted outcome is a win for the home team.) A breakdown of the predicted and actual outcomes is shown below.
 
 ```{r path_preds}
 path_preds <- 'preds.rds'
 eval_viz_summ_1_z_adj <- !fs::file_exists(path_preds)
 ```
 
-```{r do_predict-appendix}
-n_sim <- 1000
-i <- 1
+```{r do_predict-appendix-2}
 .baseline_h <- res_sim_summ_1 %>% filter(var == 'baseline_h') %>% pull(mean)
 .baseline_a <- res_sim_summ_1 %>% filter(var == 'baseline_a') %>% pull(mean)
 .extract_tab_max <- function(tab) {
@@ -596,6 +597,7 @@ do_predict <- function(i) {
     g_a_mean = mean(g_a)
   )
 }
+
 set.seed(42)
 preds <- 
   tibble(idx = 1:n_gm) %>% 
@@ -612,8 +614,7 @@ write_rds(preds, path_preds)
 preds <- read_rds(path_preds)
 ```
 
-
-```{r preds-appendix}
+```{r preds_aug-appendix}
 preds_tidy <- 
   preds %>% 
   gather(key = 'key', value = 'value', -idx) %>% 
@@ -653,21 +654,33 @@ preds_aug <-
       . == 0 ~ 't'
     )
   )
+```
 
-preds_aug %>% 
-  filter(tm_h == 'Man City' | tm_a == 'Man City') %>% 
-  count(result_mode == result)
+```{r path_viz_conf_mat}
+path_viz_conf_mat <- 'viz_conf_mat.png'
+eval_viz_conf_mat <- !fs::file_exists(path_viz_conf_mat)
+```
 
-preds_aug %>% 
-  group_by(tm_h) %>% 
-  count(pred_correct = result_mode == result) %>% 
-  mutate(frac = n / sum(n)) %>% 
-  filter(pred_correct) %>% 
-  arrange(-frac)
-
+```{r viz_conf_mat-appendix}
 conf_mat_tidy <-
   preds_aug %>% 
   count(result_mode, result)
+
+conf_mat_correct <-
+  conf_mat_tidy %>% 
+  group_by(is_correct = result_mode == result) 
+
+conf_mat_correct_summ <-
+  conf_mat_correct %>% 
+  summarise_at(vars(n), sum(n)) %>% 
+  ungroup() %>% 
+  mutate(frac = n / sum(n))
+conf_mat_correct
+
+conf_mat_correct_h <- conf_mat_correct %>% filter(is_correct, result == 'h')
+conf_mat_correct_t <- conf_mat_correct %>% filter(is_correct, result == 't')
+conf_mat_correct_a <- conf_mat_correct %>% filter(is_correct, result == 'a')
+conf_mat_correct_summ_yes <- conf_mat_correct_summ %>% filter(is_correct)
 
 viz_conf_mat <-
   conf_mat_tidy %>%
@@ -700,7 +713,32 @@ viz_conf_mat <-
     y = 'Actual Result'
   )
 viz_conf_mat
+```
 
+```{r viz_conf_mat_export, eval=eval_viz_preds}
+export_png(
+  viz_conf_mat,
+  path = path_viz_conf_mat,
+)
+```
+
+```{r viz_conf_mat-show, include=T}
+knitr::include_graphics(path_viz_conf_mat)
+```
+
+I can make a couple of observations:
+
++ I see that the most common outcome of the join actual-prediction possibilities is an actual win by the home team and a predicted win by the home team.
++ The model predicts the outcome correctly in `r scales::comma(pull(conf_mat_corrects_h, n)` + `r scales::comma(pull(conf_mat_correct_t, n)` + `r scales::comma(pull(conf_mat_correct_a, n)` = `r scales::comma(pull(conf_mat_correct_summ_yes, n))` of `r scales::comma(n_gm)` games (i.e., `r scales::percent(pull(conf_mat_correct_summ_yes, frac))`).
+
+The next couple of visuals provide more details regarding the simulated outcomes.
+
+```{r path_viz_g_mode}
+path_viz_g_mode <- 'viz_g_mode.png'
+eval_viz_g_mode <- !fs::file_exists(path_viz_g_mode)
+```
+
+```{r viz_g_mode-appendix}
 viz_g_mode <-
   preds_tidy %>% 
   filter(key %>% str_detect('^g.*mode$')) %>% 
@@ -720,7 +758,27 @@ viz_g_mode <-
     y = 'Count of Games'
   )
 viz_g_mode
+```
 
+```{r viz_g_mode_export, eval=eval_viz_g_mode}
+export_png(
+  viz_g_mode,
+  path = path_viz_g_mode,
+)
+```
+
+```{r viz_g_mode-show, include=T}
+knitr::include_graphics(path_viz_g_mode)
+```
+
+From the above graph of the mode of goals scored by both sides, it's apparent that a 2-1 scores in favor of the home side is the most common outcome.
+
+```{r path_viz_g_mean}
+path_viz_g_mean <- 'viz_g_mean.png'
+eval_viz_g_mean <- !fs::file_exists(path_viz_g_mean)
+```
+
+```{r viz_g_mean-appendix}
 viz_g_mean <-
   preds_tidy %>% 
   # This is done so that the `aes()` can be defined before data is actually passed into the whole ggplot pipeline.
@@ -737,7 +795,27 @@ viz_g_mean <-
 viz_g_mean$labels <- viz_g_mode$labels
 viz_g_mean$labels$title <- viz_g_mean$labels$title %>% str_replace('Mode', 'Mean')
 viz_g_mean
+```
 
+```{r viz_g_mean_export, eval=eval_viz_g_mean}
+export_png(
+  viz_g_mean,
+  path = path_viz_g_mean,
+)
+```
+
+```{r viz_g_mean-show, include=T}
+knitr::include_graphics(path_viz_g_mean)
+```
+
+The above histogram illustrating the average (instead of the mode) provides a bit more nuance to the predicted goals scored by each side.
+
+```{r path_viz_result_mode}
+path_viz_result_mode <- 'viz_result_mode.png'
+eval_viz_result_mode <- !fs::file_exists(path_viz_result_mode)
+```
+
+```{r viz_result_mode-appendix}
 preds_tidy_res <-
   preds_tidy %>% 
   filter(key == 'res_mode') %>% 
@@ -751,9 +829,10 @@ preds_tidy_res <-
   ) %>% 
   mutate_at(vars(value_lab), ~forcats::fct_reorder(., value))
 preds_tidy_res %>% count(value_lab)
-viz_g_mode <-
+
+viz_result_mode <-
   preds_tidy %>% 
-  filter(key == 'res_mode') %>% 
+  filter(key == 'result_mode') %>% 
   mutate_at(
     vars(value),
     list(value_lab = ~case_when(
@@ -777,16 +856,59 @@ viz_g_mode <-
     x = NULL,
     y = viz_g_mode$labels$y
   )
-viz_g_mode
-
-
-preds_tidy %>% 
-  inner_join(data %>% mutate(idx = row_number()))
-
+viz_result_mode
 ```
 
+```{r viz_result_mode_export, eval=eval_viz_preds}
+export_png(
+  viz_result_mode,
+  path = path_viz_result_mode,
+)
+```
 
-Thus, we see that 
+```{r viz_result_mode-show, include=T}
+knitr::include_graphics(path_viz_result_mode)
+```
+
+Finally, the above illustration of results illustrates the predicted outcomes (inferred from the prior graph of predicted modes). *This is the primary input to the confusion matrix from before.)
+
+To better understand how the model works on a team-level basis, we can look at how well it predicts for each team.
+
+```{r preds_eda-appendix-1}
+preds_by_tm <-
+  preds_aug %>% 
+  group_by(tm_h) %>% 
+  count(is_correct = result_mode == result) %>% 
+  mutate(frac = n / sum(n)) %>% 
+  filter(is_correct) %>% 
+  arrange(-frac)
+```
+
+```{r preds_eda-show-1, include=T}
+preds_by_tm
+```
+
+In most cases, the model predicts the outcome correctly (see `is_correct`) with greater than 50% accuracy, although there are also teams for which its accuracy is less than 50%.
+
+We can take an even closer look at any team of interest. For example, let's look exclusively at the predictions and actual outcomes for `r .tm1` (the highest rated team by the model.)
+
+
+```{r preds_eda-appendix-2}
+.tm1 <- 'Man City'
+```
+
+```{r preds_eda-appendix-3}
+preds_by_tm_1tm <-
+  preds_aug %>% 
+  filter(tm_h == .tm1 | tm_a == .tm1) %>% 
+  count(is_correct = result_mode == result) %>% 
+  mutate(frac = n / sum(n))
+```
+
+```{r preds_eda-show-2, include=T}
+preds_by_tm_1tm
+```
+
 
 ## Model Improvements
 
