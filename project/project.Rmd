@@ -9,12 +9,12 @@ output:
     toc: false
 ---
 
-```{r setup, include=F, cache=F}
+```{r setup, include=F, echo=F, cache=F}
 knitr::opts_knit$set(root.dir = here::here())
 knitr::opts_chunk$set(
-  # rows.print = 25,
-  # rows.print = 25,
-  echo = TRUE,
+  rows.print = 30,
+  include = FALSE,
+  echo = FALSE,
   cache = TRUE,
   # cache.lazy = FALSE,
   include = TRUE,
@@ -31,14 +31,14 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r postprocess, include=F, echo=F, cache=F}
+```{r postprocess, cache=F}
 .path_sans_ext <- file.path('project')
 .path_rmd <- paste0(.path_sans_ext, '.Rmd')
 # spelling::spell_check_files(.path_rmd)
 options(width = 200)
 ```
 
-```{r setup-appendix, include=F, echo=F, eval=T}
+```{r setup-appendix}
 library(tidyverse)
 create_kable <-
   function (data,
@@ -84,17 +84,17 @@ Using Poisson distributions to model soccer scores is certainly not a novel conc
 
 For this project I retrieved game scores and outcomes for the previous three seasons of EPL games (i.e. from the 2016-17 season through the 2018-2019 season).
 
-```{r scrape-prep, include=F, echo=F, eval=T}
+```{r scrape-prep}
 path_epl_data <- 'data/epl.csv'
 eval_scrape <- !fs::file_exists(path_epl_data)
 ```
 
-```{r scrape-appendix-1, include=F, echo=F, eval=T}
+```{r scrape-appendix-1}
 # Data Collection
 seasons <- 2016L:2018L
 ```
 
-```{r scrape-appendix-2, include=F, echo=F, eval=eval_scrape}
+```{r scrape-appendix-2, eval=eval_scrape}
 # Reference: https://github.com/jalapic/engsoccerdata/blob/master/R/england_current.R
 scrape_epl_data <- function(season = lubridate::year(Sys.Date()) - 1L) {
   # season <- 2018L
@@ -138,25 +138,25 @@ data <-
   unnest(data)
 ```
 
-```{r scrape-post, include=F, echo=F, eval=eval_scrape}
+```{r scrape-post, eval=eval_scrape}
 write_csv(data, path_epl_data)
 ```
 
-```{r scrape-2, include=F, echo=F, eval=T}
+```{r scrape-2}
 data <- read_csv(path_epl_data)
 ```
 
-```{r scrape-show}
+```{r scrape-show, include=T}
 data
 ```
 
-```{r eda-1, include=F, echo=F, eval=F}
+```{r eda-1, eval=F}
 data %>% summarise_at(vars(g_h, g_a), list(mean = mean, sd = sd))
 ```
 
 Before impementing some models, I need to "wrangle" the raw data a bit in order to put it in a more workable format for OpenBUGs. (Specifically, I need to put it into a list.)
 
-```{r data_list-appendix, include=F, echo=F, eval=T}
+```{r data_list-appendix}
 pull_distinctly <- function (.data, var = -1, ..., decreasing = FALSE) {
     var <- tidyselect::vars_pull(names(.data), !!rlang::enquo(var))
     sort(unique(.data[[var]]), decreasing = decreasing, ...)
@@ -188,22 +188,22 @@ data_list <-
 data_list
 ```
 
-```{r data_list-show}
+```{r data_list-show, include=T}
 data_list
 ```
 
-```{r data_list-hide, include=F, echo=F, eval=F}
-# For copy-pasting data to the .odc files.
-list(
-  # n_tm = n_tm %>% as.numeric() %>% datapasta::vector_paste(),
-  # n_gm = n_gm %>% as.numeric() %>% datapasta::vector_paste(),
-  # n_season = n_season %>% as.numeric() %>% datapasta::vector_paste(),
-  g_h = data_list$g_h %>% as.numeric() %>% datapasta::vector_paste(),
-  g_a = data_list$g_a %>% as.numeric() %>% datapasta::vector_paste(),
-  tm_h = data_list$tm_h %>% as.numeric() %>% datapasta::vector_paste(),
-  tm_a = data_list$tm_h %>% as.numeric() %>% datapasta::vector_paste() #,
-  # season = data_list$season %>% as.numeric() %>% datapasta::vector_paste()
-)
+```{r data_list-hide, eval=F}
+# # For copy-pasting data to the .odc files.
+# list(
+#   # n_tm = n_tm %>% as.numeric() %>% datapasta::vector_paste(),
+#   # n_gm = n_gm %>% as.numeric() %>% datapasta::vector_paste(),
+#   # n_season = n_season %>% as.numeric() %>% datapasta::vector_paste(),
+#   g_h = data_list$g_h %>% as.numeric() %>% datapasta::vector_paste(),
+#   g_a = data_list$g_a %>% as.numeric() %>% datapasta::vector_paste(),
+#   tm_h = data_list$tm_h %>% as.numeric() %>% datapasta::vector_paste(),
+#   tm_a = data_list$tm_h %>% as.numeric() %>% datapasta::vector_paste() #,
+#   # season = data_list$season %>% as.numeric() %>% datapasta::vector_paste()
+# )
 ```
 
 # Modeling
@@ -244,12 +244,12 @@ There are a couple of things to note about these priors:
 
 We leverage the `{R2OpenBUGs}` package to create this model in `R` on the frontend and generate the results with OpenBUGs on the backend.
 
-```{r model_1-prep, include=F, echo=F, eval=T}
+```{r model_1-prep}
 path_res_sim_1 <- 'output/path_res_sim_1.rds'
 eval_model_1 <- !fs::file_exists(path_res_sim_1)
 ```
 
-```{r model_1-show-appendix}
+```{r model_1-appendix, echo=F}
 # `{R2OpenBUGs}` Implementation
 model_1 <- glue::glue_collapse('model {
   for(g in 1:n_gm) {
@@ -280,7 +280,12 @@ path_model_1 <- 'model_1.txt'
 write_lines(model_1, path_model_1)
 ```
 
-```{r path_res_sim_1, include=F, echo=F, eval=T}
+```{r model_1-show, include=T}
+model_1
+```
+
+
+```{r path_res_sim_1}
 path_res_sim_1 <- 'output/res_sim_1.rds'
 ```
 
@@ -309,11 +314,11 @@ res_sim_1 <-
   )
 ```
 
-```{r res_sim_1_export, include=F, echo=F, eval=eval_model_1}
+```{r res_sim_1_export, eval=eval_model_1}
 write_rds(res_sim_1, path_res_sim_1)
 ```
 
-```{r res_sim_1_import, include=F, echo=F, eval=T}
+```{r res_sim_1_import}
 res_sim_1 <- read_rds(path_res_sim_1)
 ```
 
@@ -323,69 +328,27 @@ I've implemented `model_1` in OpenBUGs directly as well (in case there were any 
 
 ![](model_1-output.png)
 
-```{r res_summ_1_openbugs, echo=F, include=F, eval=T}
-res_summ_1_openbugs <-
-  tibble(
-    var = c('baseline_a', 'baseline_h', 'sigma_all', 'z[2]', 'z[3]',
-            'z[4]', 'z[5]', 'z[6]', 'z[7]', 'z[8]', 'z[9]', 'z[10]',
-            'z[11]', 'z[12]', 'z[13]', 'z[14]', 'z[15]', 'z[16]',
-            'z[17]', 'z[18]', 'z[19]', 'z[20]', 'z[21]', 'z[22]', 'z[23]',
-            'z[24]', 'z[25]', 'z_all'),
-    mean = c(0.1163, 0.3775, 0.2457, -0.6651, -0.415, -0.4238, -0.3467,
-             -0.02423, -0.3704, -0.243, -0.5025, -0.6144, -0.228,
-             0.01321, 0.167, -0.03339, -0.4815, -0.3922, -0.5023, -0.2897,
-             -0.4496, -0.5059, -0.4526, 0.1172, -0.438, -0.4055, -0.3341,
-             -0.3255),
-    sd = c(0.02795, 0.02461, 0.04204, 0.1045, 0.07756, 0.1061, 0.08648,
-           0.07715, 0.07739, 0.07701, 0.106, 0.1055, 0.07668,
-           0.07658, 0.07636, 0.07698, 0.1064, 0.08557, 0.1059, 0.07747,
-           0.07694, 0.08528, 0.07712, 0.07627, 0.07732, 0.07735, 0.07697,
-           0.076),
-    MC_error = c(0.000198, 0.000279, 0.000201, 0.001681, 0.001645, 0.001687,
-                 0.001646, 0.001641, 0.001644, 0.001636, 0.001774,
-                 0.001725, 0.001596, 0.001609, 0.001638, 0.001626, 0.001726,
-                 0.001623, 0.001716, 0.001656, 0.001632, 0.001624, 0.001638,
-                 0.001632, 0.001667, 0.00163, 0.001666, 0.001622),
-    val2.5pc = c(0.06092, 0.3283, 0.1782, -0.8678, -0.5659, -0.6304, -0.5162,
-                 -0.1765, -0.5211, -0.3935, -0.7093, -0.8209, -0.3786,
-                 -0.1375, 0.01742, -0.1845, -0.6885, -0.56, -0.7088, -0.4423,
-                 -0.6001, -0.6724, -0.6042, -0.03049, -0.5886, -0.5564,
-                 -0.4854, -0.475),
-    median = c(0.1163, 0.3778, 0.2406, -0.6655, -0.4153, -0.4234, -0.347,
-               -0.02452, -0.3705, -0.2428, -0.5031, -0.6143, -0.2278,
-               0.01294, 0.1675, -0.03381, -0.4814, -0.3918, -0.5027,
-               -0.2899, -0.4491, -0.5063, -0.452, 0.1173, -0.4381, -0.4047,
-               -0.3335, -0.3253),
-    val97.5pc = c(0.1704, 0.4243, 0.3428, -0.4627, -0.2626, -0.2165, -0.1777,
-                  0.1268, -0.2167, -0.09112, -0.2945, -0.4095, -0.07696,
-                  0.1613, 0.3164, 0.1187, -0.2715, -0.2233, -0.2943, -0.1373,
-                  -0.2985, -0.3377, -0.3019, 0.2674, -0.2862, -0.253, -0.1842,
-                  -0.1772),
-    start = c(1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001,
-              1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001,
-              1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001, 1001),
-    sample = c(1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05,
-               1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05,
-               1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05, 1e+05,
-               1e+05, 1e+05, 1e+05)
-  ) %>% 
-  rename(` ` = var)
+```{r res_summ_1_openbugs, eval=F}
+# # Copy-pasted OpenBUGs output to Excel, then copy-pasted to here (renameding first column as `var` with {datapasta} package.
+# res_summ_1_openbugs <-
+#   tibble() %>% 
+#   rename(` ` = var)
 ```
 
-```{r res_summ_1_openbugs-show, echo=F, include=F, eval=F}
-res_summ_1_openbugs %>% knitr::kable('markdown')
+```{r res_summ_1_openbugs-show, eval=F}
+# res_summ_1_openbugs
 ```
 
 ## Model 1 Interpretation
 
 Next, I correspond the strength estimates $z$ to teams. Note that I "re-add" the zero-achored team---`r tms[1]`. I impute it's credible set quantiles using <hide>the average of all other teams' corresponding quantiles (and adjust these for a zero posterior mean)</hide>the values of the overall strength term $z_{\text{all}}$.
 
-```{r tibble-print_min, include=F, echo=F, eval=T}
-opt_old <- getOption('tibble.print_min')
-options(tibble.print_min = 30)
+```{r tibble-print_min}
+# opt_old <- getOption('tibble.print_min')
+# options(tibble.print_min = 30)
 ```
 
-```{r res_sim_summ_1-appendix, include=F, echo=F, eval=T}
+```{r res_sim_summ_1-appendix}
 # Model 1 Interpretation
 z_var_lvls <- sprintf('z[%d]', 2:n_tm)
 var_lvls <- c(paste0('baseline', c('_a', '_h')), 'sigma_all', z_var_lvls, 'z_all')
@@ -427,7 +390,7 @@ res_sim_summ_1_z <-
 res_sim_summ_1_z
 ```
 
-```{r viz-funcs-appendix, include=F, echo=F, eval=T}
+```{r viz-funcs-appendix}
 theme_custom <- function(...) {
   theme_light(base_size = 14) +
     theme(
@@ -495,7 +458,7 @@ export_png <-
   }
 ```
 
-```{r path_viz_summ_1_z, include=F, echo=F, eval=T}
+```{r path_viz_summ_1_z}
 path_viz_summ_1_z <- 'viz_summ_1_z.png'
 eval_viz_summ_1_z <- !fs::file_exists(path_viz_summ_1_z)
 ```
@@ -507,18 +470,14 @@ viz_summ_1_z <-
 viz_summ_1_z
 ```
 
-```{r viz_summ_1_z_export, include=F, echo=F, eval=eval_viz_summ_1_z}
+```{r viz_summ_1_z_export, eval=eval_viz_summ_1_z}
 export_png(
   viz_summ_1_z,
   path = path_viz_summ_1_z,
 )
 ```
 
-```{r viz_summ_1_z_show, include=T, echo=T, eval=F}
-viz_summ_1_z
-```
-
-```{r viz_summ_1_z_import, include=T, echo=F, eval=T}
+```{r viz_summ_1_z_import, include=T}
 knitr::include_graphics(path_viz_summ_1_z)
 ```
 
@@ -533,7 +492,7 @@ Note that the $z$ estimates above should not be interpreted as goals scored by t
 The plot below shows the results of this transformation.
 
 
-```{r res_sim_summ_1_z_adj_old, include=F, echo=F, eval=F}
+```{r res_sim_summ_1_z_adj_old, eval=F}
 # mcmcplots::caterplot(res_sim_1)
 # res_sim_summ_1_z_adj <-
 #   res_sim_summ_1_z %>% 
@@ -580,7 +539,7 @@ res_sim_summ_1_z_adj <-
 res_sim_summ_1_z_adj
 ```
 
-```{r path_viz_summ_1_z_adj, include=F, echo=F, eval=T}
+```{r path_viz_summ_1_z_adj}
 path_viz_summ_1_z_adj <- 'viz_summ_1_z_adj.png'
 eval_viz_summ_1_z_adj <- !fs::file_exists(path_viz_summ_1_z_adj)
 ```
@@ -592,23 +551,24 @@ viz_summ_1_z_adj <-
 viz_summ_1_z_adj
 ```
 
-```{r viz_summ_1_z_adj_export, include=F, echo=F, eval=eval_viz_summ_1_z_adj}
+```{r viz_summ_1_z_adj_export, eval=eval_viz_summ_1_z_adj}
 export_png(
   viz_summ_1_z_adj,
   path = path_viz_summ_1_z_adj,
 )
 ```
 
-```{r viz_summ_1_z_adj_show, include=T, echo=T, eval=F}
-viz_summ_1_z_adj
-```
-
-```{r viz_summ_1_z_adj_import, include=T, echo=F, eval=T}
+```{r viz_summ_1_z_adj_import, include=T}
 knitr::include_graphics(path_viz_summ_1_z_adj)
 ```
 
-```{r do_predict}
-n_sim <- 100
+```{r path_preds}
+path_preds <- 'preds.rds'
+eval_viz_summ_1_z_adj <- !fs::file_exists(path_preds)
+```
+
+```{r do_predict-appendix}
+n_sim <- 1000
 i <- 1
 .baseline_h <- res_sim_summ_1 %>% filter(var == 'baseline_h') %>% pull(mean)
 .baseline_a <- res_sim_summ_1 %>% filter(var == 'baseline_a') %>% pull(mean)
@@ -644,8 +604,16 @@ preds <-
 preds
 ```
 
+```{r preds_export, eval=eval_preds}
+write_rds(preds, path_preds)
+```
 
-```{r preds-appendix, include=F, echo=F}
+```{r preds_import}
+preds <- read_rds(path_preds)
+```
+
+
+```{r preds-appendix}
 preds_tidy <- 
   preds %>% 
   gather(key = 'key', value = 'value', -idx) %>% 
@@ -823,4 +791,19 @@ Thus, we see that
 ## Model Improvements
 
 This model certainly can be improved. One major flaw of the model is that it does not account for temporal effects, i.e. differences in team strength across seasons. (There are certainly also changes in team strength within seasons, but these are more difficult to model, so I do not attempt to do so here.) The consequences of this fault are compounded by the fact that the pool of teams in each EPL season. At the end of each season, the three "worst" EPL teams (by win-loss-tie record) are "relegated" to the secondary league (and three secondary league teams are "promoted" to the EPL in their place). This explains why there are more than 20 teams in our data set even though there are only 20 teams in the EPL in a given season. This phenomena can exaggerate the estimates of the teams that do not appear in all seasons in the data set.
+
+## Appendix
+
+### Code
+
+See all `R` code below.
+
+```{r fin-prep, echo=F}
+labs_chunks <- knitr::all_labels()
+labs_chunks_filt <- labs_chunks %>% str_subset('appendix')
+```
+
+```{r fin, ref.label=labs_chunks_filt, eval=F}
+
+```
 
