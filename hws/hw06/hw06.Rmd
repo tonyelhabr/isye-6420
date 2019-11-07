@@ -1,0 +1,82 @@
+---
+title: 'ISYE 6420: Homework 6'
+author: 'aelhabr3'
+output:
+  html_document:
+    css: ../styles_hw.css
+    theme: cosmo
+    highlight: haddock
+    toc: false
+---
+
+```{r setup, include=F, cache=F}
+knitr::opts_knit$set(root.dir = here::here())
+knitr::opts_chunk$set(
+  # rows.print = 25,
+  # rows.print = 25,
+  echo = TRUE,
+  cache = TRUE,
+  # cache.lazy = FALSE,
+  include = TRUE,
+  fig.show = 'asis',
+  fig.align = 'center',
+  fig.width = 8,
+  # size = 'small',
+  # fig.height = 5,
+  # fig.width = 5,
+  # out.width = 5,
+  fig.asp = 0.75,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r postprocess, include=F, echo=F, cache=F}
+.path_sans_ext <- file.path('hw06')
+.path_rmd <- paste0(.path_sans_ext, '.Rmd')
+# spelling::spell_check_files(.path_rmd)
+```
+
+```{r setup-1, include=F, echo=F, eval=T}
+library(tidyverse)
+format_num <- function(x, digits = 4) {
+  fmt <- sprintf('%%.%df', digits)
+  sprintf(fmt, x)
+}
+```
+
+# 1. Cancer of Tongue.
+
+## Instructions
+
+<instructions>
+Sickle-Santanello et al (1988)...
+</instructions>
+
+
+## Response
+
+```{r setup-2}
+library(tidyverse)
+```
+
+# 2. Airfreight Breakage with Missing Data..
+
+## Instructions
+
+<instructions>
+A substance used in...
+</instructions>
+
+
+## Response
+
+
+```{r}
+x <- c(2, 1, 0, 2, NA_integer_, 3, 1, 0, 2, 3, 0, 1, NA_integer_, NA_integer_)
+y <- c(NA_integer_, 16, 9, 17, 12, 22, 13, 8, NA_integer_, 19, 17, 11, 10, 20, 2)
+
+```
+
+
+

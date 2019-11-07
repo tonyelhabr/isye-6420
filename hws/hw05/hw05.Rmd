@@ -133,15 +133,15 @@ The OpenBUGs code looks as follows.
 
 ```
 model{
-for(i in 1:k) {
-  mu[i] <- beta0 + beta1 * x1[i] + beta2 * x2[i]
-  y[i] ~ dnorm(mu[i], tau)
-}
-for(i in k+1:n) {
-  ypred[i] <- beta0 + beta1 * x1[i] + beta2 * x2[i]
-  error[i] <- ypred[i] - y[i]
-  se[i] <- error[i] * error[i]
-}
+  for(i in 1:k) {
+    mu[i] <- beta0 + beta1 * x1[i] + beta2 * x2[i]
+    y[i] ~ dnorm(mu[i], tau)
+  }
+  for(i in k+1:n) {
+    ypred[i] <- beta0 + beta1 * x1[i] + beta2 * x2[i]
+    error[i] <- ypred[i] - y[i]
+    se[i] <- error[i] * error[i]
+  }
   mse <- mean(se[k+1:n])
   beta0 ~ dnorm(0, 0.001)
   beta1 ~ dnorm(0, 0.001)
@@ -607,7 +607,7 @@ Below is OpenBUGs code for this problem. Note that:
 + "noninformative priors" is implemented as `dnorm(0.0, 0.00001)`;
 + `pred1logit` is the un-transformed prediction;
 + `pred1logitinv` is the transformed prediction (i.e. a value between 0 and 1);
-+ `x` and `response` (in the data list) is supplied "explicitly" as vectors having `n` x length(`x`) values (i.e. 70 x 6 = 420 values). The values of `response` are inferred from the number of responses $y$ and number of trials $n$ from the provided table.
++ `x` and `response` (in the data list) is supplied "explicitly" as vectors having `n` x `length(x)` values (i.e. 70 x 6 = 420 values). The values of `response` are inferred from the number of responses $y$ and number of trials $n$ from the provided table.
 
 ```
 model{
