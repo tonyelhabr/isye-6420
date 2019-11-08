@@ -72,11 +72,34 @@ A substance used in...
 ## Response
 
 
-```{r}
-x <- c(2, 1, 0, 2, NA_integer_, 3, 1, 0, 2, 3, 0, 1, NA_integer_, NA_integer_)
+```{r q2-0}
+x <- c(2, 1, 0, 2, NA_integer_, 3, 1, 0, 1, 2, 3, 0, 1, NA_integer_, NA_integer_)
 y <- c(NA_integer_, 16, 9, 17, 12, 22, 13, 8, NA_integer_, 19, 17, 11, 10, 20, 2)
-
 ```
 
 
+```{r q2-fit_pois}
+set.seed(42)
+data <-
+  tibble(x = x, y = y) %>% 
+  mutate_at(
+    vars(x), 
+    list(x_impute = ~case_when(
+      is.na(.) ~ runif(1, 0, 3),
+      TRUE ~ .
+    ))
+  ) %>% 
+  mutate_all(as.integer)
+data
+
+fit_pois_impute <- 
+  data %>% 
+  glm(formula(y ~ x_impute), family = 'poisson', data = .)
+fit_pois_impute
+
+fit_pois_miss <- 
+  data %>% 
+  glm(formula(y ~ x), family = 'poisson', data = .)
+fit_pois_miss
+```
 
