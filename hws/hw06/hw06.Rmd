@@ -60,6 +60,411 @@ Sickle-Santanello et al (1988)...
 library(tidyverse)
 ```
 
+```{r model_q1_ex, include=F, echo=F, eval=F}
+model_q1_ex <- glue::glue_collapse('
+  model
+  {	
+    for(i in 1 : N) {
+      times[i] ~ dweib(v,lambda[i])I(censor[i],)
+      lambda[i] <- exp(beta0 + beta1*type[i])
+      S[i]  <- exp(-lambda[i]*pow(times[i],v));
+      f[i]  <- lambda[i]*v*pow(times[i],v-1)*S[i]
+      h[i] <- f[i]/S[i]
+      index[i] <- i	#for plots
+    }	
+    beta0 ~ dnorm(0.0, 0.0001)
+    beta1 ~ dnorm(0.0, 0.0001)
+    v ~ dexp(0.001)
+    
+    # Median survival time 
+    median0 <-  pow(log(2) * exp(-beta0), 1/v)
+    median1 <-  pow(log(2) * exp(-beta0-beta1), 1/v)
+  }
+')
+
+path_model_q1_ex <- 'model_q1_ex.txt'
+write_lines(model_q1_ex, path_model_q1_ex)
+
+data_list_q1_ex <-
+  list(
+    N = 90,
+    type = c(
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0
+    ),
+    censor = c(
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0,  882,  892,  1031,  1033,  1306,  1335, 
+      0,  1452,  1472,  0,  0,  0,  0, 
+      0,  0,  0,  0,  0,  0,  0, 
+      0,  0,  0,  0,  381,  0,  0, 
+      0,  0,  0,  0,  0,  0,  0, 
+      529,  0,  0,  0,  0,  0,  0, 
+      0,  0,  0,  945,  0,  0,  1180, 
+      0,  0,  1277,  1397,  1512,  1519
+    ), 
+    times = c(
+      17,  42,  44,  48,  60,  72,  74, 
+      95,  103,  108,  122,  144,  167,  170, 
+      183,  185,  193,  195,  197,  208,  234, 
+      235,  254,  307,  315,  401,  445,  464, 
+      484,  528,  542,  567,  577,  580,  795, 
+      855,  NA ,  NA,  NA,  NA,  NA,  NA, 
+      1366,  NA,  NA,  1,  63,  105,  129, 
+      182,  216 ,  250,  262,  301,  301,  342, 
+      354,  356,  358,  380,  NA,  383,  383, 
+      388,  394,  408,  460,  489,  499,  524, 
+      NA,  535,  562,  675,  676,  748,  748, 
+      778,  786,  797,  NA,  955,  968,  NA, 
+      1245,  1271,  NA,  NA,  NA,  NA
+    )
+  )
+
+inits_q1_ex <- function() {
+  list(v = 1, beta0 = 0, beta1 = 0)
+}
+
+params_q1 <-
+  c(
+    paste0('beta', c('0', '1')),
+    paste0('median', c('0', '1')),
+    'v',
+    'S',
+    'f',
+    'h'
+  )
+```
+
+```{r res_sim_q1_ex, include=F, echo=F, eval=F}
+# res_sim_q1_ex <-
+#   R2OpenBUGS::bugs(
+#     debug = TRUE,
+#     data = data_list_q1_ex,
+#     inits = inits_q1_ex,
+#     model.file = path_model_q1_ex,
+#     parameters.to.save = params_q1_ex,
+#     DIC = FALSE,
+#     n.chains = 1,
+#     # n.iter = 50000,
+#     n.iter = 5000,
+#     n.burnin = 1000
+#   )
+```
+
+
+```{r path_res_sim_q1}
+path_res_sim_q1 <- 'path_res_sim_q1.rds'
+eval_model_q1 <- !fs::file_exists(path_res_sim_q1)
+```
+
+```{r model_q1}
+model_q1 <- glue::glue_collapse('
+  model {	
+    for(i in 1:n) {
+      times[i] ~ dweib(v, lambda[i]) I(censor[i],)
+      lambda[i] <- exp(beta0 + beta1 * type[i])
+      S[i]  <- exp(-lambda[i] * pow(times[i], v));
+      f[i]  <- lambda[i] * v * pow(times[i], v-1) * S[i]
+      h[i] <- f[i] / S[i]
+      index[i] <- i
+    }	
+    beta0 ~ dnorm(0.0, 0.0001)
+    beta1 ~ dnorm(0.0, 0.0001)
+    v ~ dexp(0.001)
+    
+    # Median survival time 
+    median0 <-  pow(log(2) * exp(-beta0), 1 / v)
+    median1 <-  pow(log(2) * exp(-beta0 - beta1), 1 / v)
+  }
+')
+
+path_model_q1 <- 'model_q1.txt'
+write_lines(model_q1, path_model_q1)
+```
+
+```{r data_list_q1}
+data_raw_q1 <- 
+  'tongue.csv' %>% 
+  read_csv(col_names = FALSE) %>% 
+  set_names(c('type', 'times', 'censor'))
+
+data_q1 <-
+  data_raw_q1 %>% 
+  mutate(idx = row_number()) %>% 
+  group_by(type) %>% 
+  mutate(idx_type = row_number(idx)) %>% 
+  ungroup() %>% 
+  select(idx, idx_type, everything()) %>% 
+  # BUGs doesn't like integers.
+  mutate_all(as.double) %>% 
+  # Need to recode to be like gastic.odc.
+  mutate(dummy = times) %>% 
+  mutate_at(vars(censor), ~ifelse(. == 0, 1, dummy)) %>% 
+  mutate_at(vars(times), ~ifelse(censor == 1, ., NA_real_)) %>% 
+  select(-dummy)
+data_q1
+
+n_q1 <- data_q1 %>% nrow()
+data_list_q1 <-
+  c(list(n = n_q1), as.list(data_q1))
+data_list_q1
+```
+
+```{r idx_first_censor_by_type_q1, include=F, echo=F}
+idx_first_censor_by_type_q1 <-
+  data_q1 %>% 
+  filter(is.na(times)) %>% 
+  group_by(type) %>% 
+  filter(idx_type == first(idx_type)) %>% 
+  ungroup()
+idx_first_censor_by_type_q1 
+```
+
+```{r data_q1-debug, echo=F, include=F, eval=F}
+# # Check that both of these have only one row
+# data_q1 %>%  filter(censor == 1) %>% count(is_not_na = times <= 0)
+# data_q1 %>% filter(censor > 1) %>% count(is_na = is.na(times))
+```
+
+```{r data_list_q1-datapasta, echo=F, include=F, eval=F}
+# data_list_q1$type %>% datapasta::vector_paste()
+# c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
+# data_list_q1$times %>% datapasta::vector_paste()
+# c(1, 3, 3, 4, 10, 13, 13, 16, 16, 24, 26, 27, 28, 30, 30, 32, 41, 51, 65, 67, 70, 72, 73, 77, 91, 93, 96, 100, 104, 157, 167, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 1, 3, 4, 5, 5, 8, 12, 13, 18, 23, 26, 27, 30, 42, 56, 62, 69, 104, 104, 112, 129, 181, NA, NA, NA, NA, NA, NA)
+# data_list_q1$censor %>% datapasta::vector_paste()
+# c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 61, 74, 79, 80, 81, 87, 87, 88, 89, 93, 97, 101, 104, 108, 109, 120, 131, 150, 231, 240, 400, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 8, 67, 76, 104, 176, 231)
+```
+
+```{r res_sim_q1-setup}
+inits_q1 <-  function() {
+  list(v = 1, beta0 = 0, beta1 = 0)
+}
+
+params_q1 <-
+  c(
+    paste0('beta', 0:1),
+    paste0('median', 0:1),
+    'v',
+    'S',
+    'f',
+    'h'
+  )
+```
+
+```{r res_sim_q1, eval=eval_model_q1}
+res_sim_q1 <-
+  R2OpenBUGS::bugs(
+    # debug = TRUE,
+    data = data_list_q1,
+    inits = inits_q1,
+    model.file = path_model_q1,
+    parameters.to.save = params_q1,
+    DIC = FALSE,
+    n.chains = 1,
+    # n.iter = 50000,
+    n.iter = 10000,
+    n.burnin = 1000
+  )
+```
+
+```{r res_sim_q1_export, eval=eval_model_q1}
+write_rds(res_sim_q1, path_res_sim_q1)
+```
+
+```{r res_sim_q1_import}
+res_sim_q1 <- read_rds(path_res_sim_q1)
+```
+
+```{r res_sim_q1_summ-r2openbugs, include=F, echo=F, eval=F}
+res_sim_q1$summary
+```
+
+Below is the model code.
+
+```{r model_q1-show, echo=F}
+model_q1
+```
+
+```{r res_sim_output_manual_q1, include=F, echo=F}
+path_res_sim_output_manual_q1 <- 'q1-output.xlsx'
+res_sim_output_manual_q1 <- 
+  path_res_sim_output_manual_q1 %>% 
+  readxl::read_excel()
+res_sim_output_manual_q1
+```
+
+Below is a summary of the output, truncated because there are lots of monitored variables.
+
+```{r res_sim_summ_q1, include=F, echo=F}
+var_lvls_q1 <-
+  c(
+    paste0('beta', 0:1),
+    paste0('median', 0:1),
+    'v',
+    'deviance',
+    sprintf('%s[%s]', 'S', 1:n_q1),
+    sprintf('%s[%s]', 'f', 1:n_q1),
+    sprintf('%s[%s]', 'h', 1:n_q1)
+  )
+
+res_sim_summ_q1 <-
+  res_sim_output_manual_q1 %>% 
+  # Re-order these.
+  mutate_at(vars(var), ~factor(., levels = var_lvls_q1)) %>% 
+  arrange(var) %>% 
+  # Then re-coerce var back to its original data type.
+  mutate_at(vars(var), as.character)
+res_sim_summ_q1
+```
+
+```{r res_sim_summ_q1-show}
+res_sim_summ_q1
+```
+
+```{r res_sim_summ_q1_filt, include=F, echo=F}
+.n_show_trunc_q1 <- 5
+.idx_start2_q1 <- 53
+.idx_1_q1 <- 1:.n_show_trunc_q1
+.idx_2_q1 <- .idx_start2_q1:(.idx_start2_q1 + .n_show_trunc_q1)
+vars_filt_q1 <-
+  c(
+    var_lvls_q1[1:6],
+    sprintf('%s[%s]', 'S', .idx_1_q1),
+    sprintf('%s[%s]', 'S', .idx_2_q1),
+    sprintf('%s[%s]', 'f', .idx_1_q1),
+    sprintf('%s[%s]', 'h', .idx_1_q1)
+  )
+vars_filt_q1
+
+res_sim_summ_filt_q1 <-
+  res_sim_summ_q1 %>% 
+  filter(var %in% vars_filt_q1)
+res_sim_summ_filt_q1
+```
+
+```{r credible_set_q1 include=F, echo=F}
+beta1_q1 <- res_sim_summ_filt_q1 %>% filter(var == 'beta1')
+beta1_q1
+credible_set_q1 <- c(beta1$val2.5pc, beta1$val97.5pc)
+credible_set_q1
+credible_set_q1_chr <- credible_set_q1 %>% format_num()
+credible_set_q1_chr
+```
+
+<response>
+From the output shown above, we see that 95% credible set for `beta1` is [`r credible_set_chr_q1[1]`, `r credible_set_chr_1[2]`].
+</response>
+
+### Aside: A Closer Evaluation
+
+Below is a subset of the results. Shown are:
+
+1. All of the "non-array" monitored variables;
+2. The first `r .n_show_trunc_q1` of each "array" monitored variable;
+3. The first `r .n_show_trunc_q1` of the second group of `S` monitored variables.
+
+```{r res_sim_summ_filt_q1-show-pre, include=F, echo=F}
+opt_tibble_print_min <- getOption('tibble.print_min')
+n_res_sim_summ_filt_q1 <- res_sim_summ_filt_q1 %>% nrow()
+options(tibble.print_min = n_res_sim_summ_filt_q1)
+```
+
+```{r res_sim_summ_filt_q1-show}
+res_sim_summ_filt_q1
+```
+
+```{r res_sim_summ_filt_q1-show-post, include=F, echo=F}
+options(tibble.print_min = opt_tibble_print_min)
+```
+
+```{r res_sim_summ_filt_s_q1}
+res_sim_summ_filt_s_q1 <-
+  res_sim_summ_q1 %>% 
+  filter(var %>% str_detect('^S')) %>% 
+  mutate(idx = row_number()) %>% 
+  inner_join(data_q1) %>% 
+  mutate_at(vars(type), as.factor) %>% 
+  select(type, idx, idx_type, everything())
+res_sim_summ_filt_s_q1
+```
+
+```{r viz-funcs, include=F, echo=F}
+theme_custom <- function(...) {
+  theme_light(base_size = 14) +
+    theme(
+      legend.position = 'bottom',
+      # legend.title = element_blank(),
+      axis.title.x = element_text(hjust = 1),
+      axis.title.y = element_text(hjust = 1),
+      ...
+    )
+}
+
+export_png <-
+  function(x,
+           path,
+           ...,
+           units = 'in',
+           width = 8,
+           height = 5) {
+    ggsave(
+      plot = x,
+      filename = path,
+      units = units,
+      width = width,
+      height = height,
+      ...
+    )
+  }
+```
+
+Below is a plot of the survival curves corresponding to the two types of tumors (1 for aneuploid tumor, 2 for diploid tumor).
+
+```{r path_viz_s_q1}
+path_viz_s_q1 <- 'viz_s_q1.png'
+eval_viz_s_q1 <- !fs::file_exists(path_viz_s_q1)
+```
+
+```{r viz_s_q1, include=F, echo=F, fig.show=F}
+idx_first_censor_by_type_q1 %>% 
+  mutate_at(vars(type), as.factor) %>% 
+  inner_join(res_sim_summ_filt_s_q1)
+  
+viz_s_q1 <-
+  res_sim_summ_filt_s_q1 %>% 
+  ggplot() +
+  aes(x = idx_type, y = mean, color = type) +
+  geom_line(size = 1.5) +
+  geom_point(
+    data = 
+      idx_first_censor_by_type_q1 %>% 
+      mutate_at(vars(type), as.factor) %>% 
+      inner_join(res_sim_summ_filt_s_q1),
+    size = 5
+  ) + 
+  guides(color = guide_legend(title = 'Tumor Type', override.aes = list(size = 3))) +
+  scale_color_manual(values = c('red', 'blue')) +
+  theme_custom() +
+  labs(
+    subtitle = 'Survival Probability',
+    caption = 'First censored data points shown as points.',
+    x = 'Index of Observation',
+    y = 'Posterior Mean of Survival Probability'
+  )
+viz_s_q1
+```
+
+```{r viz_s_q1_export, eval=eval_viz_s_q1}
+export_png(
+  viz_s_q1,
+  path = path_viz_s_q1,
+)
+```
+
+```{r viz_s_q1-show, include=T}
+knitr::include_graphics(path_viz_s_q1)
+```
+
+
 # 2. Airfreight Breakage with Missing Data..
 
 ## Instructions
@@ -78,7 +483,7 @@ y <- c(NA_integer_, 16, 9, 17, 12, 22, 13, 8, NA_integer_, 19, 17, 11, 10, 20, 2
 ```
 
 
-```{r q2-fit_pois}
+```{r fit_pois}
 set.seed(42)
 data <-
   tibble(x = x, y = y) %>% 

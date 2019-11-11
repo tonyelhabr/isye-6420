@@ -330,7 +330,7 @@ I've implemented `model_1` in OpenBUGs directly as well (in case there were any 
 ![](model_1-output.png)
 
 ```{r res_summ_1_openbugs, eval=F}
-# # Copy-pasted OpenBUGs output to Excel, then copy-pasted to here (renameding first column as `var` with {datapasta} package.
+# # Copy-pasted OpenBUGs output to Excel, then copy-pasted to here (renaming first column as `var` with {datapasta} package.
 # res_summ_1_openbugs <-
 #   tibble() %>% 
 #   rename(` ` = var)
