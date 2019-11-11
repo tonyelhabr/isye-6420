@@ -29,6 +29,7 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE
 )
+options(width = 300)
 ```
 
 ```{r postprocess, include=F, echo=F, cache=F}
@@ -50,7 +51,11 @@ format_num <- function(x, digits = 4) {
 ## Instructions
 
 <instructions>
-Sickle-Santanello et al (1988)...
+Sickle-Santanello et al (1988) provide data on 80 males diagnosed with cancer of the tongue. Data are provided in the file tongue.csv|dat|xlsx. The variables in the dataset are as follows:</br>
++ Tumor DNA profile (1 - aneuploid tumor, 2 - diploid tumor);</br>
++ Time to death or on-study time (in weeks); and</br>
++ Censoring indicator (0=observed, 1=censored)</br></br>
+Fit the regression with tumor profile as covariate. What is the 95% Credible Set for the slope $\beta_1$?
 </instructions>
 
 
@@ -150,20 +155,19 @@ params_q1 <-
 #   )
 ```
 
-
-```{r path_res_sim_q1}
+```{r path_res_sim_q1, include=F, echo=F}
 path_res_sim_q1 <- 'path_res_sim_q1.rds'
 eval_model_q1 <- !fs::file_exists(path_res_sim_q1)
 ```
 
-```{r model_q1}
+```{r model_q1, include=F, echo=F}
 model_q1 <- glue::glue_collapse('
   model {	
     for(i in 1:n) {
       times[i] ~ dweib(v, lambda[i]) I(censor[i],)
       lambda[i] <- exp(beta0 + beta1 * type[i])
-      S[i]  <- exp(-lambda[i] * pow(times[i], v));
-      f[i]  <- lambda[i] * v * pow(times[i], v-1) * S[i]
+      S[i] <- exp(-lambda[i] * pow(times[i], v));
+      f[i] <- lambda[i] * v * pow(times[i], v-1) * S[i]
       h[i] <- f[i] / S[i]
       index[i] <- i
     }	
@@ -172,8 +176,8 @@ model_q1 <- glue::glue_collapse('
     v ~ dexp(0.001)
     
     # Median survival time 
-    median0 <-  pow(log(2) * exp(-beta0), 1 / v)
-    median1 <-  pow(log(2) * exp(-beta0 - beta1), 1 / v)
+    median0 <- pow(log(2) * exp(-beta0), 1 / v)
+    median1 <- pow(log(2) * exp(-beta0 - beta1), 1 / v)
   }
 ')
 
@@ -181,7 +185,7 @@ path_model_q1 <- 'model_q1.txt'
 write_lines(model_q1, path_model_q1)
 ```
 
-```{r data_list_q1}
+```{r data_list_q1, include=F, echo=F}
 data_raw_q1 <- 
   'tongue.csv' %>% 
   read_csv(col_names = FALSE) %>% 
@@ -196,10 +200,10 @@ data_q1 <-
   select(idx, idx_type, everything()) %>% 
   # BUGs doesn't like integers.
   mutate_all(as.double) %>% 
-  # Need to recode to be like gastic.odc.
+  # Need to recode to be like "gastric.odc".
   mutate(dummy = times) %>% 
-  mutate_at(vars(censor), ~ifelse(. == 0, 1, dummy)) %>% 
-  mutate_at(vars(times), ~ifelse(censor == 1, ., NA_real_)) %>% 
+  mutate_at(vars(censor), ~ifelse(. == 0, ., dummy)) %>% 
+  mutate_at(vars(times), ~ifelse(censor == 0, ., NA_real_)) %>% 
   select(-dummy)
 data_q1
 
@@ -227,14 +231,11 @@ idx_first_censor_by_type_q1
 
 ```{r data_list_q1-datapasta, echo=F, include=F, eval=F}
 # data_list_q1$type %>% datapasta::vector_paste()
-# c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
 # data_list_q1$times %>% datapasta::vector_paste()
-# c(1, 3, 3, 4, 10, 13, 13, 16, 16, 24, 26, 27, 28, 30, 30, 32, 41, 51, 65, 67, 70, 72, 73, 77, 91, 93, 96, 100, 104, 157, 167, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 1, 3, 4, 5, 5, 8, 12, 13, 18, 23, 26, 27, 30, 42, 56, 62, 69, 104, 104, 112, 129, 181, NA, NA, NA, NA, NA, NA)
 # data_list_q1$censor %>% datapasta::vector_paste()
-# c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 61, 74, 79, 80, 81, 87, 87, 88, 89, 93, 97, 101, 104, 108, 109, 120, 131, 150, 231, 240, 400, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 8, 67, 76, 104, 176, 231)
 ```
 
-```{r res_sim_q1-setup}
+```{r res_sim_q1-setup, include=F, echo=F}
 inits_q1 <-  function() {
   list(v = 1, beta0 = 0, beta1 = 0)
 }
@@ -250,35 +251,39 @@ params_q1 <-
   )
 ```
 
-```{r res_sim_q1, eval=eval_model_q1}
-res_sim_q1 <-
-  R2OpenBUGS::bugs(
-    # debug = TRUE,
-    data = data_list_q1,
-    inits = inits_q1,
-    model.file = path_model_q1,
-    parameters.to.save = params_q1,
-    DIC = FALSE,
-    n.chains = 1,
-    # n.iter = 50000,
-    n.iter = 10000,
-    n.burnin = 1000
-  )
+```{r res_sim_q1, include=F, echo=F, eval=eval_model_q1}
+# res_sim_q1 <-
+#   R2OpenBUGS::bugs(
+#     # debug = TRUE,
+#     data = data_list_q1,
+#     inits = inits_q1,
+#     model.file = path_model_q1,
+#     parameters.to.save = params_q1,
+#     DIC = FALSE,
+#     n.chains = 1,
+#     # n.iter = 50000,
+#     n.iter = 10000,
+#     n.burnin = 1000
+#   )
 ```
 
-```{r res_sim_q1_export, eval=eval_model_q1}
-write_rds(res_sim_q1, path_res_sim_q1)
+```{r res_sim_q1_export, include=F, echo=F, eval=eval_model_q1}
+# write_rds(res_sim_q1, path_res_sim_q1)
 ```
 
-```{r res_sim_q1_import}
-res_sim_q1 <- read_rds(path_res_sim_q1)
+```{r res_sim_q1_import, include=F, echo=F}
+# res_sim_q1 <- read_rds(path_res_sim_q1)
 ```
 
 ```{r res_sim_q1_summ-r2openbugs, include=F, echo=F, eval=F}
-res_sim_q1$summary
+# res_sim_q1$summary
 ```
 
-Below is the model code.
+Below is the model code. Note the following.
+
++ The model code is very similar to that from the "gastric.odc" example from lecture. Notably, we use a Weibull prior for `times`. (Well, really, since we define the initial value `v = 1`, it is initially equivalent to an exponential distribution.)
++ The regression here is a Poisson regression.
++ The data is modified to be in a workable format for OpenBUGs. Specifically, the `times` values corresponding to censored observations (i.e. `censor = 1`) are re-defined as `NA`, and the `censor` values for these observations are re-defined to the `times` values (and, otherwise, left as 0).
 
 ```{r model_q1-show, echo=F}
 model_q1
@@ -292,7 +297,7 @@ res_sim_output_manual_q1 <-
 res_sim_output_manual_q1
 ```
 
-Below is a summary of the output, truncated because there are lots of monitored variables.
+Below is a summary of the output, truncated because there are lots of monitored parameters.
 
 ```{r res_sim_summ_q1, include=F, echo=F}
 var_lvls_q1 <-
@@ -341,26 +346,29 @@ res_sim_summ_filt_q1 <-
 res_sim_summ_filt_q1
 ```
 
-```{r credible_set_q1 include=F, echo=F}
+```{r credible_set_q1, include=F, echo=F}
 beta1_q1 <- res_sim_summ_filt_q1 %>% filter(var == 'beta1')
 beta1_q1
-credible_set_q1 <- c(beta1$val2.5pc, beta1$val97.5pc)
+beta1_mean_q1 <- beta1_q1 %>% pull(mean)
+beta1_mean_q1
+beta1_mean_chr_q1 <- beta1_mean_q1 %>% format_num()
+beta1_mean_chr_q1
+credible_set_q1 <- c(beta1_q1$val2.5pc, beta1_q1$val97.5pc)
 credible_set_q1
-credible_set_q1_chr <- credible_set_q1 %>% format_num()
-credible_set_q1_chr
+credible_set_chr_q1 <- credible_set_q1 %>% format_num()
+credible_set_chr_q1
 ```
 
-<response>
-From the output shown above, we see that 95% credible set for `beta1` is [`r credible_set_chr_q1[1]`, `r credible_set_chr_1[2]`].
-</response>
+
+From the output shown above, we see that the posterior mean for `beta1` is `r beta1_mean_chr_q1`, <response>and we see that 95% credible set for `beta1` is [`r credible_set_chr_q1[1]`, `r credible_set_chr_q1[2]`].</response>
 
 ### Aside: A Closer Evaluation
 
 Below is a subset of the results. Shown are:
 
-1. All of the "non-array" monitored variables;
-2. The first `r .n_show_trunc_q1` of each "array" monitored variable;
-3. The first `r .n_show_trunc_q1` of the second group of `S` monitored variables.
+1. All of the "non-array" monitored parameters (including deviance);
+2. The first `r .n_show_trunc_q1` estimates of each "array" monitored parameters;
+3. The first `r .n_show_trunc_q1` of the second group of `S` monitored parameters.
 
 ```{r res_sim_summ_filt_q1-show-pre, include=F, echo=F}
 opt_tibble_print_min <- getOption('tibble.print_min')
@@ -376,7 +384,7 @@ res_sim_summ_filt_q1
 options(tibble.print_min = opt_tibble_print_min)
 ```
 
-```{r res_sim_summ_filt_s_q1}
+```{r res_sim_summ_filt_s_q1, include=F, echo=F}
 res_sim_summ_filt_s_q1 <-
   res_sim_summ_q1 %>% 
   filter(var %>% str_detect('^S')) %>% 
@@ -419,7 +427,7 @@ export_png <-
 
 Below is a plot of the survival curves corresponding to the two types of tumors (1 for aneuploid tumor, 2 for diploid tumor).
 
-```{r path_viz_s_q1}
+```{r path_viz_s_q1, include=F, echo=F}
 path_viz_s_q1 <- 'viz_s_q1.png'
 eval_viz_s_q1 <- !fs::file_exists(path_viz_s_q1)
 ```
@@ -453,14 +461,14 @@ viz_s_q1 <-
 viz_s_q1
 ```
 
-```{r viz_s_q1_export, eval=eval_viz_s_q1}
+```{r viz_s_q1_export, include=F, echo=F, eval=eval_viz_s_q1}
 export_png(
   viz_s_q1,
   path = path_viz_s_q1,
 )
 ```
 
-```{r viz_s_q1-show, include=T}
+```{r viz_s_q1-show, include=T, echo=F}
 knitr::include_graphics(path_viz_s_q1)
 ```
 
@@ -481,6 +489,85 @@ A substance used in...
 x <- c(2, 1, 0, 2, NA_integer_, 3, 1, 0, 1, 2, 3, 0, 1, NA_integer_, NA_integer_)
 y <- c(NA_integer_, 16, 9, 17, 12, 22, 13, 8, NA_integer_, 19, 17, 11, 10, 20, 2)
 ```
+
+```{r path_res_sim_q2, include=F, echo=F}
+path_res_sim_q2 <- 'path_res_sim_q2.rds'
+eval_model_q2 <- !fs::file_exists(path_res_sim_q2)
+```
+
+```{r model_q2, include=F, echo=F}
+model_q2 <- glue::glue_collapse('
+  model {	
+    for(i in 1:n) {
+      y[i] ~ dpois(mu[i])
+      log(mu[i]) <- beta0 + beta1 * log(x[i])
+    }	
+    beta0 ~ dnorm(0, 0.0001)
+    beta1 ~ dnorm(0, 0.0001)
+  }
+')
+
+path_model_q2 <- 'model_q2.txt'
+write_lines(model_q1, path_model_q2)
+```
+
+```{r data_list_q2, include=F, echo=F}
+data_raw_q2 <- 
+  tibble(
+    x = x,
+    y = y
+  )
+
+data_q2 <-
+  data_raw_q2 %>% 
+  mutate(x_dummy = x, y_dummy = y) %>% 
+  mutate_at(vars(y_dummy), 
+
+n_q2 <- data_q2 %>% nrow()
+data_list_q2 <-
+  c(list(n = n_q2), as.list(data_q2))
+data_list_q1
+```
+
+```{r data_list_q2-datapasta, echo=F, include=F, eval=F}
+# data_list_q2$type %>% datapasta::vector_paste()
+# data_list_q2$times %>% datapasta::vector_paste()
+# data_list_q2$censor %>% datapasta::vector_paste()
+```
+
+```{r res_sim_q2-setup, include=F, echo=F}
+inits_q2 <-  function() {
+  list(v = 1, beta0 = 0, betq2 = 0)
+}
+
+params_q2 <-
+  c(
+    paste0('beta', 0:1),
+    paste0('median', 0:1),
+    'v',
+    'S',
+    'f',
+    'h'
+  )
+```
+
+```{r res_sim_q2, include=F, echo=F, eval=eval_model_q2}
+# res_sim_q2 <-
+#   R2OpenBUGS::bugs(
+#     # debug = TRUE,
+#     data = data_list_q2,
+#     inits = inits_q2,
+#     model.file = path_model_q2,
+#     parameters.to.save = params_q2,
+#     DIC = FALSE,
+#     n.chains = 1,
+#     # n.iter = 50000,
+#     n.iter = 10000,
+#     n.burnin = 1000
+#   )
+```
+
+
 
 
 ```{r fit_pois}
