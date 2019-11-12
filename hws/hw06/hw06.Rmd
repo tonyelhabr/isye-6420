@@ -52,9 +52,9 @@ format_num <- function(x, digits = 4) {
 
 <instructions>
 Sickle-Santanello et al (1988) provide data on 80 males diagnosed with cancer of the tongue. Data are provided in the file tongue.csv|dat|xlsx. The variables in the dataset are as follows:</br>
-+ Tumor DNA profile (1 - aneuploid tumor, 2 - diploid tumor);</br>
-+ Time to death or on-study time (in weeks); and</br>
-+ Censoring indicator (0=observed, 1=censored)</br></br>
+<ul><li>Tumor DNA profile (1 - aneuploid tumor, 2 - diploid tumor);</li>
+<li>Time to death or on-study time (in weeks); and</li>
+<li>Censoring indicator (0=observed, 1=censored)</li></ul>
 Fit the regression with tumor profile as covariate. What is the 95% Credible Set for the slope $\beta_1$?
 </instructions>
 
@@ -220,13 +220,14 @@ idx_first_censor_by_type_q1 <-
   group_by(type) %>% 
   filter(idx_type == first(idx_type)) %>% 
   ungroup()
-idx_first_censor_by_type_q1 
+idx_first_censor_by_type_q1
 ```
 
 ```{r data_q1-debug, echo=F, include=F, eval=F}
-# # Check that both of these have only one row
+data_q1 %>% count(type)
+# # Check that both of these have only one row per group.
 # data_q1 %>%  filter(censor == 1) %>% count(is_not_na = times <= 0)
-# data_q1 %>% filter(censor > 1) %>% count(is_na = is.na(times))
+# data_q1 %>% group_by(type) %>% filter(censor > 1) %>% count(is_na = is.na(times))
 ```
 
 ```{r data_list_q1-datapasta, echo=F, include=F, eval=F}
@@ -279,14 +280,36 @@ params_q1 <-
 # res_sim_q1$summary
 ```
 
-Below is the model code. Note the following.
+Below is the model code.
 
-+ The model code is very similar to that from the "gastric.odc" example from lecture. Notably, we use a Weibull prior for `times`. (Well, really, since we define the initial value `v = 1`, it is initially equivalent to an exponential distribution.)
-+ The regression here is a Poisson regression.
-+ The data is modified to be in a workable format for OpenBUGs. Specifically, the `times` values corresponding to censored observations (i.e. `censor = 1`) are re-defined as `NA`, and the `censor` values for these observations are re-defined to the `times` values (and, otherwise, left as 0).
+```
+model {	
+  for(i in 1:n) {
+    times[i] ~ dweib(v, lambda[i]) I(censor[i],)
+    lambda[i] <- exp(beta0 + beta1 * type[i])
+    S[i] <- exp(-lambda[i] * pow(times[i], v));
+    f[i]  <- lambda[i] * v * pow(times[i], v-1) * S[i]
+    h[i] <- f[i] / S[i]
+    index[i] <- i
+  }	
+  beta0 ~ dnorm(0.0, 0.0001)
+  beta1 ~ dnorm(0.0, 0.0001)
+  v ~ dexp(0.001)
+  
+  median0 <- pow(log(2) * exp(-beta0), 1 / v)
+  median1 <- pow(log(2) * exp(-beta0 - beta1), 1 / v)
+}
 
-```{r model_q1-show, echo=F}
-model_q1
+# data
+list(
+  n = 80,
+  type = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2),
+  times = c(1, 3, 3, 4, 10, 13, 13, 16, 16, 24, 26, 27, 28, 30, 30, 32, 41, 51, 65, 67, 70, 72, 73, 77, 91, 93, 96, 100, 104, 157, 167, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 1, 3, 4, 5, 5, 8, 12, 13, 18, 23, 26, 27, 30, 42, 56, 62, 69, 104, 104, 112, 129, 181, NA, NA, NA, NA, NA, NA),
+  censor = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 61, 74, 79, 80, 81, 87, 87, 88, 89, 93, 97, 101, 104, 108, 109, 120, 131, 150, 231, 240, 400, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 67, 76, 104, 176, 231)
+)
+
+# inits
+list(v = 1, beta0 = 0, beta1 = 0)
 ```
 
 ```{r res_sim_output_manual_q1, include=F, echo=F}
@@ -296,6 +319,11 @@ res_sim_output_manual_q1 <-
   readxl::read_excel()
 res_sim_output_manual_q1
 ```
+Note the following about the model code.
+
++ The model code is very similar to that from the "gastric.odc" example from lecture. Notably, we use a Weibull prior for `times`. (Well, really, since we define the initial value `v = 1`, it is initially equivalent to an exponential distribution.)
++ The regression here is a Poisson regression.
++ The data is modified to be in a workable format for OpenBUGs. Specifically, the `times` values corresponding to censored observations (i.e. `censor = 1`) are re-defined as `NA`, and the `censor` values for these observations are re-defined to the `times` values (and, otherwise, left as 0).
 
 Below is a summary of the output, truncated because there are lots of monitored parameters.
 
@@ -327,16 +355,16 @@ res_sim_summ_q1
 
 ```{r res_sim_summ_q1_filt, include=F, echo=F}
 .n_show_trunc_q1 <- 5
-.idx_start2_q1 <- 53
+.idx_start2_q1 <- 53 # Could find this programmatically, but whatever.
 .idx_1_q1 <- 1:.n_show_trunc_q1
 .idx_2_q1 <- .idx_start2_q1:(.idx_start2_q1 + .n_show_trunc_q1)
 vars_filt_q1 <-
   c(
-    var_lvls_q1[1:6],
+    # var_lvls_q1[1:6],
     sprintf('%s[%s]', 'S', .idx_1_q1),
-    sprintf('%s[%s]', 'S', .idx_2_q1),
-    sprintf('%s[%s]', 'f', .idx_1_q1),
-    sprintf('%s[%s]', 'h', .idx_1_q1)
+    sprintf('%s[%s]', 'S', .idx_2_q1) # ,
+    # sprintf('%s[%s]', 'f', .idx_1_q1),
+    # sprintf('%s[%s]', 'h', .idx_1_q1)
   )
 vars_filt_q1
 
@@ -360,15 +388,11 @@ credible_set_chr_q1
 ```
 
 
-From the output shown above, we see that the posterior mean for `beta1` is `r beta1_mean_chr_q1`, <response>and we see that 95% credible set for `beta1` is [`r credible_set_chr_q1[1]`, `r credible_set_chr_q1[2]`].</response>
+From the output shown above, we see that the posterior mean for `beta1` is `r beta1_mean_chr_q1`, <response>and we see that 95% CS is [`r credible_set_chr_q1[1]`, `r credible_set_chr_q1[2]`].</response>
 
 ### Aside: A Closer Evaluation
 
-Below is a subset of the results. Shown are:
-
-1. All of the "non-array" monitored parameters (including deviance);
-2. The first `r .n_show_trunc_q1` estimates of each "array" monitored parameters;
-3. The first `r .n_show_trunc_q1` of the second group of `S` monitored parameters.
+Below is a subset of the results from before. Specifically, the first `r .n_show_trunc_q1` estimates of the `S` "array" of monitored parameters corresponding to each tumor `type` group are shown.
 
 ```{r res_sim_summ_filt_q1-show-pre, include=F, echo=F}
 opt_tibble_print_min <- getOption('tibble.print_min')
@@ -425,7 +449,7 @@ export_png <-
   }
 ```
 
-Below is a plot of the survival curves corresponding to the two types of tumors (1 for aneuploid tumor, 2 for diploid tumor).
+Below is a plot of the survival curves corresponding to the two types of tumors (1 for aneuploid tumor, 2 for diploid tumor). (These are the `S` parameter estimates.)
 
 ```{r path_viz_s_q1, include=F, echo=F}
 path_viz_s_q1 <- 'viz_s_q1.png'
@@ -433,21 +457,17 @@ eval_viz_s_q1 <- !fs::file_exists(path_viz_s_q1)
 ```
 
 ```{r viz_s_q1, include=F, echo=F, fig.show=F}
-idx_first_censor_by_type_q1 %>% 
-  mutate_at(vars(type), as.factor) %>% 
-  inner_join(res_sim_summ_filt_s_q1)
-  
 viz_s_q1 <-
   res_sim_summ_filt_s_q1 %>% 
   ggplot() +
   aes(x = idx_type, y = mean, color = type) +
-  geom_line(size = 1.5) +
+  geom_line(size = 1.1) +
   geom_point(
     data = 
       idx_first_censor_by_type_q1 %>% 
       mutate_at(vars(type), as.factor) %>% 
       inner_join(res_sim_summ_filt_s_q1),
-    size = 5
+    size = 3
   ) + 
   guides(color = guide_legend(title = 'Tumor Type', override.aes = list(size = 3))) +
   scale_color_manual(values = c('red', 'blue')) +
@@ -472,8 +492,10 @@ export_png(
 knitr::include_graphics(path_viz_s_q1)
 ```
 
+We observe that there is a noticeable "jump" in the survival probability curve for the second tumor type group. This observation corresponds to the first censored value in the group. From my understanding, such a phenomenon is not necessarily impossible for an experiment where there is a relatively significant sample that is censored (here, 6 of 28 for the second group). Nonetheless, the "pseudo-discontinuity" suggests that there could be a better way of modeling the group of observations. But, since this is not asked of us, I leave this for another time.
 
-# 2. Airfreight Breakage with Missing Data..
+
+# 2. Airfreight Breakage with Missing Data.
 
 ## Instructions
 
@@ -484,8 +506,7 @@ A substance used in...
 
 ## Response
 
-
-```{r q2-0}
+```{r q2-0, include=F, echo=F}
 x <- c(2, 1, 0, 2, NA_integer_, 3, 1, 0, 1, 2, 3, 0, 1, NA_integer_, NA_integer_)
 y <- c(NA_integer_, 16, 9, 17, 12, 22, 13, 8, NA_integer_, 19, 17, 11, 10, 20, 2)
 ```
@@ -497,13 +518,18 @@ eval_model_q2 <- !fs::file_exists(path_res_sim_q2)
 
 ```{r model_q2, include=F, echo=F}
 model_q2 <- glue::glue_collapse('
-  model {	
+  model{
     for(i in 1:n) {
-      y[i] ~ dpois(mu[i])
-      log(mu[i]) <- beta0 + beta1 * log(x[i])
-    }	
+      y[i] ~ dpois(lambda[i])
+      log(lambda[i]) <- beta0 + beta1 * x[i]
+    }
+    for(i in 1:n) {
+      x[i] ~ dpois(2)
+    }
     beta0 ~ dnorm(0, 0.0001)
     beta1 ~ dnorm(0, 0.0001)
+    lambdahat <- exp(beta0 + beta1)
+    log(pred1) <- beta0 + beta1 * (4)
   }
 ')
 
@@ -517,44 +543,37 @@ data_raw_q2 <-
     x = x,
     y = y
   )
-
-data_q2 <-
-  data_raw_q2 %>% 
-  mutate(x_dummy = x, y_dummy = y) %>% 
-  mutate_at(vars(y_dummy), 
-
+data_q2 <- data_raw_q2
 n_q2 <- data_q2 %>% nrow()
 data_list_q2 <-
   c(list(n = n_q2), as.list(data_q2))
-data_list_q1
+data_list_q2
 ```
 
 ```{r data_list_q2-datapasta, echo=F, include=F, eval=F}
-# data_list_q2$type %>% datapasta::vector_paste()
-# data_list_q2$times %>% datapasta::vector_paste()
-# data_list_q2$censor %>% datapasta::vector_paste()
+# data_list_q2$x %>% datapasta::vector_paste()
+# data_list_q2$y %>% datapasta::vector_paste()
 ```
 
 ```{r res_sim_q2-setup, include=F, echo=F}
 inits_q2 <-  function() {
-  list(v = 1, beta0 = 0, betq2 = 0)
+  list(beta0 = 0, beta1 = 0)
 }
 
 params_q2 <-
   c(
+    'x',
+    'y',
     paste0('beta', 0:1),
-    paste0('median', 0:1),
-    'v',
-    'S',
-    'f',
-    'h'
+    'lambdahat',
+    'pred1'
   )
 ```
 
 ```{r res_sim_q2, include=F, echo=F, eval=eval_model_q2}
 # res_sim_q2 <-
 #   R2OpenBUGS::bugs(
-#     # debug = TRUE,
+#     debug = TRUE,
 #     data = data_list_q2,
 #     inits = inits_q2,
 #     model.file = path_model_q2,
@@ -567,31 +586,167 @@ params_q2 <-
 #   )
 ```
 
-
-
-
-```{r fit_pois}
-set.seed(42)
-data <-
-  tibble(x = x, y = y) %>% 
-  mutate_at(
-    vars(x), 
-    list(x_impute = ~case_when(
-      is.na(.) ~ runif(1, 0, 3),
-      TRUE ~ .
-    ))
-  ) %>% 
-  mutate_all(as.integer)
-data
-
-fit_pois_impute <- 
-  data %>% 
-  glm(formula(y ~ x_impute), family = 'poisson', data = .)
-fit_pois_impute
-
-fit_pois_miss <- 
-  data %>% 
-  glm(formula(y ~ x), family = 'poisson', data = .)
-fit_pois_miss
+```{r res_sim_output_manual_q2, include=F, echo=F}
+path_res_sim_output_manual_q2 <- 'q2-output.xlsx'
+res_sim_output_manual_q2 <- 
+  path_res_sim_output_manual_q2 %>% 
+  readxl::read_excel()
+res_sim_output_manual_q2
 ```
+
+The model code below is written so as to answer all parts of this question. (In particular, `pred1` corresponds to the prediction asked for in (c).
+
+```
+model {
+  for(i in 1:n) {
+    y[i] ~ dpois(lambda[i])
+    log(lambda[i]) <- beta0 + beta1 * x[i]
+  }
+  for(i in 1:n) {
+    x[i] ~ dpois(2)
+  }
+  beta0 ~ dnorm(0, 0.0001)
+  beta1 ~ dnorm(0, 0.0001)
+  lambdahat <- exp(beta0 + beta1)
+  log(pred1) <- beta0 + beta1 * (4)
+}
+
+# data
+list(
+  n = 16,
+  x = c(2, 1, 0, 2, NA, 3, 1, 0, 1, 2, 3, 0, 1, NA, NA, 4),
+  y = c(NA, 16, 9, 17, 12, 22, 13, 8, NA, 19, 17, 11, 10, 20, 2, NA)
+)
+
+# inits
+list(
+  beta0 = 0,
+  beta1 = 0
+)
+```
+
+
+Note that we make the assumption that the probability of a value missing does not depend on the data that is missing, i.e. we assume that the data is missing at random (MAR). Thus, we simply specify missing $X$ using a reasonable non-negative distribution, such as $\mathcal{Pois}(2)$, as suggested in the hint. (This corresponds to `x[i] ~ dpois(2)` in the model code.) If we did not assume this, then we would need to change the model code from its current form.
+
+Below is a summary of the output from OpenBUGs.
+
+```{r res_sim_summ_q2, include=F, echo=F}
+res_sim_summ_q2 <- res_sim_output_manual_q2
+res_sim_summ_q2
+```
+
+```{r res_sim_summ_q2-show, echo=F}
+res_sim_summ_q2
+```
+
+```{r .pull_xy_est, include=F, echo=F}
+.pull_est <- function(data, .var) {
+  data %>% filter(var == .var) %>% pull(mean)
+}
+.pull_est_q2 <- purrr::partial(.pull_est, data = res_sim_summ_q2, ... = )
+.pull_xy_est <- function(data, prefix = c('x', 'y'), idx) {
+  prefix <- match.arg(prefix)
+  data %>% filter(var == sprintf('%s[%s]', prefix, idx)) %>% pull(mean)
+}
+.pull_x_est_q2 <- purrr::partial(.pull_xy_est, data = res_sim_summ_q2, prefix = 'x', ... = )
+.pull_y_est_q2 <- purrr::partial(.pull_xy_est, data = res_sim_summ_q2, prefix = 'y', ... = )
+```
+
+### a
+
+```{r deviance_q2, include=F, echo=F}
+deviance_q2 <- .pull_est_q2('deviance')
+deviance_q2
+```
+
+As shown in the output above, <response>the deviance of the fit is `r deviance_q2`.</response>
+
+
+### b
+
+To find a posterior estimate and 95% CS for $X = 4$, we can modify the model data (and leave the model code as is) to include a 16th observation where `x = 4` and `y = NA`. (We must also change `n = 15` to `n = 16`.) Below is a summary of the output for this modified model. We are interested in `y[16]`.
+
+```{r res_sim_output_manual_q2b, include=F, echo=F}
+path_res_sim_output_manual_q2b <- 'q2-b-output.xlsx'
+res_sim_output_manual_q2b <- 
+  path_res_sim_output_manual_q2b %>% 
+  readxl::read_excel()
+res_sim_output_manual_q2b
+```
+
+```{r res_sim_summ_q2b, include=F, echo=F}
+res_sim_summ_q2b <- res_sim_output_manual_q2b
+res_sim_summ_q2b
+```
+
+```{r res_sim_summ_q2b-show, echo=F}
+res_sim_summ_q2b
+```
+
+
+```{r pred1_q2b-old, include=F, echo=F}
+# beta0_q2 <- .pull_est_q2('beta0')
+# beta0_q2
+# beta1_q2 <- .pull_est_q2('beta1')
+# beta1_q2
+# x_pred_q2 <- 4
+# y_pred_q2 <- exp(beta0_q2 + beta1_q2 * x_pred_q2)
+# y_pred_q2
+# lambdahat_q2 <- .pull_est_q2('lambdahat')
+# lambdahat_q2
+# qnorm(0.975, y_pred_q2)
+# qnorm(0.025, y_pred_q2)
+```
+
+```{r credible_set_q2b, include=F, echo=F}
+pred1_q2b <- res_sim_summ_q2b %>% filter(var == 'y[16]')
+pred1_q2b
+pred1_mean_q2b <- pred1_q2b %>% pull(mean)
+pred1_mean_q2b
+credible_set_q2b <- c(pred1_q2b$val2.5pc, pred1_q2b$val97.5pc)
+credible_set_q2b
+```
+
+From the output shown above, we see that the posterior mean for `y[16]` is `r pred1_mean_q2b`, <response>and we see that 95% CS is [`r credible_set_q2b[1]`, `r credible_set_q2b[2]`].</response>
+
+### c
+
+```{r credible_set_pred1_q2, include=F, echo=F}
+pred1_q2 <- res_sim_summ_q2 %>% filter(var == 'pred1')
+credible_set_pred1_q2 <- c(pred1_q2$val2.5pc, pred1_q2$val97.5pc)
+credible_set_pred1_q2
+pred1_q2c <- .pull_est_q2('pred1')
+pred1_q2c
+```
+
+<response>
+The prediction for $X = 4$ is indicated by `pred1` in the output shown above (a). It has a posterior mean of `r pred1_q2c `. Note that this prediction has a CS of [`r credible_set_pred1_q2[1]`, `r credible_set_pred1_q2[2]`]. Note that the CS here is smallerthan that found in (b). This is because the CS in (b) accounts for uncertainty about the prediction `y[16]`, as well as the uncertainty about $\sigma$; on the other hand, the CS here only accounts for uncertaintly about the prediction `pred1`. </response>
+
+Drawing upon frequentist statistics, one might say that the interval in (b) is analogous to a prediction interval, whereas the interval here is analogous to a confidence interval. Note that prediction intervals are always equal to or greater than confidence intervals.
+
+<hide>
+See p. 187 at https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/bugsbook_chapter9.pdf for more about this explanation.
+</hide>
+
+### d
+
+```{r xy_ests_q2, include=F, echo=F}
+x_5_q2 <- .pull_x_est_q2(5)
+x_14_q2 <- .pull_x_est_q2(14)
+x_15_q2 <- .pull_x_est_q2(15)
+y_1_q2 <- .pull_y_est_q2(1)
+y_9_q2 <- .pull_y_est_q2(9)
+```
+
+As shown in the output above (a), <response>the estimates (of the posterior means) are as follows.</response>
+
++ $X_{5}$ = `r x_5_q2`
+
++ $X_{14}$ = `r x_14_q2`
+
++ $X_{15}$ = `r x_15_q2`
+
++ $Y_{1}$ = `r y_1_q2`
+
++ $Y_{9}$ = `r y_9_q2`.
 
