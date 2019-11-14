@@ -39,8 +39,8 @@ model <- glue::glue_collapse('model {
   for(s in 1:n_season) {
     for(h in 1:n_tm) {
       for(a in 1:n_tm) {
-        lambda_h[s, h, a] <- exp(lvl_h[s] + z[s, h] - z[s, a])
-        lambda_a[s, h, a] <- exp(lvl_a[s] + z[s, a] - z[s, h])
+        lambda_h[s, h, a] <- exp(baseline_h[s] + z[s, h] - z[s, a])
+        lambda_a[s, h, a] <- exp(baseline_a[s] + z[s, a] - z[s, h])
       }
     }
   }
@@ -50,24 +50,24 @@ model <- glue::glue_collapse('model {
     z[1, t] ~ dnorm(z_all, tau_all)
   }
     
-  z_all ~ dnorm(0, 0.0625)
+  z_all ~ dnorm(0, 0.25)
   tau_all <- 1 / pow(sigma_all, 2)
-  sigma_all ~ dunif(0, 3)
+  sigma_all ~ dunif(0, 2)
   
-  lvl_h[1] ~ dnorm(0, 0.0625)
-  lvl_a[1] ~ dnorm(0, 0.0625)
+  baseline_h[1] ~ dnorm(0, 0.25)
+  baseline_a[1] ~ dnorm(0, 0.25)
     
   for(s in 2:n_season) {
     z[s, 1] <- 0 
     for(t in 2:n_tm) {
       z[s, t] ~ dnorm(z[s - 1, t], tau_s)
     }
-    lvl_h[s] ~ dnorm(lvl_h[s - 1], tau_s)
-    lvl_a[s] ~ dnorm(lvl_a[s - 1], tau_s)
+    baseline_h[s] ~ dnorm(baseline_h[s - 1], tau_s)
+    baseline_a[s] ~ dnorm(baseline_a[s - 1], tau_s)
   }
   
   tau_s <- 1 / pow(sigma_s, 2) 
-  sigma_s ~ dunif(0, 3) 
+  sigma_s ~ dunif(0, 2) 
 }')
 
 
@@ -83,19 +83,15 @@ if(fs::file_exists(path_res_sim)) {
   inits <- NULL
   params <-
     c(
-      paste0('lvl_', c('h', 'a')),
-      paste0(c('', 'grp_'), 'z'),
-      paste0(c('grp_', 's_'), 'sigma')
+      paste0('baseline', c('_a', '_h')),
+      paste0('sigma_all'),
+      paste0('z', c('', '_all'))
     )
-  # params <- 
-  #   c(
-  #     paste0('lvl_', c('h', 'a'))
-  #   )
   params
   
   res_sim <-
     R2OpenBUGS::bugs(
-      # debug = TRUE,
+      debug = TRUE,
       data = data_list,
       inits = inits,
       model.file = path_model,

@@ -1,0 +1,39 @@
+model {
+  for(g in 1:n_gm) {
+    g_h[g] ~ dpois(lambda_h[season[g], tm_h[g], tm_a[g]])
+    g_a[g] ~ dpois(lambda_a[season[g], tm_h[g], tm_a[g]])
+  }
+  
+  for(s in 1:n_season) {
+    for(h in 1:n_tm) {
+      for(a in 1:n_tm) {
+        lambda_h[s, h, a] <- exp(baseline_h[s] + z[s, h] - z[s, a])
+        lambda_a[s, h, a] <- exp(baseline_a[s] + z[s, a] - z[s, h])
+      }
+    }
+  }
+    
+  z[1, 1] <- 0 
+  for(t in 2:n_tm) {
+    z[1, t] ~ dnorm(z_all, tau_all)
+  }
+    
+  z_all ~ dnorm(0, 0.25)
+  tau_all <- 1 / pow(sigma_all, 2)
+  sigma_all ~ dunif(0, 2)
+  
+  baseline_h[1] ~ dnorm(0, 0.25)
+  baseline_a[1] ~ dnorm(0, 0.25)
+    
+  for(s in 2:n_season) {
+    z[s, 1] <- 0 
+    for(t in 2:n_tm) {
+      z[s, t] ~ dnorm(z[s - 1, t], tau_s)
+    }
+    baseline_h[s] ~ dnorm(baseline_h[s - 1], tau_s)
+    baseline_a[s] ~ dnorm(baseline_a[s - 1], tau_s)
+  }
+  
+  tau_s <- 1 / pow(sigma_s, 2) 
+  sigma_s ~ dunif(0, 2) 
+}

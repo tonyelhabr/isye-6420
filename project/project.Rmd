@@ -1,9 +1,8 @@
 ---
-title: 'ISYE 6420: Project'
+title: 'Modeling English Premier League (EPL) Game Outcomes'
 author: 'aelhabr3'
 output:
   html_document:
-    css: ../hws/styles_hw.css
     theme: cosmo
     highlight: haddock
     toc: false
@@ -15,10 +14,9 @@ knitr::opts_chunk$set(
   rows.print = 30,
   include = FALSE,
   echo = FALSE,
-  cache = TRUE,
-  # cache.lazy = FALSE,
-  include = TRUE,
-  fig.show = 'asis',
+  # cache = TRUE,
+  cache.lazy = FALSE,
+  fig.show = 'hide',
   fig.align = 'center',
   fig.width = 8,
   # size = 'small',
@@ -40,8 +38,67 @@ options(width = 200)
 # options(tibble.print_min = 30)
 ```
 
+<style>
+body, td, blockquote {
+  font-size: 14px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, h1.title {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+}
+code.r {
+  font-size: 12px;
+}
+img {
+  display: block;
+  margin: 0 auto;
+}
+.table {
+  width: 0%;
+  margin-left: auto;
+  margin-right: auto;
+}
+blockquote {
+  font-style: italic;
+}
+
+/* General customization. */
+pre {
+  font-size: 12px;
+  line-height: 1.05;
+}
+ref {
+  font-style: italic;
+}
+instructions {
+  font-style: italic;
+}
+response {
+  font-weight: bold;
+}
+hide {
+  display: none;
+}
+img {
+  width: 70%;
+}
+
+@media print {
+  .pagebreak {
+    display: block;
+    page-break-before: always;
+  }
+}
+
+</style>
+
 ```{r setup-appendix}
 library(tidyverse)
+```
+
+```{r setup-unused}
 create_kable <-
   function (data,
             n_show = 30L,
@@ -69,18 +126,20 @@ create_kable <-
   }
 ```
 
+<div class="pagebreak"></div>
+
 # Introduction
 
-The focus of this project is to model and predict [English Premier League](https://en.wikipedia.org/wiki/Premier_League) (EPL) game outcomes using Bayesian methods. More specifically, I develop models to estimate goals scored by each team as independent Poisson processes, taking the difference of the estimated points scored on each side to determine game winners. (More broadly, one may call this a hierarchal Bayesian Poisson framework.)
+In this project I model and predict [English Premier League](https://en.wikipedia.org/wiki/Premier_League) (EPL) game outcomes using Bayesian methods. Specifically, I estimate goals scored by each team in a given game as independent Poisson processes, taking the difference of the estimated points scored on each side to determine game winners. More broadly, one may call this a hierarchical Bayesian Poisson model.
 
-Why model goals scored using a Poisson distribution? [By definition](https://en.wikipedia.org/wiki/Poisson_distribution) (courtesy of Wikipedia), it "is a discrete probablity distribution that expresses the probability of a given number of events occurring in a fixed interval of time with a known constant rate." In the context of soccer, the fixed interval of time is the 90 minutes of a game (disregarding injury time and over time), and the known constant rate is the expected number of goals scored per minute. Importantly, I must make the assumption that the rate of scored goals is the same across all minutes of a game. (This is arguably a "bad" assumption---[reseach](http://article.sapub.org/10.5923.s.sports.201401.08.html) has shown that goal rate per minute increases in the last 15 minutes of a game.) Additionally, when computing the difference between Poisson distributions, I must assume that the two distributions are independent of one another. (This may also be perceived to be a questionable assumption. One may argue that a matchup of "styles", e.g. an aggressive team against another aggressive team, may distort the results from what would otherwise be expected.) 
+Why model goals scored using a Poisson distribution? [By definition](https://en.wikipedia.org/wiki/Poisson_distribution), it "is a discrete probability distribution that expresses the probability of a given number of events occurring in a fixed interval of time with a known constant rate." In the context of soccer, the fixed interval of time is the 90 minutes of a game (disregarding injury time and over time), and the known constant rate is the expected number of goals scored per minute. Importantly, I must make the assumption that the rate of scored goals is the same across all minutes of a game. (This is arguably a "bad" assumption---[research](http://article.sapub.org/10.5923.s.sports.201401.08.html) has shown that goal rate per minute increases in the last 15 minutes of a game.) Additionally, when computing the difference between Poisson distributions, I must assume that the two distributions are independent of one another. (This may also be seen as a questionable assumption. One may argue that a matchup of "styles" <hide>, e.g. an aggressive team against another aggressive team,</hide> may distort the results from what would otherwise be expected.) 
 
 <hide>
-"it’s a discrete probability distribution that describes the probability of the number of events within a specific time period with a known average rate of occurrence. A key assumption is that the number of events is independent of time. In our context, this means that goals don’t become more/less likely by the number of goals already scored in the match. Instead, the number of goals is expressed purely as function an average rate of goals." [^1]
+"it’s a discrete probability distribution that describes the probability of the number of events within a specific time period with a known average rate of occurrence. A key assumption is that the number of events is independent of time. In this context, this means that goals don’t become more/less likely by the number of goals already scored in the match. Instead, the number of goals is expressed purely as function an average rate of goals." [^1]
 [^1]: Source: https://dashee87.github.io/data%20science/football/r/predicting-football-results-with-statistical-modelling/
 </hide>
 
-Using Poisson distributions to model soccer scores is certainly not a novel concept. (It's also arguably too "simplistic", but it is certainly a valid approach.) See this [Pinnacle blog post](https://www.pinnacle.com/en/betting-articles/Soccer/how-to-calculate-poisson-distribution/MD62MLXUMKMXZ6A8) for a discussion of the topic. (Undoubtedly there are many more articles and papers that explore a similar notion.) In fact, I should acknowledge [the work of Rasmus Bååth's](http://www.sumsar.net/blog/2013/07/modeling-match-results-in-la-liga-part-one/), whose series of blog posts exemplifying the use `R` and `{rjags}` to model scores in [*La Liga*](https://en.wikipedia.org/wiki/La_Liga) games between the 2008-09 to 2012-13 season served as a guide for the analysis that I conduct here. (His work is licensed under the [Creative Commons Attribution 3.0 Unported license](https://creativecommons.org/licenses/by/3.0/), which allows for others to share and adapt the work of another.)
+Using Poisson distributions to model soccer scores is certainly not a novel concept. <hide>(It's also arguably too "simplistic", but it is certainly a valid approach.)</hide> See this [Pinnacle blog post](https://www.pinnacle.com/en/betting-articles/Soccer/how-to-calculate-poisson-distribution/MD62MLXUMKMXZ6A8) for a discussion of the topic. <hide>(Undoubtedly there are many more articles and papers that explore a similar notion.)</hide> In fact, I should acknowledge [the work of Rasmus Bååth's](http://www.sumsar.net/blog/2013/07/modeling-match-results-in-la-liga-part-one/), whose series of blog posts exemplifying the use `R` and `{rjags}` to model scores in [*La Liga*](https://en.wikipedia.org/wiki/La_Liga) games between the 2008-09 to 2012-13 season served as a guide for the analysis that I conduct here. (His work is licensed under the [Creative Commons license](https://creativecommons.org/licenses/by/3.0/), which allows for others to adapt the work of another.)
 
 ## Data Collection
 
@@ -99,7 +158,6 @@ seasons <- 2016L:2018L
 ```{r scrape-appendix-2, eval=eval_scrape}
 # Reference: https://github.com/jalapic/engsoccerdata/blob/master/R/england_current.R
 scrape_epl_data <- function(season = lubridate::year(Sys.Date()) - 1L) {
-  # season <- 2018L
   s1 <- season %>% str_sub(3, 4) %>% as.integer()
   s2 <- s1 + 1L
   path <- sprintf('http://www.football-data.co.uk/mmz4281/%2d%2d/E0.csv', s1, s2)
@@ -148,7 +206,7 @@ write_csv(data, path_epl_data)
 data <- read_csv(path_epl_data)
 ```
 
-```{r scrape-show, include=T}
+```{r scrape-show, include=F}
 data
 ```
 
@@ -156,7 +214,9 @@ data
 data %>% summarise_at(vars(g_h, g_a), list(mean = mean, sd = sd))
 ```
 
+<hide>
 Before impementing some models, I need to "wrangle" the raw data a bit in order to put it in a more workable format for OpenBUGs. (Specifically, I need to put it into a list.)
+</hide>
 
 ```{r data_list-appendix}
 pull_distinctly <- function (.data, var = -1, ..., decreasing = FALSE) {
@@ -190,7 +250,7 @@ data_list <-
 data_list
 ```
 
-```{r data_list-show, include=T}
+```{r data_list-show, eval=F}
 data_list
 ```
 
@@ -210,9 +270,7 @@ data_list
 
 # Modeling
 
-## `{R2OpenBUGs}` Implementation
-
-Our model is formally defined as follows.
+My model is formally defined as follows.
 
 $$
 \begin{array}{c}
@@ -224,9 +282,9 @@ g_a \sim \mathcal{Pois}(\lambda_{a,i,j}) \\
 $$
 
 
-Let's describe this first model in words. It estimates the goals scored by the home team $g_h$ and the goals scored by the away team $g_a$ in a given game between home team $\text{tm}_h$ and away team $\text{tm}_a$ as random variables coming from independent Poisson process $\mathcal{Pois}(\lambda_{h,i,j})$ and $\mathcal{Pois}(\lambda_{a,i,j})$. The log of the rate of goals scored by the home team $\lambda_{h,i,j}$ in a game between team $\text{tm}_i$ and team $\text{tm}_j$ are modeled as the sum of a "baseline" average of goals scored by any given team playing at home $\text{baseline}_h$ and the difference between the team "skill"/"strength" $z$ of teams $i$ and $j$ in a given game. We define the log of the goal rate by the away team in a similar fashion $\lambda_{a,i,j}$; however, I substitute the baseline home average goal rate with a baseline for away teams, $\text{baseline}_a$ and I swap the order of our $z_j$ and $z_i$ teams since the relationship is not bi-directional. (Note that I am careful to distinguish between subscript pair $_h$ and $_a$ (for home and away) and pair $_i$ and $_j$ (for team $i$ and team $j$). The latter pair is independent of the notion of home or away.) It is important to distinguish the baseline levels for home and away so as to account for ["home field advantage"](https://en.wikipedia.org/wiki/Home_advantage). (We should expect to find that $\text{baseline}_h > \text{baseline}_a$ in our posterior estimates.)
+<hide>Let's describe the model in words. It</hide>This model estimates the goals scored by the home team, $g_h$, and the goals scored by the away team, $g_a$, in a given game between home team, $\text{tm}_h$, and away team, $\text{tm}_a$, as random variables coming from independent Poisson processes, $\mathcal{Pois}(\lambda_{h,i,j})$ and $\mathcal{Pois}(\lambda_{a,i,j})$. The log of the rate of goals scored by the home team, $\lambda_{h,i,j}$, in a game between $\text{tm}_i$ and $\text{tm}_j$ is modeled as the sum of a "baseline" average of goals scored by any given team playing at home, $\text{baseline}_h$, and the difference between the team "strength" $z$ of teams $i$ and $j$ in a given game. I define the log of the goal rate by the away team, $\lambda_{a,i,j}$, in a similar fashion. (Note that I substitute the baseline home average goal rate with a baseline for away teams, $\text{baseline}_a$, and I swap the order of the $z_j$ and $z_i$ teams since the relationship is not bi-directional. Also, note that I am careful to distinguish between subscript pair $_h$ and $_a$ for home and away and pair $_i$ and $_j$ for team $i$ and team $j$. The latter pair is independent of the notion of home or away.) It is important to distinguish the baseline levels for home and away so as to account for ["home field advantage"](https://en.wikipedia.org/wiki/Home_advantage). (One should expect to find that $\text{baseline}_h > \text{baseline}_a$ in the posterior estimates.)
 
-Since I are employing a Bayesian approach, I need to model priors as well. We define them as follows.
+Since I am employing a Bayesian approach, I need to model priors as well. I define them as follows.
 
 $$
 \begin{array}{c}
@@ -238,13 +296,11 @@ z_{\text{all}} \sim \mathcal{N}(0, 2^2) \\
 \end{array}
 $$
 
-There are a couple of things to note about these priors:
+There are a couple of things to note about these priors. First, I must "zero"-anchor the strength estimate $z$ of one team. (This is manifested by $\text{tm}_i > 1$.) Here, I choose the first team alphabetically---`r tms[1]`. Second, the priors are intentionally defined to be relatively vague (although not too vauge) so as to allow the posterior estimates to be heavily defined by the data rather than the priors. Note that the standard deviation of the overall team strength parameter $z_{\text{all}}$, defined as $2$ on a log scale, corresponds to an interval of $\left[e^{-2}, e^2\right] = \left[0.13, 7.40\right]$ on an unstransformed scale, i.e. goals scored per game.
 
-+ We must "zero"-anchor the strength estimate $z$ of one team. (This is manifested by $ \text{tm}_i > 1$.) Here, I choose the first team alphabetically---`r tms[1]`.
-
-+ These priors are intentionally defined to be relatively vague (although not too vauge) so as to allow the posterior estimates to be heavily defined by the data rather than the priors. Note that the standard deviation of the overall team strength parameter $z_{\text{all}}$, defined as $2$ on a log scale, corresponds to an interval of $\left[e^{-2}, e^2\right] = \left[0.13, 7.40\right]$ on an unstransformed scale, i.e. goals scored per game.
-
-We leverage the `{R2OpenBUGs}` package to create this model in `R` on the frontend and generate the results with OpenBUGs on the backend.
+<hide>
+I leverage the `{R2OpenBUGs}` package to create this model in `R` on the frontend and generate the results with OpenBUGs on the backend.
+</hide>
 
 ```{r model_1-prep}
 path_res_sim_1 <- 'output/path_res_sim_1.rds'
@@ -282,52 +338,59 @@ path_model_1 <- 'model_1.txt'
 write_lines(model_1, path_model_1)
 ```
 
-```{r model_1-show, include=T}
+```{r model_1-show, include=F}
 model_1
 ```
 
-```{r path_res_sim_1}
+```{r path_res_sim_1-appendix}
 path_res_sim_1 <- 'output/res_sim_1.rds'
 ```
 
-
 ```{r res_sim_1-show-appendix, eval=eval_model_1}
-# inits_1 <- list(n_tm = data_list$n_tm)
-inits_1 <- NULL
-params_1 <-
-  c(
-    paste0('baseline', c('_a', '_h')),
-    paste0('sigma_all'),
-    paste0('z', c('', '_all'))
-  )
-
-res_sim_1 <-
-  R2OpenBUGS::bugs(
-    # debug = TRUE,
-    data = data_list,
-    inits = inits_1,
-    model.file = path_model_1,
-    parameters.to.save = params_1,
-    DIC = FALSE,
-    n.chains = 1,
-    n.iter = 10000,
-    n.burnin = 1000
-  )
+if(eval_model_1) {
+  # inits_1 <- list(n_tm = data_list$n_tm)
+  inits_1 <- NULL
+  params_1 <-
+    c(
+      paste0('baseline', c('_a', '_h')),
+      paste0('sigma_all'),
+      paste0('z', c('', '_all'))
+    )
+  
+  res_sim_1 <-
+    R2OpenBUGS::bugs(
+      # debug = TRUE,
+      data = data_list,
+      inits = inits_1,
+      model.file = path_model_1,
+      parameters.to.save = params_1,
+      DIC = FALSE,
+      n.chains = 1,
+      n.iter = 10000,
+      n.burnin = 1000
+    )
+}
 ```
 
 ```{r res_sim_1_export, eval=eval_model_1}
-write_rds(res_sim_1, path_res_sim_1)
+if(eval_model_1) {
+  write_rds(res_sim_1, path_res_sim_1)
+}
 ```
 
 ```{r res_sim_1_import}
 res_sim_1 <- read_rds(path_res_sim_1)
 ```
 
-### OpenBUGs Implementation
+<hide>## Implementation</hide>
 
-I've implemented `model_1` in OpenBUGs directly as well (in case there were any doubts about the `{R2OpenBUGs}` implementation). See the accompanying "model_1.odc" file for the model code. The `model_1` results from OpenBUGs are as follows.
+<hide>
+I've implemented the in OpenBUGs directly as well (in case there were any doubts about the `{R2OpenBUGs}` implementation). See the accompanying "model_1.odc" file for the model code. The `model_1` results from OpenBUGs are as follows.
+</hide>
 
-![](model_1-output.png)
+The OpenBUGs code implementing the model can be found in the accompanying "model_1.odc" file. <hide>The results from OpenBUGs are as follows.</hide> The results are also embedded in the .odc file. (As a quick "validation" of these results, note that $\text{baseline}_h > \text{baseline}_a$, as hypothesized.)
+
+<hide>![](model_1-output.png)</hide>
 
 ```{r res_summ_1_openbugs, eval=F}
 # # Copy-pasted OpenBUGs output to Excel, then copy-pasted to here (renaming first column as `var` with {datapasta} package.
@@ -340,9 +403,11 @@ I've implemented `model_1` in OpenBUGs directly as well (in case there were any 
 # res_summ_1_openbugs
 ```
 
-## Model 1 Interpretation
 
-Next, I correspond the strength estimates $z$ to teams. Note that I "re-add" the zero-achored team---`r tms[1]`. I impute it's credible set quantiles using <hide>the average of all other teams' corresponding quantiles (and adjust these for a zero posterior mean)</hide>the values of the overall strength term $z_{\text{all}}$.
+
+# Interpretation & Discussion
+
+Next, I correspond the strength estimates $z$ to teams. Notably, I must "re-add" the zero-anchored team---`r tms[1]` (whose $z$ is assigned a dummy value of 1). To do this, I impute its credible set quantiles using <hide>the average of all other teams' corresponding quantiles (and adjust these for a zero posterior mean)</hide>the values of the overall strength term $z_{\text{all}}$.
 
 ```{r res_sim_summ_1-appendix}
 # Model 1 Interpretation
@@ -388,7 +453,7 @@ res_sim_summ_1_z
 
 ```{r viz-funcs-appendix}
 theme_custom <- function(...) {
-  theme_light(base_size = 14) +
+  theme_light(base_size = 12) +
     theme(
       legend.position = 'bottom',
       legend.title = element_blank(),
@@ -398,6 +463,7 @@ theme_custom <- function(...) {
     )
 }
 
+.lab_subtitle <- 'Seasons 2016-17 - 2018-19'
 .visualize_res_sim_summ <- function(data, ...) {
   data %>% 
     arrange(-mean) %>% 
@@ -408,7 +474,7 @@ theme_custom <- function(...) {
     theme_custom() +
     coord_flip() +
     labs(
-      subtitle = 'Seasons 2016-17 - 2018-19',
+      subtitle = .lab_subtitle ,
       caption = glue::glue(
         'Posterior mean and 95% equitailed credible set depicted.
         {tms[1]} used as "zero"-anchor team.'
@@ -417,21 +483,21 @@ theme_custom <- function(...) {
     )
 }
 
-visualize_res_sim_summ_z <- function(data, idx_model = 1, ...) {
+visualize_res_sim_summ_z <- function(data, ...) {
   data %>%
     .visualize_res_sim_summ() +
     geom_hline(aes(yintercept = 0)) +
     labs(
-      title = glue::glue('Model {idx_model}\'s estimated strength (z)'),
+      title = glue::glue('Model\'s estimated strength (z)'),
       x = 'Posterior mean of z'
     )
 }
 
-visualize_res_sim_summ_z_adj <- function(data, idx_model = 1, ...) {
+visualize_res_sim_summ_z_adj <- function(data, ...) {
   data %>%
     .visualize_res_sim_summ() +
     labs(
-      title = glue::glue('Model {idx_model}\'s estimated goals scored per game'),
+      title = glue::glue('Model\'s estimated goals scored per game'),
       x = 'Posterior mean of z transformed to goals'
     )
 }
@@ -441,7 +507,7 @@ export_png <-
            path,
            ...,
            units = 'in',
-           width = 8,
+           width = 7,
            height = 5) {
     ggsave(
       plot = x,
@@ -459,7 +525,7 @@ path_viz_summ_1_z <- 'viz_summ_1_z.png'
 eval_viz_summ_1_z <- !fs::file_exists(path_viz_summ_1_z)
 ```
 
-```{r viz_summ_1_z, eval=eval_viz_summ_1_z}
+```{r viz_summ_1_z}
 viz_summ_1_z <-
   res_sim_summ_1_z %>% 
   visualize_res_sim_summ_z()
@@ -473,17 +539,13 @@ export_png(
 )
 ```
 
-```{r viz_summ_1_z-show, include=T}
-knitr::include_graphics(path_viz_summ_1_z)
+```{r viz_summ_1_z-show, include=T, fig.show='asis'}
+viz_summ_1_z
 ```
 
-It's not suprising to see that the strength $z$ corresponding to all but three teams---`r tms[12]`, `r tms[13]`, and `r tms[22]`---are negative. These three teams, followed closely by `r tms[1]` have been regarded as the best teams for the past two or three EPL seasons. So, relative to `r tms[1]`, all other teams (aside from the top three) are viewed as "worse" according to the model.
+It's not surprising to see that the strength ($z$) corresponding to all but three teams---`r tms[13]`, `r tms[14]`, and `r tms[22]`---is negative. These three teams, followed closely by `r tms[1]` have been regarded as the best teams for the past two or three EPL seasons. So, relative to `r tms[1]`, all other teams (aside from the top three) are viewed as "worse" by the model.
 
-Note that the $z$ estimates above should not be interpreted as goals scored by the teams because they are relative to the strength of `r tms[1]`. To facilitate such an interpretation, i.e. translate $z$ to goals scored per game, for each $z$ we:
-
-1. substract the average value of all $z$'s,
-2. add the posterior mean of $\text{baseline}$, and
-3. exponentiate.
+Note that the $z$ estimates above should not be interpreted as goals scored by the teams because they are relative to the strength of `r tms[1]`. To facilitate such an interpretation, I need to translate $z$ to goals scored per game. To do this, for each $z$, I (1) subtract the average value of all $z$'s, (2) add the posterior mean of $\text{baseline}_{h}$, and (3) exponentiate.
 
 The plot below shows the results of this transformation.
 
@@ -505,28 +567,28 @@ The plot below shows the results of this transformation.
 # res_sim_1_aug$summary
 # mcmcplots::caterplot(res_sim_1_aug)
 
-# This also seems to be ok.
-res_sim_1_adj <- res_sim_1
-res_sim_1$sims.array[, 1, ]
-idx_baseline <- 1
-idx_z_start <- 3
-idx_z_end <- 3 + n_tm - 1
-idx_z_slice <- idx_z_start:idx_z_end
-idx_z_slice_2 <- idx_z_start:(idx_z_end - 1)
-res_sim_1$sims.array[, 1, idx_z_slice] - rowMeans(res_sim_1$sims.array[, 1, idx_z_slice])
-res_sim_1_adj$sims.array[, 1, idx_z_slice] <- exp(res_sim_1$sims.array[, 1, idx_z_slice] - rowMeans(res_sim_1$sims.array[, 1, idx_z_slice]) + res_sim_1$sims.array[, 1, idx_baseline])
-res_sim_1_adj$sims.array[, 1, c(26:27)]
-# names(res_sim_1_adj$sims.array[, 1, idx_z_slice]) <- c('lvl', 'sigma_all', tms[2:length(tms)], tms[1])
-dimnames(res_sim_1_adj$sims.array)[[3]] <- c('lvl', 'sigma_all', tms[2:length(tms)], tms[1])
-# undebug(mcmcplots::caterplot)
-res_sim_1_adj$sims.array[, 1, ]
-res_sim_1_adj_mcmc <- mcmcplots::caterplot(res_sim_1_adj, regex = '^[A-Z]')
-# ggsave(filename = 'caterplot_1.png', units = 'in', width = 8, height = 5)
-# res_sim_1_adj_mcmc <- coda::mcmc(res_sim_1_adj)
+# # This also seems to be ok.
+# res_sim_1_adj <- res_sim_1
+# res_sim_1$sims.array[, 1, ]
+# idx_baseline <- 1
+# idx_z_start <- 3
+# idx_z_end <- 3 + n_tm - 1
+# idx_z_slice <- idx_z_start:idx_z_end
+# idx_z_slice_2 <- idx_z_start:(idx_z_end - 1)
+# res_sim_1$sims.array[, 1, idx_z_slice] - rowMeans(res_sim_1$sims.array[, 1, idx_z_slice])
+# res_sim_1_adj$sims.array[, 1, idx_z_slice] <- exp(res_sim_1$sims.array[, 1, idx_z_slice] - rowMeans(res_sim_1$sims.array[, 1, idx_z_slice]) + res_sim_1$sims.array[, 1, idx_baseline])
+# res_sim_1_adj$sims.array[, 1, c(26:27)]
+# # names(res_sim_1_adj$sims.array[, 1, idx_z_slice]) <- c('lvl', 'sigma_all', tms[2:length(tms)], tms[1])
+# dimnames(res_sim_1_adj$sims.array)[[3]] <- c('basline', 'sigma_all', tms[2:length(tms)], tms[1])
+# # undebug(mcmcplots::caterplot)
+# res_sim_1_adj$sims.array[, 1, ]
+# res_sim_1_adj_mcmc <- mcmcplots::caterplot(res_sim_1_adj, regex = '^[A-Z]')
+# # ggsave(filename = 'caterplot_1.png', units = 'in', width = 8, height = 5)
+# # res_sim_1_adj_mcmc <- coda::mcmc(res_sim_1_adj)
 ```
 
 ```{r res_sim_summ_1_z_adj}
-baseline_mean <- res_sim_summ_1 %>% filter(var == 'baseline') %>% pull(mean)
+baseline_mean <- res_sim_summ_1 %>% filter(var == 'baseline_h') %>% pull(mean)
 z_mean <- res_sim_summ_1_z %>% summarise_at(vars(mean), mean) %>% pull(mean)
 z_mean
 res_sim_summ_1_z_adj <-
@@ -540,7 +602,7 @@ path_viz_summ_1_z_adj <- 'viz_summ_1_z_adj.png'
 eval_viz_summ_1_z_adj <- !fs::file_exists(path_viz_summ_1_z_adj)
 ```
 
-```{r viz_summ_1_z_adj, eval=eval_viz_summ_1_z_adj}
+```{r viz_summ_1_z_adj}
 viz_summ_1_z_adj <-
   res_sim_summ_1_z_adj %>% 
   visualize_res_sim_summ_z_adj()
@@ -554,60 +616,64 @@ export_png(
 )
 ```
 
-```{r viz_summ_1_z_adj-show, include=T}
-knitr::include_graphics(path_viz_summ_1_z_adj)
+```{r viz_summ_1_z_adj-show, include=T, fig.show='asis'}
+viz_summ_1_z_adj
 ```
-
 
 ```{r do_predict-appendix-1}
 n_sim <- 1000
 ```
+## Predictions
 
-Now I make predictions of game results for the historical data given the model. Specifically, I simulate the score for both teams in each matchup (`r scales::comma(n_gm)` in all) `r scales::comma(n_sim)` times, choosing the result inferred by the mode of each side's simulated score. (For example, if the mode of the `r scales::comma(n_sim)` simulated scores for the away team  is 1 and that of the home team is 2, then the predicted outcome is a win for the home team.) A breakdown of the predicted and actual outcomes is shown below.
+I can make predictions of game results for the historical data, given the model. <hide>(Since the model estimates were calculated using this data, I'm really predicting on the "training" set here.)</hide> Specifically, I simulate the score for both teams in each matchup (`r scales::comma(n_gm)` in all) `r scales::comma(n_sim)` times, choosing the result inferred by the mode of each side's simulated score. (For example, if the mode of the `r scales::comma(n_sim)` simulated scores for the away team  is 1 and that of the home team is 2, then the predicted outcome is a win for the home team.) A breakdown of the predicted and actual outcomes is shown below.
 
-```{r path_preds}
+```{r path_preds-appendix}
 path_preds <- 'preds.rds'
-eval_viz_summ_1_z_adj <- !fs::file_exists(path_preds)
+eval_preds <- !fs::file_exists(path_preds)
 ```
 
 ```{r do_predict-appendix-2}
-.baseline_h <- res_sim_summ_1 %>% filter(var == 'baseline_h') %>% pull(mean)
-.baseline_a <- res_sim_summ_1 %>% filter(var == 'baseline_a') %>% pull(mean)
-.extract_tab_max <- function(tab) {
-  tab[ which.max(tab)] %>% names() %>% as.integer()
+if(eval_preds) {
+  .baseline_h <- res_sim_summ_1 %>% filter(var == 'baseline_h') %>% pull(mean)
+  .baseline_a <- res_sim_summ_1 %>% filter(var == 'baseline_a') %>% pull(mean)
+  .extract_tab_max <- function(tab) {
+    tab[ which.max(tab)] %>% names() %>% as.integer()
+  }
+  do_predict <- function(i) {
+    data_filt <- data %>% slice(i)
+    .tm_h <- data_filt %>% pull(tm_h)
+    .tm_a <- data_filt %>% pull(tm_a)
+    z_h <- res_sim_summ_1_z %>% filter(tm == .tm_h) %>% pull(mean)
+    z_a <- res_sim_summ_1_z %>% filter(tm == .tm_a) %>% pull(mean)
+    g_h <- rpois(n_sim, exp(.baseline_h + (z_h - z_a)))
+    g_a <- rpois(n_sim, exp(.baseline_a + (z_a - z_h)))
+    tab_h <- table(g_h)
+    tab_a <- table(g_a)
+    result_sign <- sign(g_h - g_a)
+    tab_result <- table(result_sign)
+    result_mode <- .extract_tab_max(tab_result)
+    tibble(
+      g_h_mode = .extract_tab_max(tab_h),
+      g_a_mode = .extract_tab_max(tab_a),
+      result_mode = result_mode,
+      g_h_mean = mean(g_h),
+      g_a_mean = mean(g_a)
+    )
+  }
+  
+  set.seed(42)
+  preds <- 
+    tibble(idx = 1:n_gm) %>% 
+    mutate(res = purrr::map(idx, do_predict)) %>% 
+    unnest(res)
+  preds
 }
-do_predict <- function(i) {
-  data_filt <- data %>% slice(i)
-  .tm_h <- data_filt %>% pull(tm_h)
-  .tm_a <- data_filt %>% pull(tm_a)
-  z_h <- res_sim_summ_1_z %>% filter(tm == .tm_h) %>% pull(mean)
-  z_a <- res_sim_summ_1_z %>% filter(tm == .tm_a) %>% pull(mean)
-  g_h <- rpois(n_sim, exp(.baseline_h + (z_h - z_a)))
-  g_a <- rpois(n_sim, exp(.baseline_a + (z_a - z_h)))
-  tab_h <- table(g_h)
-  tab_a <- table(g_a)
-  result_sign <- sign(g_h - g_a)
-  tab_result <- table(result_sign)
-  result_mode <- .extract_tab_max(tab_result)
-  tibble(
-    g_h_mode = .extract_tab_max(tab_h),
-    g_a_mode = .extract_tab_max(tab_a),
-    result_mode = result_mode,
-    g_h_mean = mean(g_h),
-    g_a_mean = mean(g_a)
-  )
-}
-
-set.seed(42)
-preds <- 
-  tibble(idx = 1:n_gm) %>% 
-  mutate(res = purrr::map(idx, do_predict)) %>% 
-  unnest(res)
-preds
 ```
 
 ```{r preds_export, eval=eval_preds}
-write_rds(preds, path_preds)
+if(eval_preds) {
+  write_rds(preds, path_preds)
+}
 ```
 
 ```{r preds_import}
@@ -672,7 +738,7 @@ conf_mat_correct <-
 
 conf_mat_correct_summ <-
   conf_mat_correct %>% 
-  summarise_at(vars(n), sum(n)) %>% 
+  summarise_at(vars(n), ~sum(.)) %>% 
   ungroup() %>% 
   mutate(frac = n / sum(n))
 conf_mat_correct
@@ -708,39 +774,57 @@ viz_conf_mat <-
   ) +
   labs(
     title = 'Comparison of Predicted and Actual Game Outcomes',
-    subtitle = viz_summ_1_z$labels$subtitle,
+    subtitle = .lab_subtitle,
     x = 'Predicted Result',
     y = 'Actual Result'
   )
 viz_conf_mat
 ```
 
-```{r viz_conf_mat_export, eval=eval_viz_preds}
+```{r viz_conf_mat_export, eval=eval_viz_conf_mat}
 export_png(
   viz_conf_mat,
   path = path_viz_conf_mat,
 )
 ```
 
-```{r viz_conf_mat-show, include=T}
-knitr::include_graphics(path_viz_conf_mat)
+```{r viz_conf_mat-show, include=T, fig.show='asis', fig.width=8, fig.height=4}
+viz_conf_mat
 ```
 
-I can make a couple of observations:
+I make a couple of observations:
 
-+ I see that the most common outcome of the join actual-prediction possibilities is an actual win by the home team and a predicted win by the home team.
-+ The model predicts the outcome correctly in `r scales::comma(pull(conf_mat_corrects_h, n)` + `r scales::comma(pull(conf_mat_correct_t, n)` + `r scales::comma(pull(conf_mat_correct_a, n)` = `r scales::comma(pull(conf_mat_correct_summ_yes, n))` of `r scales::comma(n_gm)` games (i.e., `r scales::percent(pull(conf_mat_correct_summ_yes, frac))`).
++ The most common outcome  is an actual win by the home team and a predicted win by the home team.
++ The model never predicts a tie. (This may seem "unreasonable", but Bååth also found this to be true for his final model.) 
++ The model predicts the outcome correctly in `r scales::comma(conf_mat_correct_h$n)` + `r scales::comma(conf_mat_correct_a$n)` = `r scales::comma(conf_mat_correct_summ_yes$n)` of `r scales::comma(n_gm)` games (i.e., `r scales::percent(conf_mat_correct_summ_yes$frac)`).
+
+# Conclusion
+
+In summary, I have created a hierarchical Poisson model to predict scores---and, consequently, game outcomes---for EPL games for the three seasons starting in 2016 and ending in 2018. The model has an training set prediction accuracy of `r scales::comma(conf_mat_correct_summ_yes$n)`. [Bååth](http://www.sumsar.net/blog/2013/07/modeling-match-results-in-la-liga-part-one/), whose work inspired mine, achieved an accuracy of 56% with his final model.
+
+## Future Work
+
+My model can certainly be improved. One major flaw of the model is that it does not account for temporal effects, i.e. differences in team strength across seasons. (There are certainly also changes in team strength within seasons, which are even more difficult to model.) The consequences of this flaw are compounded by the fact that the pool of teams in each EPL season changes. At the end of each season, the three "worst" EPL teams (by win-loss-tie record) are "relegated" to a secondary league, and, in turn, three secondary league teams are "promoted" to the EPL in their place. (This explains why there are more than 20 teams in thee data set even though there are only 20 teams in the EPL in a given season.) Consequently, one might say that the estimates of the teams that do not appear in all seasons are exaggerated.
+
+<div class="pagebreak"></div>
+
+# Appendix
+
+**Note that the following should not count against the page/word limit.**
+
+## More Discussion
 
 The next couple of visuals provide more details regarding the simulated outcomes.
 
 ```{r path_viz_g_mode}
 path_viz_g_mode <- 'viz_g_mode.png'
 eval_viz_g_mode <- !fs::file_exists(path_viz_g_mode)
+.lab_caption_n_gm <- glue::glue('Total games: {n_gm}.')
 ```
 
 ```{r viz_g_mode-appendix}
 viz_g_mode <-
-  preds_tidy %>% 
+  preds_tidy_aug %>% 
   filter(key %>% str_detect('^g.*mode$')) %>% 
   ggplot() +
   aes(x = value, fill = key_lab) +
@@ -752,8 +836,8 @@ viz_g_mode <-
   ) +
   labs(
     title = 'Simulated Mode of Goals Scored By Home and Away Teams',
-    subtitle = viz_summ_1_z$labels$subtitle,
-    caption = glue::glue('Total games: {n_gm}.'),
+    subtitle = .lab_subtitle,
+    caption = .lab_caption_n_gm,
     x = 'Goals Scored',
     y = 'Count of Games'
   )
@@ -767,8 +851,8 @@ export_png(
 )
 ```
 
-```{r viz_g_mode-show, include=T}
-knitr::include_graphics(path_viz_g_mode)
+```{r viz_g_mode-show, include=T, fig.show='asis'}
+viz_g_mode
 ```
 
 From the above graph of the mode of goals scored by both sides, it's apparent that a 2-1 scores in favor of the home side is the most common outcome.
@@ -780,20 +864,25 @@ eval_viz_g_mean <- !fs::file_exists(path_viz_g_mean)
 
 ```{r viz_g_mean-appendix}
 viz_g_mean <-
-  preds_tidy %>% 
+  preds_tidy_aug %>% 
   # This is done so that the `aes()` can be defined before data is actually passed into the whole ggplot pipeline.
   filter(row_number() == 0) %>% 
   ggplot() +
   aes(x = value, fill = key_lab) +
   scale_fill_brewer(palette = 'Set1') +
-  geom_histogram(data = filter(preds_tidy, key == 'g_h_mean'), alpha = 1, binwidth = 0.2) +
-  geom_histogram(data = filter(preds_tidy, key == 'g_a_mean'), alpha = 0.5, binwidth = 0.2) +
+  geom_histogram(data = filter(preds_tidy_aug, key == 'g_h_mean'), alpha = 1, binwidth = 0.2) +
+  geom_histogram(data = filter(preds_tidy_aug, key == 'g_a_mean'), alpha = 0.5, binwidth = 0.2) +
   theme(
     panel.grid.major.x = element_blank()
   ) +
-  theme_custom()
-viz_g_mean$labels <- viz_g_mode$labels
-viz_g_mean$labels$title <- viz_g_mean$labels$title %>% str_replace('Mode', 'Mean')
+  theme_custom() +
+  labs(
+    title = 'Simulated Mean of Goals Scored By Home and Away Teams',
+    subtitle = .lab_subtitle ,
+    caption = .lab_caption_n_gm,
+    x = 'Goals Scored',
+    y = 'Count of Games'
+  )
 viz_g_mean
 ```
 
@@ -804,11 +893,11 @@ export_png(
 )
 ```
 
-```{r viz_g_mean-show, include=T}
-knitr::include_graphics(path_viz_g_mean)
+```{r viz_g_mean-show, include=T, fig.show='asis'}
+viz_g_mean
 ```
 
-The above histogram illustrating the average (instead of the mode) provides a bit more nuance to the predicted goals scored by each side.
+The above histogram illustrating the mean (instead of the mode) of the simulated goals provides a bit more nuance to our understanding of modes shown before.
 
 ```{r path_viz_result_mode}
 path_viz_result_mode <- 'viz_result_mode.png'
@@ -851,81 +940,62 @@ viz_result_mode <-
   ) +
   labs(
     title = 'Simulated Result of Games',
-    subtitle = viz_summ_1_z$labels$subtitle,
-    caption = viz_g_mode$labels$caption,
+    subtitle = .lab_subtitle ,
+    caption = .lab_caption_n_gm,
     x = NULL,
-    y = viz_g_mode$labels$y
+    y = 'Count of Games'
   )
 viz_result_mode
 ```
 
-```{r viz_result_mode_export, eval=eval_viz_preds}
+```{r viz_result_mode_export, eval=eval_viz_result_mode}
 export_png(
   viz_result_mode,
   path = path_viz_result_mode,
 )
 ```
 
-```{r viz_result_mode-show, include=T}
-knitr::include_graphics(path_viz_result_mode)
+```{r viz_result_mode-show, include=T, fig.show='asis', fig.width=8, fig.height=4}
+viz_result_mode
 ```
 
-Finally, the above illustration of results illustrates the predicted outcomes (inferred from the prior graph of predicted modes). *This is the primary input to the confusion matrix from before.)
+Finally, the above visual shows the predicted outcomes (inferred from the prior graph of predicted modes).
 
-To better understand how the model works on a team-level basis, we can look at how well it predicts for each team.
+To better understand how the model works on a team-level basis, let's look at how well it predicts for each team.
 
 ```{r preds_eda-appendix-1}
 preds_by_tm <-
   preds_aug %>% 
   group_by(tm_h) %>% 
-  count(is_correct = result_mode == result) %>% 
+  count(is_correct = result_mode == result) %>%
   mutate(frac = n / sum(n)) %>% 
+  ungroup() %>% 
   filter(is_correct) %>% 
-  arrange(-frac)
+  arrange(-frac) %>% 
+  mutate(pct = scales::percent(frac)) %>% 
+  select(-frac)
+```
+
+```{r tibble_opt_print_min-pre-1}
+opt_tibble_print_min_old <- getOption('tibble.print_min')
+options(tibble.print_min = Inf)
 ```
 
 ```{r preds_eda-show-1, include=T}
 preds_by_tm
 ```
 
+```{r tibble_opt_print_min-post-1}
+options(tibble.print_min = opt_tibble_print_min_old)
+```
+
 In most cases, the model predicts the outcome correctly (see `is_correct`) with greater than 50% accuracy, although there are also teams for which its accuracy is less than 50%.
 
-We can take an even closer look at any team of interest. For example, let's look exclusively at the predictions and actual outcomes for `r .tm1` (the highest rated team by the model.)
+<div class="pagebreak"></div>
 
+## Code
 
-```{r preds_eda-appendix-2}
-.tm1 <- 'Man City'
+See all relevant `R` code below.
+
+```{r fin-0, ref.label=stringr::str_subset(knitr::all_labels(), 'appendix'), echo=T, include=T, eval=F}
 ```
-
-```{r preds_eda-appendix-3}
-preds_by_tm_1tm <-
-  preds_aug %>% 
-  filter(tm_h == .tm1 | tm_a == .tm1) %>% 
-  count(is_correct = result_mode == result) %>% 
-  mutate(frac = n / sum(n))
-```
-
-```{r preds_eda-show-2, include=T}
-preds_by_tm_1tm
-```
-
-
-## Model Improvements
-
-This model certainly can be improved. One major flaw of the model is that it does not account for temporal effects, i.e. differences in team strength across seasons. (There are certainly also changes in team strength within seasons, but these are more difficult to model, so I do not attempt to do so here.) The consequences of this fault are compounded by the fact that the pool of teams in each EPL season. At the end of each season, the three "worst" EPL teams (by win-loss-tie record) are "relegated" to the secondary league (and three secondary league teams are "promoted" to the EPL in their place). This explains why there are more than 20 teams in our data set even though there are only 20 teams in the EPL in a given season. This phenomena can exaggerate the estimates of the teams that do not appear in all seasons in the data set.
-
-## Appendix
-
-### Code
-
-See all `R` code below.
-
-```{r fin-prep, echo=F}
-labs_chunks <- knitr::all_labels()
-labs_chunks_filt <- labs_chunks %>% str_subset('appendix')
-```
-
-```{r fin, ref.label=labs_chunks_filt, eval=F}
-
-```
-

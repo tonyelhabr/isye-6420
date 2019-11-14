@@ -1,0 +1,19 @@
+
+  model {	
+    for(i in 1:n) {
+      times[i] ~ dweib(v, lambda[i]) I(censor[i],)
+      lambda[i] <- exp(beta0 + beta1 * type[i])
+      S[i] <- exp(-lambda[i] * pow(times[i], v));
+      f[i] <- lambda[i] * v * pow(times[i], v-1) * S[i]
+      h[i] <- f[i] / S[i]
+      index[i] <- i
+    }	
+    beta0 ~ dnorm(0.0, 0.0001)
+    beta1 ~ dnorm(0.0, 0.0001)
+    v ~ dexp(0.001)
+    
+    # Median survival time 
+    median0 <- pow(log(2) * exp(-beta0), 1 / v)
+    median1 <- pow(log(2) * exp(-beta0 - beta1), 1 / v)
+  }
+

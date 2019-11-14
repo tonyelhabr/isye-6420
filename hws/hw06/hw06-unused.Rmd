@@ -1,0 +1,31 @@
+
+# 2. 
+
+### Aside
+
+```{r fit_pois, include=F, echo=F, eval=F}
+set.seed(42)
+data <-
+  tibble(x = x, y = y) %>% 
+  mutate_at(
+    vars(x), 
+    list(x_impute = ~case_when(
+      is.na(.) ~ runif(1, 0, 3),
+      TRUE ~ .
+    ))
+  ) %>% 
+  mutate_all(as.integer)
+data
+
+fit_pois_impute <- 
+  data %>% 
+  glm(formula(y ~ x_impute), family = 'poisson', data = .)
+fit_pois_impute
+
+fit_pois_impute %>% broom::augment(newdata = tibble(x_impute = 4), type.predict = 'response')
+fit_pois_impute %>% predict(newdata = tibble(x_impute = 4), type = 'response')
+fit_pois_miss <- 
+  data %>% 
+  glm(formula(y ~ x), family = 'poisson', data = .)
+fit_pois_miss
+```
