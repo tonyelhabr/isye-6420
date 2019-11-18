@@ -511,7 +511,7 @@ list(v = 1, beta0 = 0, beta1 = 0)</code></pre>
 ##  9 S[3]       0.9608   0.01386   0.001242    0.9284    0.9627    0.9824  1001  10000
 ## 10 S[4]       0.9508   0.01623   0.001458    0.9135    0.9527    0.9766  1001  10000
 ## # ... with 236 more rows</code></pre>
-<p>From the output shown above, we see that the posterior mean for <code>beta1</code> is , <response>and we see that 95% CS is [NA, NA].</response></p>
+<p>From the output shown above, we see that the posterior mean for <code>beta1</code> is 0.6133, <response>and we see that 95% CS is [0.0839, 1.2030].</response></p>
 <div id="aside-a-closer-evaluation" class="section level3">
 <h3>Aside: A Closer Evaluation</h3>
 <p>Below is a subset of the results from before. Specifically, the first 5 estimates of the <code>S</code> “array” of monitored parameters corresponding to each tumor <code>type</code> group are shown.</p>
@@ -544,26 +544,26 @@ list(v = 1, beta0 = 0, beta1 = 0)</code></pre>
 </div>
 <div id="response-1" class="section level2">
 <h2>Response</h2>
-<p>The model code below is written so as to answer all parts of this question. (In particular, <code>pred1</code> corresponds to the prediction asked for in (c).</p>
+<p>The model code below is written so as to answer all parts of this question. (In particular, <code>lambdastar</code> corresponds to the expected average value asked for in (b) and <code>pred1</code> corresponds to the prediction asked for in (c).)</p>
 <pre><code>model {
   for(i in 1:n) {
     y[i] ~ dpois(lambda[i])
-    log(lambda[i]) &lt;- beta0 + beta1 * x[i]
+    lambda[i] &lt;- exp(beta0 + beta1 * x[i])
   }
   for(i in 1:n) {
     x[i] ~ dpois(2)
   }
   beta0 ~ dnorm(0, 0.0001)
   beta1 ~ dnorm(0, 0.0001)
-  lambdahat &lt;- exp(beta0 + beta1)
-  log(pred1) &lt;- beta0 + beta1 * (4)
+  lambdastar &lt;- exp(beta0 + (4) * beta1)
+  pred1 ~ dpois(lambdastar)
 }
 
 # data
 list(
-  n = 16,
-  x = c(2, 1, 0, 2, NA, 3, 1, 0, 1, 2, 3, 0, 1, NA, NA, 4),
-  y = c(NA, 16, 9, 17, 12, 22, 13, 8, NA, 19, 17, 11, 10, 20, 2, NA)
+  n = 15,
+  x = c(2, 1, 0, 2, NA, 3, 1, 0, 1, 2, 3, 0, 1, NA, NA),
+  y = c(NA, 16, 9, 17, 12, 22, 13, 8, NA, 19, 17, 11, 10, 20, 2)
 )
 
 # inits
@@ -574,56 +574,42 @@ list(
 <p>Note that we make the assumption that the probability of a value missing does not depend on the data that is missing, i.e. we assume that the data is missing at random (MAR). Thus, we simply specify missing <span class="math inline">\(X\)</span> using a reasonable non-negative distribution, such as <span class="math inline">\(\mathcal{Pois}(2)\)</span>, as suggested in the hint. (This corresponds to <code>x[i] ~ dpois(2)</code> in the model code.) If we did not assume this, then we would need to change the model code from its current form.</p>
 <p>Below is a summary of the output from OpenBUGs.</p>
 <pre><code>## # A tibble: 10 x 9
-##    var           mean      sd MC_error val2.5pc   median val97.5pc start sample
-##    &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
-##  1 beta0       2.171  0.1422  0.0023     1.885    2.176      2.444  1001  10000
-##  2 beta1       0.2881 0.07402 0.001261   0.1437   0.2875     0.433  1001  10000
-##  3 deviance  109.6    3.391   0.06263  105.5    108.7      118.1    1001  10000
-##  4 lambdahat  11.74   1.077   0.0162     9.685   11.71      13.97   1001  10000
-##  5 pred1      28.3    5.586   0.09247   18.7     27.88      40.41   1001  10000
-##  6 x[5]        1.288  0.7916  0.008777   0        1          3      1001  10000
-##  7 x[14]       2.551  0.85    0.01095    1        3          4      1001  10000
-##  8 x[15]       0.203  0.4395  0.00723    0        0          1      1001  10000
-##  9 y[1]       15.65   4.145   0.04256    8       15         24      1001  10000
-## 10 y[9]       11.73   3.598   0.03574    5       12         19      1001  10000</code></pre>
+##    var            mean      sd MC_error val2.5pc   median val97.5pc start sample
+##    &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+##  1 beta0        2.174  0.1346  0.007108   1.916    2.176     2.422   1001  10000
+##  2 beta1        0.2884 0.07028 0.003705   0.1562   0.2874    0.4215  1001  10000
+##  3 deviance   109.4    3.146   0.08923  105.5    108.5     117.2     1001  10000
+##  4 lambdastar  28.37   5.349   0.2274    19.25    27.91     40.14    1001  10000
+##  5 pred1       28.42   7.621   0.231     15       28        45       1001  10000
+##  6 x[5]         1.26   0.7823  0.009606   0        1         3       1001  10000
+##  7 x[14]        2.533  0.8165  0.01083    1        3         4       1001  10000
+##  8 x[15]        0.1992 0.4333  0.00781    0        0         1       1001  10000
+##  9 y[1]        15.65   4.134   0.04778    8       15        24       1001  10000
+## 10 y[9]        11.74   3.531   0.05402    5       12        19       1001  10000</code></pre>
 <div id="a" class="section level3">
 <h3>a</h3>
-<p>As shown in the output above, <response>the deviance of the fit is 109.6.</response></p>
+<p>As shown in the output above, <response>the deviance of the fit is 109.4.</response></p>
 </div>
 <div id="b" class="section level3">
 <h3>b</h3>
-<p>To find a posterior estimate and 95% CS for <span class="math inline">\(X = 4\)</span>, we can modify the model data (and leave the model code as is) to include a 16th observation where <code>x = 4</code> and <code>y = NA</code>. (We must also change <code>n = 15</code> to <code>n = 16</code>.) Below is a summary of the output for this modified model. We are interested in <code>y[16]</code>.</p>
-<pre><code>## # A tibble: 11 x 9
-##    var           mean      sd MC_error val2.5pc   median val97.5pc start sample
-##    &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
-##  1 beta0       2.17   0.1419  0.001933   1.882    2.174     2.438   1001  10000
-##  2 beta1       0.2888 0.07323 0.001039   0.1484   0.2888    0.4315  1001  10000
-##  3 deviance  114.4    3.246   0.0494   110.3    113.5     122.2     1001  10000
-##  4 lambdahat  11.75   1.078   0.01358    9.699   11.72     13.91    1001  10000
-##  5 pred1      28.35   5.538   0.07483   18.98    27.86     40.58    1001  10000
-##  6 x[5]        1.267  0.7748  0.008856   0        1         3       1001  10000
-##  7 x[14]       2.555  0.824   0.01059    1        3         4       1001  10000
-##  8 x[15]       0.199  0.4308  0.006436   0        0         1       1001  10000
-##  9 y[1]       15.61   4.175   0.03999    8       15        24       1001  10000
-## 10 y[9]       11.8    3.591   0.03917    5       12        19       1001  10000
-## 11 y[16]      28.39   7.7     0.09231   15       28        45       1001  10000</code></pre>
-<p>From the output shown above, we see that the posterior mean for <code>y[16]</code> is 28.39, <response>and we see that 95% CS is [15, 45].</response></p>
+<p>The posterior estimate and 95% CS for <span class="math inline">\(X = 4\)</span> correspond to <code>lambdastar</code> from the output shown above.</p>
+<p>From the output shown above, we see that the posterior mean (for <code>lambdastar</code>) is 28.37, <response>and we see that the 95% CS is [19.25, 40.14].</response></p>
 </div>
 <div id="c" class="section level3">
 <h3>c</h3>
-<p><response> The prediction for <span class="math inline">\(X = 4\)</span> is indicated by <code>pred1</code> in the output shown above (a). It has a posterior mean of 28.3. Note that this prediction has a CS of [18.7, 40.41]. Note that the CS here is smallerthan that found in (b). This is because the CS in (b) accounts for uncertainty about the prediction <code>y[16]</code>, as well as the uncertainty about <span class="math inline">\(\sigma\)</span>; on the other hand, the CS here only accounts for uncertaintly about the prediction <code>pred1</code>. </response></p>
-<p>Drawing upon frequentist statistics, one might say that the interval in (b) is analogous to a prediction interval, whereas the interval here is analogous to a confidence interval. Note that prediction intervals are always equal to or greater than confidence intervals.</p>
+<p><response> The prediction for <span class="math inline">\(X = 4\)</span> is indicated by <code>pred1</code> in the output shown above (a). It has a posterior mean of 28.42. Also, note that this prediction has a CS of [15, 45], which is larger than that found in (b). (The standard deviation <code>sd</code> of the prediction here (for <code>pred1</code> is also larger than that in (b) (for <code>lambdastar</code>).) This is because the CS here accounts for uncertainty about the prediction, as well as the uncertainty about <span class="math inline">\(\sigma\)</span>; on the other hand, the CS in (b) only accounts for uncertainty about the prediction <code>pred1</code>. </response></p>
+<p>Drawing upon frequentist statistics, one might say that the interval here is analogous to a prediction interval, whereas the interval in (b) is analogous to a confidence interval. Prediction intervals are always equal to or greater than confidence intervals because they account for additional uncertainty.</p>
 <p><hide> See p. 187 at <a href="https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/bugsbook_chapter9.pdf" class="uri">https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/bugsbook_chapter9.pdf</a> for more about this explanation. </hide></p>
 </div>
 <div id="d" class="section level3">
 <h3>d</h3>
 <p>As shown in the output above (a), <response>the estimates (of the posterior means) are as follows.</response></p>
 <ul>
-<li><p><span class="math inline">\(X_{5}\)</span> = 1.288</p></li>
-<li><p><span class="math inline">\(X_{14}\)</span> = 2.551</p></li>
-<li><p><span class="math inline">\(X_{15}\)</span> = 0.203</p></li>
+<li><p><span class="math inline">\(X_{5}\)</span> = 1.26</p></li>
+<li><p><span class="math inline">\(X_{14}\)</span> = 2.533</p></li>
+<li><p><span class="math inline">\(X_{15}\)</span> = 0.1992</p></li>
 <li><p><span class="math inline">\(Y_{1}\)</span> = 15.65</p></li>
-<li><p><span class="math inline">\(Y_{9}\)</span> = 11.73.</p></li>
+<li><p><span class="math inline">\(Y_{9}\)</span> = 11.74.</p></li>
 </ul>
 </div>
 </div>

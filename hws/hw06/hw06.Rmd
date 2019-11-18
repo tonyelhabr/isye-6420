@@ -375,7 +375,7 @@ res_sim_summ_filt_q1
 ```
 
 ```{r credible_set_q1, include=F, echo=F}
-beta1_q1 <- res_sim_summ_filt_q1 %>% filter(var == 'beta1')
+beta1_q1 <- res_sim_summ_q1 %>% filter(var == 'beta1')
 beta1_q1
 beta1_mean_q1 <- beta1_q1 %>% pull(mean)
 beta1_mean_q1
@@ -587,35 +587,35 @@ params_q2 <-
 ```
 
 ```{r res_sim_output_manual_q2, include=F, echo=F}
-path_res_sim_output_manual_q2 <- 'q2-output.xlsx'
+path_res_sim_output_manual_q2 <- 'q2-v2-output.xlsx'
 res_sim_output_manual_q2 <- 
   path_res_sim_output_manual_q2 %>% 
   readxl::read_excel()
 res_sim_output_manual_q2
 ```
 
-The model code below is written so as to answer all parts of this question. (In particular, `pred1` corresponds to the prediction asked for in (c).
+The model code below is written so as to answer all parts of this question. (In particular, `lambdastar` corresponds to the expected average value asked for in (b) and `pred1` corresponds to the prediction asked for in (c).)
 
 ```
 model {
   for(i in 1:n) {
     y[i] ~ dpois(lambda[i])
-    log(lambda[i]) <- beta0 + beta1 * x[i]
+    lambda[i] <- exp(beta0 + beta1 * x[i])
   }
   for(i in 1:n) {
     x[i] ~ dpois(2)
   }
   beta0 ~ dnorm(0, 0.0001)
   beta1 ~ dnorm(0, 0.0001)
-  lambdahat <- exp(beta0 + beta1)
-  log(pred1) <- beta0 + beta1 * (4)
+  lambdastar <- exp(beta0 + (4) * beta1)
+  pred1 ~ dpois(lambdastar)
 }
 
 # data
 list(
-  n = 16,
-  x = c(2, 1, 0, 2, NA, 3, 1, 0, 1, 2, 3, 0, 1, NA, NA, 4),
-  y = c(NA, 16, 9, 17, 12, 22, 13, 8, NA, 19, 17, 11, 10, 20, 2, NA)
+  n = 15,
+  x = c(2, 1, 0, 2, NA, 3, 1, 0, 1, 2, 3, 0, 1, NA, NA),
+  y = c(NA, 16, 9, 17, 12, 22, 13, 8, NA, 19, 17, 11, 10, 20, 2)
 )
 
 # inits
@@ -664,42 +664,10 @@ As shown in the output above, <response>the deviance of the fit is `r deviance_q
 
 ### b
 
-To find a posterior estimate and 95% CS for $X = 4$, we can modify the model data (and leave the model code as is) to include a 16th observation where `x = 4` and `y = NA`. (We must also change `n = 15` to `n = 16`.) Below is a summary of the output for this modified model. We are interested in `y[16]`.
-
-```{r res_sim_output_manual_q2b, include=F, echo=F}
-path_res_sim_output_manual_q2b <- 'q2-b-output.xlsx'
-res_sim_output_manual_q2b <- 
-  path_res_sim_output_manual_q2b %>% 
-  readxl::read_excel()
-res_sim_output_manual_q2b
-```
-
-```{r res_sim_summ_q2b, include=F, echo=F}
-res_sim_summ_q2b <- res_sim_output_manual_q2b
-res_sim_summ_q2b
-```
-
-```{r res_sim_summ_q2b-show, echo=F}
-res_sim_summ_q2b
-```
-
-
-```{r pred1_q2b-old, include=F, echo=F}
-# beta0_q2 <- .pull_est_q2('beta0')
-# beta0_q2
-# beta1_q2 <- .pull_est_q2('beta1')
-# beta1_q2
-# x_pred_q2 <- 4
-# y_pred_q2 <- exp(beta0_q2 + beta1_q2 * x_pred_q2)
-# y_pred_q2
-# lambdahat_q2 <- .pull_est_q2('lambdahat')
-# lambdahat_q2
-# qnorm(0.975, y_pred_q2)
-# qnorm(0.025, y_pred_q2)
-```
+The posterior estimate and 95% CS for $X = 4$ correspond to `lambdastar` from the output shown above.
 
 ```{r credible_set_q2b, include=F, echo=F}
-pred1_q2b <- res_sim_summ_q2b %>% filter(var == 'y[16]')
+pred1_q2b <- res_sim_summ_q2 %>% filter(var == 'lambdastar')
 pred1_q2b
 pred1_mean_q2b <- pred1_q2b %>% pull(mean)
 pred1_mean_q2b
@@ -707,22 +675,23 @@ credible_set_q2b <- c(pred1_q2b$val2.5pc, pred1_q2b$val97.5pc)
 credible_set_q2b
 ```
 
-From the output shown above, we see that the posterior mean for `y[16]` is `r pred1_mean_q2b`, <response>and we see that 95% CS is [`r credible_set_q2b[1]`, `r credible_set_q2b[2]`].</response>
+From the output shown above, we see that the posterior mean (for `lambdastar`) is `r pred1_mean_q2b`, <response>and we see that the 95% CS is [`r credible_set_q2b[1]`, `r credible_set_q2b[2]`].</response>
 
 ### c
 
-```{r credible_set_pred1_q2, include=F, echo=F}
-pred1_q2 <- res_sim_summ_q2 %>% filter(var == 'pred1')
-credible_set_pred1_q2 <- c(pred1_q2$val2.5pc, pred1_q2$val97.5pc)
-credible_set_pred1_q2
+```{r credible_set_pred1_q2c, include=F, echo=F}
+pred1_q2c <- res_sim_summ_q2 %>% filter(var == 'pred1')
+credible_set_pred1_q2c <- c(pred1_q2c$val2.5pc, pred1_q2c$val97.5pc)
+credible_set_pred1_q2c
 pred1_q2c <- .pull_est_q2('pred1')
 pred1_q2c
 ```
 
 <response>
-The prediction for $X = 4$ is indicated by `pred1` in the output shown above (a). It has a posterior mean of `r pred1_q2c `. Note that this prediction has a CS of [`r credible_set_pred1_q2[1]`, `r credible_set_pred1_q2[2]`]. Note that the CS here is smallerthan that found in (b). This is because the CS in (b) accounts for uncertainty about the prediction `y[16]`, as well as the uncertainty about $\sigma$; on the other hand, the CS here only accounts for uncertaintly about the prediction `pred1`. </response>
+The prediction for $X = 4$ is indicated by `pred1` in the output shown above (a). It has a posterior mean of `r pred1_q2c `. Also, note that this prediction has a CS of [`r credible_set_pred1_q2c[1]`, `r credible_set_pred1_q2c[2]`], which is larger than that found in (b). (The standard deviation `sd` of the prediction here (for `pred1` is also larger than that in (b) (for `lambdastar`).) This is because the CS here accounts for uncertainty about the prediction, as well as the uncertainty about $\sigma$; on the other hand, the CS in (b) only accounts for uncertainty about the prediction `pred1`.
+</response>
 
-Drawing upon frequentist statistics, one might say that the interval in (b) is analogous to a prediction interval, whereas the interval here is analogous to a confidence interval. Note that prediction intervals are always equal to or greater than confidence intervals.
+Drawing upon frequentist statistics, one might say that the interval here is analogous to a prediction interval, whereas the interval in (b) is analogous to a confidence interval. Prediction intervals are always equal to or greater than confidence intervals because they account for additional uncertainty.
 
 <hide>
 See p. 187 at https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/bugsbook_chapter9.pdf for more about this explanation.
