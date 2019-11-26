@@ -1,0 +1,21 @@
+
+  model{
+    for(i in 1:n) {
+      mu[i] <- b0 + b1 * mage[i] + b2 * death[i]
+      time[i] ~ dnorm(mu[i], tau)
+    }
+  
+    b0 ~ dnorm(0, 0.0001)
+    b1 ~ dnorm(0, 0.0001)
+    # b2 ~ dnorm(0, 0.0001)
+    b2 ~ dbin(0, n)
+    tau ~ dgamma(0.001, 0.001)
+    sigma <- 1 / sqrt(tau)
+  
+    mu1 <- b0 + b1 * (24) + b2 * (0)
+    pred1 ~ dnorm(mu1, tau)
+  
+    mu2 <- b0 + b1 * (28) + b2 * (1)
+    pred2 ~ dnorm(mu2, tau)
+  }
+

@@ -1,0 +1,227 @@
+---
+title: 'ISYE 6420: Final'
+author: 'aelhabr3'
+output:
+  html_document:
+    css: ../hws/styles_hw.css
+    theme: cosmo
+    highlight: haddock
+    toc: false
+---
+
+```{r setup, include=F, cache=F}
+knitr::opts_knit$set(root.dir = here::here())
+knitr::opts_chunk$set(
+  # rows.print = 25,
+  # rows.print = 25,
+  echo = TRUE,
+  cache = TRUE,
+  # cache.lazy = FALSE,
+  include = TRUE,
+  fig.show = 'asis',
+  fig.align = 'center',
+  fig.width = 8,
+  # size = 'small',
+  # fig.height = 5,
+  # fig.width = 5,
+  # out.width = 5,
+  fig.asp = 0.75,
+  warning = FALSE,
+  message = FALSE
+)
+options(width = 300)
+```
+
+```{r postprocess, include=F, echo=F, cache=F}
+.path_sans_ext <- file.path('final')
+.path_rmd <- paste0(.path_sans_ext, '.Rmd')
+# spelling::spell_check_files(.path_rmd)
+```
+
+```{r setup-1, include=F, echo=F, eval=T}
+library(tidyverse)
+format_num <- function(x, digits = 4) {
+  fmt <- sprintf('%%.%df', digits)
+  sprintf(fmt, x)
+}
+```
+
+# 1. 
+
+## Instructions
+
+<instructions>
+...
+</instructions>
+
+
+## Response
+
+```{r setup-2}
+library(tidyverse)
+```
+
+```{r path_res_sim_q1, include=F, echo=F}
+path_res_sim_q1 <- 'path_res_sim_q1.rds'
+eval_model_q1 <- !fs::file_exists(path_res_sim_q1)
+```
+
+```{r model_q1, include=F, echo=F}
+model_q1 <- glue::glue_collapse('
+  model{
+    for(i in 1:n) {
+      mu[i] <- b0 + b1 * mage[i] + b2 * death[i]
+      time[i] ~ dnorm(mu[i], tau)
+    }
+  
+    b0 ~ dnorm(0, 0.0001)
+    b1 ~ dnorm(0, 0.0001)
+    # b2 ~ dnorm(0, 0.0001)
+    b2 ~ dbin(0, n)
+    tau ~ dgamma(0.001, 0.001)
+    sigma <- 1 / sqrt(tau)
+  
+    mu1 <- b0 + b1 * (24) + b2 * (0)
+    pred1 ~ dnorm(mu1, tau)
+  
+    mu2 <- b0 + b1 * (28) + b2 * (1)
+    pred2 ~ dnorm(mu2, tau)
+  }
+')
+
+path_model_q1 <- 'model_q1.txt'
+write_lines(model_q1, path_model_q1)
+```
+
+```{r data_list_q1, include=F, echo=F}
+data_q1 <- 
+  'q1-data.xlsx' %>% 
+  readxl::read_excel()
+
+n_q1 <- data_q1 %>% nrow()
+data_list_q1 <-
+  c(list(n = n_q1), as.list(data_q1))
+data_list_q1
+```
+
+```{r data_list_q1-datapasta, echo=F, include=F, eval=F}
+# data_list_q1$type %>% datapasta::vector_paste()
+# data_list_q1$times %>% datapasta::vector_paste()
+# data_list_q1$censor %>% datapasta::vector_paste()
+```
+
+```{r res_sim_q1-setup, include=F, echo=F}
+inits_q1_ex <- function() {
+  list(b0 = 1, b1 = 0, b2 = 0, tau = 1)
+}
+
+params_q1 <-
+  c(
+    paste0('beta', 0:2),
+    paste0('mu', 1:2),
+    paste0('pred', 1:2),
+    'sigma',
+    'tau'
+  )
+```
+
+```{r res_sim_q1, include=F, echo=F, eval=eval_model_q1}
+# res_sim_q1 <-
+#   R2OpenBUGS::bugs(
+#     # debug = TRUE,
+#     data = data_list_q1,
+#     inits = inits_q1,
+#     model.file = path_model_q1,
+#     parameters.to.save = params_q1,
+#     DIC = FALSE,
+#     n.chains = 1,
+#     n.iter = 10000,
+#     n.burnin = 1000
+#   )
+```
+
+```{r res_sim_q1_export, include=F, echo=F, eval=eval_model_q1}
+# write_rds(res_sim_q1, path_res_sim_q1)
+```
+
+```{r res_sim_q1_import, include=F, echo=F}
+# res_sim_q1 <- read_rds(path_res_sim_q1)
+```
+
+```{r res_sim_q1_summ-r2openbugs, include=F, echo=F, eval=F}
+# res_sim_q1$summary
+```
+
+Below is the model code.
+
+```
+model{
+  for(i in 1:n) {
+    mu[i] <- b0 + b1 * mage[i] + b2 * death[i]
+    time[i] ~ dnorm(mu[i], tau)
+  }
+
+  b0 ~ dnorm(0, 0.0001)
+  b1 ~ dnorm(0, 0.0001)
+  # b2 ~ dnorm(0, 0.0001)
+  b2 ~ dbin(0, n)
+  tau ~ dgamma(0.001, 0.001)
+  sigma <- 1 / sqrt(tau)
+
+  mu1 <- b0 + b1 * (24) + b2 * (0)
+  pred1 ~ dnorm(mu1, tau)
+
+  mu2 <- b0 + b1 * (28) + b2 * (1)
+  pred2 ~ dnorm(mu2, tau)
+}
+
+# data
+list(n = 16341)
+
+ DATA(mage, death, and time) 
+
+# inits
+list(b0 = 1, b1 = 0, b2 = 0, tau = 1)
+```
+
+```{r res_sim_output_manual_q1, include=F, echo=F}
+path_res_sim_output_manual_q1 <- 'q1-output.xlsx'
+res_sim_output_manual_q1 <- 
+  path_res_sim_output_manual_q1 %>% 
+  readxl::read_excel()
+res_sim_output_manual_q1
+```
+Note the following about the model code.
+
+Below is a summary of the output, truncated because there are lots of monitored parameters.
+
+```{r q1-eda}
+factor_death <- function(data, ...) {
+  data %>% mutate_at(vars(death), ~factor(., levels = 0:1))
+}
+
+fit_lm_q1 <-
+  data_q1 %>% 
+  # factor_death() %>% 
+  lm(formula(time ~ mage + death), data = .)
+fit_lm_q1
+fit_lm_q1 %>% summary()
+fit_pois_q1 <-
+  data_q1 %>% 
+  # factor_death() %>% 
+  glm(formula(time ~ mage + death), data = ., family = 'poisson')
+fit_pois_q1
+fit_pois_q1 %>% summary()
+# fit_pois_q1 %>% confint() %>% exp()
+
+data_new_q1_1 <- tibble(mage = 24, death = 0) # %>% factor_death()
+data_new_q1_2 <- tibble(mage = 28, death = 1) # %>% factor_death()
+fit_lm_q1 %>% predict(data_new_q1_1)
+fit_lm_q1 %>% predict(data_new_q1_2)
+fit_pois_q1 %>% predict(data_new_q1_1)
+fit_pois_q1 %>% predict(data_new_q1_2)
+fit_pois_q1 %>% predict(data_new_q1_1, type = 'response')
+fit_pois_q1 %>% predict(data_new_q1_2, type = 'response')
+
+```
+
