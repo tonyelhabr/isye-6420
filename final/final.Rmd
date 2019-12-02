@@ -57,40 +57,19 @@ format_num <- function(x, digits = 4) {
 
 ## Response
 
+
+We fit the following linear regression model.
+
+$$
+\begin{array}{rcl}
+\text{time} & = & \beta_0 + \beta_1 \times \text{death} + \beta_2 \times \text{mage}.
+\end{array}
+$$
+
+The model code below is written so as to answer all parts of the question. The full model can be found in "q1.odc". (Although one might wonder whether we need to do anything "special" for the indicator variable `death`, i.e. transform its values to a 1-2 binary pair, it was found that the results are consistent.)
+
 ```{r setup-2}
 library(tidyverse)
-```
-
-```{r path_res_sim_q1, include=F, echo=F}
-path_res_sim_q1 <- 'path_res_sim_q1.rds'
-eval_model_q1 <- !fs::file_exists(path_res_sim_q1)
-```
-
-```{r model_q1, include=F, echo=F}
-model_q1 <- glue::glue_collapse('
-  model{
-    for(i in 1:n) {
-      mu[i] <- b0 + b1 * mage[i] + b2 * death[i]
-      time[i] ~ dnorm(mu[i], tau)
-    }
-  
-    b0 ~ dnorm(0, 0.0001)
-    b1 ~ dnorm(0, 0.0001)
-    # b2 ~ dnorm(0, 0.0001)
-    b2 ~ dbin(0, n)
-    tau ~ dgamma(0.001, 0.001)
-    sigma <- 1 / sqrt(tau)
-  
-    mu1 <- b0 + b1 * (24) + b2 * (0)
-    pred1 ~ dnorm(mu1, tau)
-  
-    mu2 <- b0 + b1 * (28) + b2 * (1)
-    pred2 ~ dnorm(mu2, tau)
-  }
-')
-
-path_model_q1 <- 'model_q1.txt'
-write_lines(model_q1, path_model_q1)
 ```
 
 ```{r data_list_q1, include=F, echo=F}
@@ -104,55 +83,25 @@ data_list_q1 <-
 data_list_q1
 ```
 
+```{r b_2_q1_prior, include=F, echo=F}
+b_2_q1 <- data_q1 %>% summarise_at(vars(death), list(mu = mean, sigma = sd))
+b_2_q1$mu
+b_2_q1$sigma
+alpha <- 0.01
+beta <- 1
+alpha / (alpha + beta)
+(alpha * beta) / ((alpha + beta) ^2 * (alpha + beta + 1))
+dbeta(b_2_q1$mu, shape1 = b_2_q1$sigma)
+```
+
 ```{r data_list_q1-datapasta, echo=F, include=F, eval=F}
-# data_list_q1$type %>% datapasta::vector_paste()
-# data_list_q1$times %>% datapasta::vector_paste()
-# data_list_q1$censor %>% datapasta::vector_paste()
+# data_list_q1$time %>% datapasta::vector_paste()
+# data_list_q1$mage %>% datapasta::vector_paste()
+# data_list_q1$death %>% datapasta::vector_paste()
 ```
 
-```{r res_sim_q1-setup, include=F, echo=F}
-inits_q1_ex <- function() {
-  list(b0 = 1, b1 = 0, b2 = 0, tau = 1)
-}
 
-params_q1 <-
-  c(
-    paste0('beta', 0:2),
-    paste0('mu', 1:2),
-    paste0('pred', 1:2),
-    'sigma',
-    'tau'
-  )
-```
-
-```{r res_sim_q1, include=F, echo=F, eval=eval_model_q1}
-# res_sim_q1 <-
-#   R2OpenBUGS::bugs(
-#     # debug = TRUE,
-#     data = data_list_q1,
-#     inits = inits_q1,
-#     model.file = path_model_q1,
-#     parameters.to.save = params_q1,
-#     DIC = FALSE,
-#     n.chains = 1,
-#     n.iter = 10000,
-#     n.burnin = 1000
-#   )
-```
-
-```{r res_sim_q1_export, include=F, echo=F, eval=eval_model_q1}
-# write_rds(res_sim_q1, path_res_sim_q1)
-```
-
-```{r res_sim_q1_import, include=F, echo=F}
-# res_sim_q1 <- read_rds(path_res_sim_q1)
-```
-
-```{r res_sim_q1_summ-r2openbugs, include=F, echo=F, eval=F}
-# res_sim_q1$summary
-```
-
-Below is the model code.
+Below is the model code. The data is excerpted for the sake of readability. The full model can be found in "q1.odc".
 
 ```
 model{
@@ -163,7 +112,6 @@ model{
 
   b0 ~ dnorm(0, 0.0001)
   b1 ~ dnorm(0, 0.0001)
-  # b2 ~ dnorm(0, 0.0001)
   b2 ~ dbin(0, n)
   tau ~ dgamma(0.001, 0.001)
   sigma <- 1 / sqrt(tau)
@@ -175,13 +123,11 @@ model{
   pred2 ~ dnorm(mu2, tau)
 }
 
-# data
-list(n = 16341)
-
- DATA(mage, death, and time) 
-
 # inits
 list(b0 = 1, b1 = 0, b2 = 0, tau = 1)
+
+# data
+...
 ```
 
 ```{r res_sim_output_manual_q1, include=F, echo=F}
@@ -190,15 +136,24 @@ res_sim_output_manual_q1 <-
   path_res_sim_output_manual_q1 %>% 
   readxl::read_excel()
 res_sim_output_manual_q1
+res_sim_output_q1 <- res_sim_output_manual_q1
 ```
-Note the following about the model code.
 
-Below is a summary of the output, truncated because there are lots of monitored parameters.
+Below is a summary of the output.
 
-```{r q1-eda}
-factor_death <- function(data, ...) {
-  data %>% mutate_at(vars(death), ~factor(., levels = 0:1))
-}
+![](q1-output.png)
+
+```{r res_sim_output_q1, echo=F, include=F, eval=F}
+res_sim_output_q1
+```
+
+### Aside
+
+```{r fit_lm_q1, echo=F, echo=F, eval=F}
+# Note that factoring `death` makes no difference.
+# factor_death <- function(data, ...) {
+#   data %>% mutate_at(vars(death), ~factor(., levels = 0:1))
+# }
 
 fit_lm_q1 <-
   data_q1 %>% 
@@ -206,22 +161,623 @@ fit_lm_q1 <-
   lm(formula(time ~ mage + death), data = .)
 fit_lm_q1
 fit_lm_q1 %>% summary()
+```
+
+```{r fit_pois_q1, echo=F, echo=F, eval=F}
 fit_pois_q1 <-
   data_q1 %>% 
   # factor_death() %>% 
   glm(formula(time ~ mage + death), data = ., family = 'poisson')
 fit_pois_q1
 fit_pois_q1 %>% summary()
-# fit_pois_q1 %>% confint() %>% exp()
+```
 
+```{r data_new_q1, echo=F, echo=F, eval=F}
 data_new_q1_1 <- tibble(mage = 24, death = 0) # %>% factor_death()
 data_new_q1_2 <- tibble(mage = 28, death = 1) # %>% factor_death()
+```
+
+```{r preds_lm_q1, echo=F, echo=F, eval=F}
 fit_lm_q1 %>% predict(data_new_q1_1)
 fit_lm_q1 %>% predict(data_new_q1_2)
+```
+
+```{r preds_pois_q1, echo=F, echo=F, eval=F}
 fit_pois_q1 %>% predict(data_new_q1_1)
 fit_pois_q1 %>% predict(data_new_q1_2)
+```
+
+```{r preds_pois_q1_response, echo=F, echo=F, eval=F}
 fit_pois_q1 %>% predict(data_new_q1_1, type = 'response')
 fit_pois_q1 %>% predict(data_new_q1_2, type = 'response')
+```
+
+```{r confints_pois_q1}
+fit_pois_q1 %>% confint() %>% exp()
+data_new_q1_1 %>% ciTools::add_ci(fit_pois_q1)
+data_new_q1_2 %>% ciTools::add_ci(fit_pois_q1)
+```
+
+
+# 2.
+
+## Instructions
+
+<instructions>
+...
+</instructions>
+
+
+## Response
+
+We will implement a comprehensive Bayesian additive two-way NAOVA analysis on the response `diff` to estimate and test the effects of factors `season` and `seeded`.
+
+```{r data_list_q2, include=F, echo=F}
+data_raw_q2 <- 
+  'clouds.xlsx' %>% 
+  readxl::read_excel()
+data_q2 <-
+  data_raw_q2 %>% 
+  rename_all(tolower) %>% 
+  mutate_at(
+    vars(seeded),
+    ~ifelse(. == 'U', 1L, 2L)
+  ) %>% 
+  mutate_at(
+    vars(season),
+    ~case_when(
+      . == 'Spring' ~ 1L,
+      . == 'Summer' ~ 2L,
+      . == 'Autumn' ~ 3L,
+      . == 'Winter' ~ 4L,
+    )
+  ) %>% 
+  select(seeded, season, diff)
+
+n_q2 <- data_q2 %>% nrow()
+data_list_q2 <-
+  c(list(n = n_q2), as.list(data_q2))
+data_list_q2
+```
+
+```{r data_list_q2-datapasta, echo=F, include=F, eval=F}
+data_list_q2$seeded %>% as.numeric() %>% datapasta::vector_paste()
+data_list_q2$season %>% as.numeric() %>% datapasta::vector_paste()
+data_list_q2$diff %>% round(3) %>% datapasta::vector_paste()
+```
+
+Below is the model code. (As before, the data is excerpted for the sake of readability.) The full model can be found in "q2a.odc".
+
+```
+model{
+  for(i in 1:n) {
+    diff[i] ~ dnorm(mu[i], tau)
+    mu[i] <- mu0 + alpha[seeded[i]] + beta[season[i]]
+  }
+
+  # STZ (sum-to-zero) constraints
+  alpha[1] <- -sum(alpha[2:za])
+  beta[1] <- -sum(beta[2:zb])
+
+  # priors
+  mu0 ~ dnorm(0, 0.0001)
+  for(i in 2:za) {
+    alpha[i] ~ dnorm(0, 0.0001)
+  }
+  for(i in 2:zb) {
+    beta[i] ~ dnorm(0, 0.0001)
+  }
+  tau ~ dgamma(0.001, 0.001)
+  sigma <- 1 / sqrt(tau)
+
+  # pairwise comparisons
+  for(i in 1:(za-1)) {
+    for(j in (i+1):za) {
+      ca[i, j] <- alpha[i] - alpha[j]
+    }
+  }
+  for(i in 1:(zb-1)) {
+    for(j in (i+1):zb) {
+      cb[i, j] <- beta[i] - beta[j]
+    }
+  }
+}
+
+# inits
+list(
+  mu0 = 0,
+  alpha = c(NA, 0),
+  beta = c(NA, 0, 0, 0),
+  tau = 1
+)
 
 ```
 
+Note the following about the model.
+
++ The "U" and "S" for `seeded` have been re-coded as 1 and 2, and "Spring", "Summer", "Autumn", and "Winter" for `season` have been re-coded as 1, 2, 3, and 4, respectively.
+
+```{r res_sim_output_manual_q2a, include=F, echo=F}
+path_res_sim_output_manual_q2a <- 'q2a-output.xlsx'
+res_sim_output_manual_q2a <- 
+  path_res_sim_output_manual_q2a %>% 
+  readxl::read_excel()
+res_sim_output_manual_q2a
+res_sim_output_q2a <- res_sim_output_manual_q2a
+```
+
+Below is a summary of the output.
+
+![](q2a-output.png)
+
+```{r res_sim_output_q2a, echo=F, include=F, eval=F}
+res_sim_output_q2a
+```
+
+
+### b
+
+Below is the code for the model including the interaction term (i.e. `alpha.beta`). The full model can be found in "q2b.odc".
+
+```
+model{
+  for(i in 1:n) {
+    diff[i] ~ dnorm(mu[i], tau)
+    mu[i] <- mu0 + alpha[seeded[i]] + beta[season[i]] + alpha.beta[seeded[i], season[i]]
+  }
+
+  # STZ (sum-to-zero) constraints
+  alpha[1] <- -sum(alpha[2:za])
+  beta[1] <- -sum(beta[2:zb])
+  for(i in 1:za) {
+    alpha.beta[i, 1] <- -sum(alpha.beta[i, 2:zb])
+  }
+  for(i in 2:zb) {
+    alpha.beta[1, i] <- -sum(alpha.beta[2:za, i])
+  }
+
+  # priors
+  mu0 ~ dnorm(0, 0.0001)
+  for(i in 2:za) {
+    alpha[i] ~ dnorm(0, 0.0001)
+  }
+  for(i in 2:zb) {
+    beta[i] ~ dnorm(0, 0.0001)
+  }
+  for(i in 2:za) {
+    for(j in 2:zb) {
+      alpha.beta[i, j] ~ dnorm(0, 0.0001)
+    }
+  }
+  tau ~ dgamma(0.001, 0.001)
+  sigma <- 1 / sqrt(tau)
+
+  # pairwise comparisons
+  for(i in 1:(za-1)) {
+    for(j in (i+1):za) {
+      ca[i, j] <- alpha[i] - alpha[j]
+    }
+  }
+  for(i in 1:(zb-1)) {
+    for(j in (i+1):zb) {
+      cb[i, j] <- beta[i] - beta[j]
+    }
+  }
+}
+
+# inits
+list(
+  mu0 = 0,
+  alpha = c(NA, 0),
+  beta = c(NA, 0, 0, 0),
+  alpha.beta = structure(.Data = c(NA, NA, NA, NA, NA, 0, 0, 0), .Dim = c(2, 4)),
+  tau = 1
+)
+
+# data
+...
+```
+
+```{r res_sim_output_manual_q2b, include=F, echo=F}
+path_res_sim_output_manual_q2b <- 'q2b-output.xlsx'
+res_sim_output_manual_q2b <- 
+  path_res_sim_output_manual_q2b %>% 
+  readxl::read_excel()
+res_sim_output_manual_q2b
+res_sim_output_q2b <- res_sim_output_manual_q2b
+```
+
+
+Below is a summary of the output.
+
+![](q2b-output.png)
+
+```{r res_sim_output_q2b, echo=F, include=F, eval=F}
+res_sim_output_q2b
+```
+
+# 3.
+
+## Instructions
+
+<instructions>
+...
+</instructions>
+
+
+## Response
+
+We fit the following Poisson regression model.
+
+$$
+\begin{array}{rcl}
+\log(\text{customers}) & \sim & \beta_0 + \beta_1 \times \text{hunits} + \beta_2 \times \text{aveinc} + \\
+& & \beta_3 \times \text{aveage} + \beta_4 \times \text{distcomp} + \beta_5 \times \text{diststore}
+\end{array}
+$$
+
+The model code below is written so as to answer parts (a) and (c). (In particular, `lambdastar` and `pred1` correspond to the mean response and prediction asked for in (c).) (Again, the data is excerpted for the sake of readability.) The full model can be found in "q3-a&c.odc".
+
+```{r data_list_q3, include=F, echo=F}
+data_q3 <- 
+  'q3-data.xlsx' %>% 
+  readxl::read_excel()
+
+n_q3 <- data_q3 %>% nrow()
+data_list_q3 <-
+  c(list(n = n_q3), as.list(data_q3))
+data_list_q3
+```
+
+```{r data_list_q3, include=F, echo=F}
+# data_list_q3$customers %>% datapasta::vector_paste()
+# data_list_q3$hunits %>% {./ 1000} %>% datapasta::vector_paste()
+# data_list_q3$aveinc %>% {./ 10000} %>% datapasta::vector_paste()
+# data_list_q3$avehage %>% datapasta::vector_paste()
+# data_list_q3$diststore %>% datapasta::vector_paste()
+# data_list_q3$distcomp %>% datapasta::vector_paste()
+```
+
+```
+model {
+  for(i in 1:n){
+    customers[i] ~ dpois(lambda[i])
+    log(lambda[i]) <- b0 + b1 * hunits[i] + b2 * aveinc[i] + b3 * avehage[i] + b4 * distcomp[i] + b5 * diststore[i]
+  }
+
+  # prediction
+  log(lambdastar) <- b0 + b1 * (0.72) + b2 * (7) + b3 * (6) + b4 * (4.1) + b5 * (8)
+  pred1 ~ dpois(lambdastar)
+
+  # priors
+  b0 ~ dnorm(0, 0.01)
+  b1 ~ dnorm(0, 0.01)
+  b2 ~ dnorm(0, 0.01)
+  b3 ~ dnorm(0, 0.01)
+  b4 ~ dnorm(0, 0.01)
+  b5 ~ dnorm(0, 0.01)
+}
+
+# inits
+list(b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, pred1 = 0)
+
+
+# data
+# ...
+```
+
+Note the following about the model.
+
++  As advised by the announcement made on Canvas, the values of the variable $\text{hunits}$ (for home units) has been scaled down by a factor of 1,000 (i.e. divided by 1,000) and the values of the variable $\text{aveinc}$ (for salaries) has been scaled down by a factor of 10,000.
+
++ Following a second recommendation from the Canvas announcement, we make the $\beta$ terms not "too noninformative", defining them as `dnorm(0, 0.01)` instead of something like `dnorm(0, 0.000001)`.
+
+
+```{r res_sim_output_manual_q3, include=F, echo=F}
+path_res_sim_output_manual_q3 <- 'q3-a&c-output.xlsx'
+res_sim_output_manual_q3 <- 
+  path_res_sim_output_manual_q3 %>% 
+  readxl::read_excel()
+res_sim_output_manual_q3
+res_sim_output_q3 <- res_sim_output_manual_q3
+```
+
+Below is a summary of the output.
+
+![](q3-a&c-output.png)
+
+```{r res_sim_output_q3, echo=F, include=F, eval=F}
+res_sim_output_q3
+```
+
+```{r .pull_est, include=F, echo=F}
+.pull_est <- function(data, .var) {
+  data %>% filter(var == .var) %>% pull(mean)
+}
+.pull_est_q3 <- purrr::partial(.pull_est, data = res_sim_output_q3, ... = )
+# .pull_xy_est <- function(data, prefix = c('x', 'y'), idx) {
+#   prefix <- match.arg(prefix)
+#   data %>% filter(var == sprintf('%s[%s]', prefix, idx)) %>% pull(mean)
+# }
+# .pull_x_est_q3 <- purrr::partial(.pull_xy_est, data = res_sim_output_q3, prefix = 'x', ... = )
+# .pull_y_est_q3 <- purrr::partial(.pull_xy_est, data = res_sim_output_q3, prefix = 'y', ... = )
+.pull_b_est <- function(data, idx) {
+  data %>% filter(var == sprintf('b%d', idx)) %>% pull(mean)
+}
+.pull_b_est_q3 <- purrr::partial(.pull_b_est, data = res_sim_output_q3, ... = )
+```
+
+### a
+
+
+```{r b_ests_q3, include=F, echo=F}
+b_1_q3 <- .pull_b_est_q3(1)
+b_2_q3 <- .pull_b_est_q3(2)
+b_3_q3 <- .pull_b_est_q3(3)
+b_4_q3 <- .pull_b_est_q3(4)
+b_5_q3 <- .pull_b_est_q3(5)
+```
+
+As shown in the output above (a), <response>the estimates (of the posterior means) are as follows.</response>
+
++ $\beta_{1}$ = `r b_1_q3`
+
++ $\beta_{2}$ = `r b_2_q3`
+
++ $\beta_{3}$ = `r b_3_q3`
+
++ $\beta_{4}$ = `r b_4_q3`
+
++ $\beta_{5}$ = `r b_5_q3`
+
+All terms seem to be significant, given that their 95% CS are either completely negative or completely positive.
+
+### b
+
+In order to identify the "best" two covariates from the set of five, we implement stochastic search variable selection (SSVS0, as discussed in Unit 9 and exemplified in "Haldssvs" from the Unit 9 exercises. The theory behind this process is as follows (specified for Poisson regression instead of traditional linear regression).
+
+$$
+\begin{array}{rcl}
+\log(\lambda) & = & \beta_0 + \beta_1 x_1 + \cdots + \beta_k x_k, \\
+\beta_i & = & \delta \alpha_i, \\
+\alpha_i & \sim & \mathcal{Norm}(0, \tau), \\
+\delta_i & \sim & \mathcal{Bern}(p_i).
+\end{array}
+$$
+
+where $p_i$ is the probability that the variable $x_i$ is in the model. Note that the indicator $\delta_i$ terms are used simply to determine whether a $\beta_i$ term is included in a given model---if $\delta_i = 0$, then $\beta_i$ is not included; and if $\delta_i = 1$, then $\beta_i$ is included in the model and its estimate is that of $\alpha_i$. In the end, we chooose the model with the greatest a posteriori probability.
+
+```{r data_list_q3b, include=F, echo=F}
+data_q3b <-
+  data_q3 %>% 
+  mutate_at(vars(hunits), ~{. / 1000} %>% round(3)) %>% 
+  mutate_at(vars(aveinc), ~{. / 10000} %>% round(4)) %>% 
+  set_names(c('y[]', sprintf('x[,%d]', 1:5)))
+# write_tsv(data_q3b, 'q3b1-data.txt')
+# Using `write.table()` so that "\r\n" is EOL character, which enables easy copy-paste into OpenBUGs.
+export_tsv <- purrr::partial(write.table, quote = FALSE, sep = '\t', row.names = FALSE, ... = )
+export_tsv(data_q3b, 'q3b1-data.txt')
+data_q3b %>% 
+  select(matches('y|[245]')) %>%
+  set_names(c('y[]', sprintf('x[,%d]', 1:3))) %>% 
+  export_tsv('q3b2-data.txt')
+```
+
+The (initial) model code is shown below. (This is actually a two-step process, given the ambiguity of the initial results.) As with the model code for parts (a) and (c), the data is excerpted here, but is shown in the full model files "q3b1.odc" and "q3b2.odc".
+
+```
+model {
+  for(i in 1:n){
+    y[i] ~ dpois(lambda[i])
+    log(lambda[i]) <- int + inprod(x.c[i,], beta[])
+  }
+  int ~ dnorm(0,0.001)
+
+  # SSVS prior
+  for(j in 1:p){
+    delta[j] ~ dbern(0.5)
+    alpha[j] ~ dnorm(0, 0.1)
+    beta[j] <- delta[j] * alpha[j]
+  }
+
+  # model probabilities
+  for(j1 in 1:2){
+    for(j2 in 1:2){
+      for(j3 in 1:2){
+        for(j4 in 1:2){
+          for(j5 in 1:2){
+            model[j1, j2, j3, j4, j5] <- equals(delta[1], j1 - 1) * equals(delta[2], j2 - 1) * equals(delta[3], j3 - 1) * equals(delta[4], j4 - 1) * equals(delta[5], j5 - 1)
+          }
+        }
+      }
+    }
+  }
+
+  # data centering
+  for(i in 1:n){
+    for(j in 1:p){
+      x.c[i,j] <- (x[i, j] - mean(x[, j])) / sd(x[, j])
+    }
+  }
+}
+
+# inits
+list(
+  delta = c(1, 1, 1, 1, 1),
+  alpha = c(0, 0, 0, 0, 0),
+  int = 1
+)
+
+# data
+...
+```
+
+Note the following about the model.
+
++ For the sake of convenience, we rename the features `hunits`, ..., `diststore` to be `x[,1]`, ..., `x[,5]` with corresponding $\beta$ estimates `b1`, ..., `b5`.
+
++  For our implementation, we define $\tau = 0.01$ (shown in the stochastic process equations above) so that the $\alpha_i$ estimates are relatively noninformatives. (This maintains the premise that we should not make our priors "too noninformative".)
+
++ We center the data---creating the set of `x.c[]` variables. This is a standard pre-processing step in most variable selection procedures.
+
++ We use the values `2` and `1` instead of `1` and `0` as our binary pair for included and non-included terms. (This is convenient for OpenBUGs.)
+
+
+```{r res_sim_output_manual_q3b1, include=F, echo=F}
+path_res_sim_output_manual_q3b1 <- 'q3b1-output.xlsx'
+res_sim_output_manual_q3b1 <- 
+  path_res_sim_output_manual_q3b1 %>% 
+  readxl::read_excel()
+res_sim_output_manual_q3b1
+res_sim_output_q3b1 <- res_sim_output_manual_q3b1
+```
+
+Below is a summary of the output.
+
+![](q3b1-output.png)
+
+```{r res_sim_output_q3b1, echo=F, include=F, eval=F}
+res_sim_output_q3b1
+```
+
+
+```{r b_ests_q3, include=F, echo=F}
+.pull_est_q3b1 <- purrr::partial(.pull_est, data = res_sim_output_q3b1, ... = )
+delta_ex_q3b1 <- .pull_est_q3b1('delta[1]')
+model_ex_q3b1 <- .pull_est_q3b1('model[2,2,1,2,2]')
+```
+
+There is quite a bit to look at here. To provide some guidance for interpreting these results, take the following examples. 
+
++ Note that `model[2, 2, 1, 2, 2]` has a posterior `mean` estimate of `r model_ex_q3b1`. This tells us that the model with `x[,1]` (for `hunits` and corresponding to the first `2`), with `x[,2]`(for `aveinc` and corresponding to the second `2`), without `x[,3]` (for `avehage` and corresponding the `1`), with `x[,4]` (for `distcomp` and corresponding to the third `2`) and with `x[,5]` (for `diststore` and corresponding to the fourth `2`) is visited `r scales::percent(model_ex_q3b1)` of the time by the MCMC procedure.
+
++ Note that `delta[1]` has a posterior `mean` estimate of `r delta_ex_q3b1`. This means that the `x1` term (for `hunits`) was selected `r scales::percent(model_ex_q3b1)` of the time by the MCMC procedure.
+
+Overall, we observe that there are many model combinations with posterior `mean` estimates (of probability) equal to 0. Since the only combinations that have nonzero probabilities inlcude three or more terms, we must repeat the SSVS process. Since the `delta` terms corresponding to `x[,2]`, `x[,4]`, `x[,5]` equally have the highest posterior `mean`s, we reduce our data set to just these three terms.
+
+Since the model code is nearly identical, it is not shown here. The only non-trivial change to note is that the terms `x[,2]`, `x[,4]`, `x[,5]` are "re-indexed" to `x[,1]`, `x[,2]`, `x[,3]` , `xPlease consult the "q3b2.odc" file to see the implementation.
+
+
+```{r res_sim_output_manual_q3b2, include=F, echo=F}
+path_res_sim_output_manual_q3b2 <- 'q3b2-output.xlsx'
+res_sim_output_manual_q3b2 <- 
+  path_res_sim_output_manual_q3b2 %>% 
+  readxl::read_excel()
+res_sim_output_manual_q3b2
+res_sim_output_q3b2 <- res_sim_output_manual_q3b2
+```
+
+Below are the results of this second SSVS procedure.
+
+
+![](q3b2-output.png)
+
+We have exactly one two-covariate model---`model[1,2,2]`---with a nonzero posterior `mean`, which makes our choice of two-covariate model straightforward. (Of course, if we were able to choose three variables, then we could have chosen all three.). <response>The terms included in this "best" model (according to SSVS) are `distcomp` and `diststore`.</response>
+
+
+#### Aside
+
+As an aside, we can implement a forwards-stepwise regression using `R` and reach the same conclusion about "best" two-covariate model.
+
+```{r fit_step_q3, , include=T, echo=T, eval=T}
+fmla_step_l_1 <- formula(customers ~ 1)
+fmla_step_u_1 <- formula(customers ~ .)
+fit_step_l_1 <- lm(fmla_step_l_1, data = data_q3)
+fit_step_u_1 <- lm(fmla_step_u_1, data = data_q3)
+fit_step <-
+  function(fit_l,
+           fit_u,
+           direction = c('both', 'backward', 'forward'),
+           fit = NULL,
+           ...) {
+    direction <- match.arg(direction)
+    if (is.null(fit)) {
+      if (direction == 'forward') {
+        fit <- fit_l
+      } else {
+        fit <- fit_u
+      }
+    }
+    step(fit, scope = list(lower = fit_l, upper = fit_u), ...)
+  }
+
+
+fit_step_partial <-
+  purrr::partial(
+    fit_step,
+    fit_l = fit_step_l_1,
+    fit_u = fit_step_u_1,
+    ... =
+  )
+
+fit_step_f_partial <-
+  purrr::partial(
+    fit_step_partial,
+    trace = TRUE,
+    direction = 'forward',
+    ... =
+  )
+
+fit_step_f_1 <- fit_step_l_1 %>% fit_step_f_partial()
+fit_step_f_1
+```
+
+We see from the trace that the first two variables that are added to the trivial intercept-only model are `diststore` and `distcomp`.
+
+### c
+
+
+The posterior estimate of the mean and the 95% CS of the mean response for the new store data (`hunits = 720`, `aveinc = 70000`, `aveage = 6`, `distcomp = 4.1`, and `diststore = 8`) correspond to `lambdastar` from the output shown above (a).
+
+```{r pred1_mean_q3c, include=F, echo=F}
+.var <- 'lambdastar'
+pred1_mean_q3 <- res_sim_output_q3 %>% filter(var == .var)
+pred1_mean_q3
+credible_set_pred1_mean_q3 <- c(pred1_mean_q3$val2.5pc, pred1_mean_q3$val97.5pc)
+credible_set_pred1_mean_q3
+est_pred1_mean_q3c <- .pull_est_q3(.var)
+est_pred1_mean_q3c
+```
+
+```{r pred1_q3c, include=F, echo=F}
+.var <- 'pred1'
+pred1_q3c <- res_sim_output_q3 %>% filter(var == .var)
+credible_set_pred1_q3c <- c(pred1_q3c$val2.5pc, pred1_q3c$val97.5pc)
+credible_set_pred1_q3c
+est_pred1_q3c <- .pull_est_q3(.var)
+est_pred1_q3c
+```
+
+<response>
+From the output shown above, we see that the mean response is `r pred1_mean_q3` with 95% CS is [`r credible_set_pred1_mean_q3[1]`, `r credible_set_pred1_mean_q3[2]`]. The prediction is `r pred1_q3` with 95% CS is [`r credible_set_pred1_q3[1]`, `r credible_set_pred1_q3[2]`].
+</response> Note that the prediction has a larger CS than than of the mean response. This is because the prediction's CS accounts for additional prediction---the uncertainty of a point estimate prediction. (We explored this concept in question 2(c) of HW6.)
+
+<hide>
+See p. 187 at https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/bugsbook_chapter9.pdf for more about this explanation.
+</hide>
+
+#### Aside
+
+As a "sanity check" on our OpenBUGs output for the prediction `pred1`, we can compute the Frequentist prediction estimate and CS for the same new store data. Note that these do not necessarily directly analogous with the `pred1` estimate from above, but, in nearly all cases, we should expect these values to be similar to that of `pred1`.
+
+```{r pred_1_q3}
+fit_q3 <-
+  data_q3 %>% 
+  glm(formula(customers ~ .), data = ., family = 'poisson')
+fit_q3
+
+data_new_q3 <- tibble(
+  hunits = 720,
+  aveinc = 70000,
+  avehage = 6,
+  distcomp = 4.1,
+  diststore = 8
+)
+
+pred_1_q3 <- fit_q3 %>% predict(newdata = data_new_q3, type = 'response')
+pred_1_q3
+confint_pred_1_q3 <- data_new_q3 %>% ciTools::add_ci(fit_q3)
+confint_pred_1_q3
+```
+
+Indeed, the prediction estimate and confidence interval are very similar to those found with OpenBUGs.
