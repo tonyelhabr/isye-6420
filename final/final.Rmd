@@ -80,7 +80,6 @@ data_q1 <-
 n_q1 <- data_q1 %>% nrow()
 data_list_q1 <-
   c(list(n = n_q1), as.list(data_q1))
-data_list_q1
 ```
 
 ```{r b_2_q1_prior, include=F, echo=F}
@@ -110,9 +109,10 @@ model{
     time[i] ~ dnorm(mu[i], tau)
   }
 
-  b0 ~ dnorm(0, 0.0001)
-  b1 ~ dnorm(0, 0.0001)
-  b2 ~ dbin(0, n)
+  # priors
+  b0 ~ dnorm(0, 0.001)
+  b1 ~ dnorm(0, 0.001)
+  b2 ~ dnorm(0, 0.001)
   tau ~ dgamma(0.001, 0.001)
   sigma <- 1 / sqrt(tau)
 
@@ -124,7 +124,8 @@ model{
 }
 
 # inits
-list(b0 = 1, b1 = 0, b2 = 0, tau = 1)
+list(b0 = -1, b1 = -1, b2 = 0, tau = 1, pred1 = 0, pred2 = 0)
+
 
 # data
 ...
@@ -193,7 +194,6 @@ fit_pois_q1 %>% predict(data_new_q1_2, type = 'response')
 ```
 
 ```{r confints_pois_q1}
-fit_pois_q1 %>% confint() %>% exp()
 data_new_q1_1 %>% ciTools::add_ci(fit_pois_q1)
 data_new_q1_2 %>% ciTools::add_ci(fit_pois_q1)
 ```
@@ -216,6 +216,7 @@ We will implement a comprehensive Bayesian additive two-way NAOVA analysis on th
 data_raw_q2 <- 
   'clouds.xlsx' %>% 
   readxl::read_excel()
+
 data_q2 <-
   data_raw_q2 %>% 
   rename_all(tolower) %>% 
@@ -237,16 +238,17 @@ data_q2 <-
 n_q2 <- data_q2 %>% nrow()
 data_list_q2 <-
   c(list(n = n_q2), as.list(data_q2))
-data_list_q2
 ```
 
 ```{r data_list_q2-datapasta, echo=F, include=F, eval=F}
-data_list_q2$seeded %>% as.numeric() %>% datapasta::vector_paste()
-data_list_q2$season %>% as.numeric() %>% datapasta::vector_paste()
-data_list_q2$diff %>% round(3) %>% datapasta::vector_paste()
+# data_list_q2$seeded %>% as.numeric() %>% datapasta::vector_paste()
+# data_list_q2$season %>% as.numeric() %>% datapasta::vector_paste()
+# data_list_q2$diff %>% round(3) %>% datapasta::vector_paste()
 ```
 
-Below is the model code. (As before, the data is excerpted for the sake of readability.) The full model can be found in "q2a.odc".
+### a
+
+Below is the model code, not including any interaction term between `seeded` and `season`. (As before, the data is excerpted for the sake of readability.) The full model can be found in "q2a.odc".
 
 ```
 model{
@@ -295,6 +297,8 @@ list(
 
 Note the following about the model.
 
++ It is very similar to that of the "simvastatin.odc" example.
+
 + The "U" and "S" for `seeded` have been re-coded as 1 and 2, and "Spring", "Summer", "Autumn", and "Winter" for `season` have been re-coded as 1, 2, 3, and 4, respectively.
 
 ```{r res_sim_output_manual_q2a, include=F, echo=F}
@@ -314,8 +318,132 @@ Below is a summary of the output.
 res_sim_output_q2a
 ```
 
+In the output above we are primarily interested in the comparison terms `ca` and `cb`. The `ca` terms quantify the difference in paired `seeded` values---either seeded "S" or unseeded "U". Here, there are only two possible values for `seeded`, so there is only one `ca` term, i.e. `ca[1, 2]`. (Really, an array data structure is not needed for the comparison of `seeded` terms, but it is used anyways to maintain consistency with the `season` comparison terms, of which there are more than one.) The `cb` terms quantify the difference between pairs of `season` values. For example, `cb[1, 2]` quantifies the difference between "Spring" and "Summer"; and `cb[1, 3]` quantifies the difference between "Spring" and "Autumn"; etc.
 
-### b
+We consider those comparison terms with a 95% CS that is either completely positive or completely negative to be significant. (If we see that `val2.5pc > 0`, then we say that the comparison is significantly different in a positive way, favoring the first term; similarly, If we see that `val97.5pc < 0`, then we say that the comparison is significantly different in a negative way, favoring the second term.)
+
+```{r viz-funcs, include=F, echo=F}
+theme_custom <- function(...) {
+  theme_light(base_size = 14) +
+    theme(
+      legend.position = 'bottom',
+      # legend.title = element_blank(),
+      axis.title.x = element_text(hjust = 1),
+      axis.title.y = element_text(hjust = 1),
+      ...
+    )
+}
+
+export_png <-
+  function(x,
+           path,
+           ...,
+           units = 'in',
+           width = 8,
+           height = 5) {
+    ggsave(
+      plot = x,
+      filename = path,
+      units = units,
+      width = width,
+      height = height,
+      ...
+    )
+  }
+
+
+# .chr_sig <- 'Significant'
+# .chrs_binary <- c('Positive', 'Negative')
+# .lvls_boxplot <- 
+#   c(
+#     paste0(.chr_sig, .chrs_binary),
+#     paste0('Not ', .chr_sig, .chrs_binary)
+#   )
+.lvls_boxplot <- 
+  c(
+    'Significant',
+    'Not Significant'
+  )
+
+visualize_cs <- function(data, ...) {
+  browser()
+  data %>% 
+    filter(var %>% str_detect('^c')) %>% 
+    mutate(
+      descr = case_when(
+        val2.5pc > 0 ~ .lvls_boxplot[1],
+        val97.5pc < 0 ~ .lvls_boxplot[1],
+        mean > 0 ~ .lvls_boxplot[2],
+        # mean <= 0 ~ .lvls_boxplot[4]
+        mean <= 0 ~ .lvls_boxplot[2]
+      )
+    ) %>% 
+    mutate_at(vars(descr), ~ordered(., .lvls_boxplot)) %>% 
+    ggplot() +
+    aes(x = var, y = mean, color = descr) +
+    geom_crossbar(
+      aes(ymin = val2.5pc, ymax = val97.5pc),
+      # width = 10,
+      fill = 'grey90',
+      fatten = 5
+    ) +
+    # scale_color_brewer(palette = 'RdYlGn') +
+    # scale_x_reverse() +
+    scale_color_manual(values = c('blue', 'grey50')) +
+    guides(color = guide_legend(override.aes = list(size = 3))) +
+    geom_hline(aes(yintercept = 0), size = 2) +
+    theme_custom() +
+    theme(
+      legend.title = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank()
+    ) +
+    coord_flip() +
+    labs(
+      x = NULL, y = NULL
+    )
+}
+```
+
+To assist with interpreting the comparison terms, below is a plot illustrating the means and 95% CS of the two-way paired comparisons. (The interior crossbars illustrate the mean and the box bounds illustrate the 95% CS range.)
+
+```{r path_viz_q2a, include=F, echo=F}
+path_viz_q2a <- 'viz_q2a.png'
+eval_viz_q2a <- !fs::file_exists(path_viz_q2a)
+```
+
+```{r viz_q2a, echo=F, include=F, eval=T, fig.show=F}
+.lab_title_q2a <- 'Two-Way ANOVA Comparison Without Interaction Term'
+viz_q2a <-
+  res_sim_output_q2a %>% 
+  visualize_cs() +
+  labs(
+    subtitle = .lab_title_q2a
+  )
+viz_q2a
+```
+
+```{r viz_q2a_export, include=F, echo=F, eval=eval_viz_q2a}
+export_png(
+  viz_q2a,
+  path = path_viz_q2a,
+)
+```
+
+```{r viz_q2a-show, include=T, echo=F}
+knitr::include_graphics(path_viz_q2a)
+```
+
+We observe the following:
+
++ The three `season` comparison terms involving "Winter" are significantly positive: (1) `cb[1, 4]` (i.e. the difference between "Spring" and "Winter"); (2) `cb[2, 4]` (i.e. the difference between "Summer" and "Winter"); (3) `cb[3, 4]` (i.e. the difference between "Autumn" and "Winter").
+
++ Two terms have negative posterior meansm but are not significant: `ca[1, 2]` and `cb[1, 2]`.
+ 
++ The remaining two terms---involving `season` comparisons with "Fall"---have positive posterior meansm but are not significant: `cb[1, 3]` and `cb[2, 3]`.
+
+
+#### b
 
 Below is the code for the model including the interaction term (i.e. `alpha.beta`). The full model can be found in "q2b.odc".
 
@@ -378,6 +506,9 @@ list(
 ...
 ```
 
+Note that this code is very similar to that from (a) above, with additions made to include the interaction term `alpha.beta`.
+
+
 ```{r res_sim_output_manual_q2b, include=F, echo=F}
 path_res_sim_output_manual_q2b <- 'q2b-output.xlsx'
 res_sim_output_manual_q2b <- 
@@ -387,13 +518,38 @@ res_sim_output_manual_q2b
 res_sim_output_q2b <- res_sim_output_manual_q2b
 ```
 
-
 Below is a summary of the output.
 
 ![](q2b-output.png)
 
 ```{r res_sim_output_q2b, echo=F, include=F, eval=F}
 res_sim_output_q2b
+```
+
+```{r path_viz_q2b, include=F, echo=F}
+path_viz_q2b <- 'viz_q2b.png'
+eval_viz_q2b <- !fs::file_exists(path_viz_q2b)
+```
+
+```{r viz_q2b, echo=F, include=F, eval=T, fig.show=F}
+viz_q2b <-
+  res_sim_output_q2b %>% 
+  visualize_cs() +
+  labs(
+    subtitle = .lab_title_q2a %>% str_replace('Without', 'With')
+  )
+viz_q2b
+```
+
+```{r viz_q2b_export, include=F, echo=F, eval=eval_viz_q2b}
+export_png(
+  viz_q2b,
+  path = path_viz_q2b,
+)
+```
+
+```{r viz_q2b-show, include=T, echo=F}
+knitr::include_graphics(path_viz_q2b)
 ```
 
 # 3.
@@ -416,7 +572,7 @@ $$
 \end{array}
 $$
 
-The model code below is written so as to answer parts (a) and (c). (In particular, `lambdastar` and `pred1` correspond to the mean response and prediction asked for in (c).) (Again, the data is excerpted for the sake of readability.) The full model can be found in "q3-a&c.odc".
+The model code below is written so as to answer parts (a) and (c). (In particular, `lambdastar` and `pred1` correspond to the mean response and prediction asked for in (c).) (Again, the data is excerpted for the sake of readability.) The full model can be found in "q3ac.odc".
 
 ```{r data_list_q3, include=F, echo=F}
 data_q3 <- 
@@ -474,7 +630,7 @@ Note the following about the model.
 
 
 ```{r res_sim_output_manual_q3, include=F, echo=F}
-path_res_sim_output_manual_q3 <- 'q3-a&c-output.xlsx'
+path_res_sim_output_manual_q3 <- 'q3ac-output.xlsx'
 res_sim_output_manual_q3 <- 
   path_res_sim_output_manual_q3 %>% 
   readxl::read_excel()
@@ -484,7 +640,7 @@ res_sim_output_q3 <- res_sim_output_manual_q3
 
 Below is a summary of the output.
 
-![](q3-a&c-output.png)
+![](q3ac-output.png)
 
 ```{r res_sim_output_q3, echo=F, include=F, eval=F}
 res_sim_output_q3
