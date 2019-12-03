@@ -62,7 +62,7 @@ We fit the following linear regression model.
 
 $$
 \begin{array}{rcl}
-\text{time} & = & \beta_0 + \beta_1 \times \text{death} + \beta_2 \times \text{mage}.
+\text{time} & = & \beta_0 + \beta_1 \text{death} + \beta_2 \text{mage}.
 \end{array}
 $$
 
@@ -82,23 +82,11 @@ data_list_q1 <-
   c(list(n = n_q1), as.list(data_q1))
 ```
 
-```{r b_2_q1_prior, include=F, echo=F}
-b_2_q1 <- data_q1 %>% summarise_at(vars(death), list(mu = mean, sigma = sd))
-b_2_q1$mu
-b_2_q1$sigma
-alpha <- 0.01
-beta <- 1
-alpha / (alpha + beta)
-(alpha * beta) / ((alpha + beta) ^2 * (alpha + beta + 1))
-dbeta(b_2_q1$mu, shape1 = b_2_q1$sigma)
-```
-
 ```{r data_list_q1-datapasta, echo=F, include=F, eval=F}
 # data_list_q1$time %>% datapasta::vector_paste()
 # data_list_q1$mage %>% datapasta::vector_paste()
 # data_list_q1$death %>% datapasta::vector_paste()
 ```
-
 
 Below is the model code. The data is excerpted for the sake of readability. The full model can be found in "q1.odc".
 
@@ -148,56 +136,166 @@ Below is a summary of the output.
 res_sim_output_q1
 ```
 
+```{r pull_b_est_q1, include=F, echo=F}
+.pull_est <- function(data, .var) {
+  data %>% filter(var == .var) %>% pull(mean)
+}
+.pull_est_q1 <- purrr::partial(.pull_est, data = res_sim_output_q1, ... = )
+.pull_b_est <- function(data, idx) {
+  data %>% filter(var == sprintf('b%d', idx)) %>% pull(mean)
+}
+.pull_b_est_q1 <- purrr::partial(.pull_b_est, data = res_sim_output_q1, ... = )
+```
+
+We see that the estimated model is as follows.
+
+```{r b_ests_q1, include=F, echo=F}
+b_0_q1 <- .pull_b_est_q1(0)
+b_1_q1 <- .pull_b_est_q1(1)
+b_2_q1 <- .pull_b_est_q1(2)
+```
+
+$$
+\begin{array}{rcl}
+\text{time} & = & `r b_0_q1` + r b_1_q1` \text{death} + r `b_2_q1` \text{mage}.
+\end{array}
+$$
+
+
+### a
+
+<response>
+The slope (i.e. the posterior estimate of the mean) of $\beta_2$ (for $\text{mage}$) is and the 95% CS of the mean response for the new store data 
+</response>
+
+```{r b_2_q1, include=F, echo=F}
+.var <- 'b2'
+# Note: Use `b_2_res` since `b_2` is already used instead of `est_b_2`. (Unfortunately, naming convention is not completely consistent throughout this document.)
+b_2_res_q1 <- res_sim_output_q1 %>% filter(var == .var)
+b_2_res_q1
+cs_b_2_q1 <- c(b_2_res_q1$val2.5pc, b_2_res_q1$val97.5pc)
+cs_b_2_q1
+```
+
+<response>
+From the output shown above, we see that the slope (i.e. the posterior estimate of the mean) of $\beta_2$ (for $\text{death}$) is `r b_2_q1`. Its 95% CS is [`r cs_b_2_q1[1]`, `r cs_b_2_q1[2]`]. This variable is significant because its 95% CS is completely negative.
+</response> 
+
+### b
+
+```{r b_1_q1, include=F, echo=F}
+.var <- 'b1'
+b_1_res_q1 <- res_sim_output_q1 %>% filter(var == .var)
+b_1_res_q1
+cs_b_1_q1 <- c(b_1_res_q1$val2.5pc, b_1_res_q1$val97.5pc)
+cs_b_1_q1
+```
+
+<response>
+We observe that the posterior estimate of the mean of $\beta_1$ (for $\text{mage}$) is `r b_1_q1`,and that its 95% CS is [`r cs_b_1_q1[1]`, `r cs_b_1_q1[2]`]. We may say that this variable is not significant (with respect to its relationship with $\text{time}$  because its 95% CS is not completely negative. Even though its posterior mean is negative, less than 95% of simulated estimates are negative---this is one way of interpreting a 95% CS---which fails our traditional criteria for ascertaining significance.
+</response> 
+
+
+### c
+
+```{r pred1_q1, include=F, echo=F}
+.var <- 'pred1'
+pred1_q1 <- res_sim_output_q1 %>% filter(var == .var)
+cs_pred1_q1 <- c(pred1_q1$val2.5pc, pred1_q1$val97.5pc)
+cs_pred1_q1
+est_pred1_q1 <- .pull_est_q1(.var)
+est_pred1_q1
+```
+
+<response>
+From the output shown above, we see that the predicted time between births for Helga (corresponding to `pred1`) is `r est_pred1_q1` with 95% CS is [`r cs_pred1_q1[1]`, `r cs_pred1_q1[2]`].
+</response> Notably, this CS is very wide, but it does not include zero, so we can be somewhat confident in it (and be mindful of its imprecision).
+
+### d
+
+```{r pred2_q1, include=F, echo=F}
+.var <- 'pred2'
+pred2_q1 <- res_sim_output_q1 %>% filter(var == .var)
+cs_pred2_q1 <- c(pred2_q1$val2.5pc, pred2_q1$val97.5pc)
+cs_pred2_q1
+est_pred2_q1 <- .pull_est_q1(.var)
+est_pred2_q1
+```
+
+<response>
+From the output shown above, we see that the predicted time between births for Emma (corresponding to `pred2`) is `r est_pred2_q1` with 95% CS is [`r cs_pred2_q1[1]`, `r cs_pred2_q1[2]`].
+</response> Notably, this CS is very wide. It even includes zero (which does not make sense in the context of this problem)! Thus, we should be wary of the lack of robustness of this prediction.
+
 ### Aside
 
-```{r fit_lm_q1, echo=F, echo=F, eval=F}
+As an aside, we can create the same kind of model using a "traditional" (i.e. non-Bayesian) approach in `R`. Overall, we achieve similar results. 
+
++ The estimates of all $\beta$'s are similar. Specifically, we note that $\beta_1$ and $\beta_2$ are estimated to be negative, as is found above.
+
++ The prediction for Helga is in the 900s, as us found in the (c); and the prediction intervals for both Helga and Emma have wide 95% prediction intervals, as is found above.
+
+```{r factor_death, include=F, echo=F, eval=F}
 # Note that factoring `death` makes no difference.
 # factor_death <- function(data, ...) {
 #   data %>% mutate_at(vars(death), ~factor(., levels = 0:1))
 # }
+```
 
+```{r fit_lm_q1, include=T, echo=T, eval=T}
 fit_lm_q1 <-
   data_q1 %>% 
-  # factor_death() %>% 
   lm(formula(time ~ mage + death), data = .)
 fit_lm_q1
 fit_lm_q1 %>% summary()
 ```
 
-```{r fit_pois_q1, echo=F, echo=F, eval=F}
+```{r fit_pois_q1, include=F, echo=F, eval=F}
 fit_pois_q1 <-
   data_q1 %>% 
-  # factor_death() %>% 
   glm(formula(time ~ mage + death), data = ., family = 'poisson')
 fit_pois_q1
 fit_pois_q1 %>% summary()
 ```
 
-```{r data_new_q1, echo=F, echo=F, eval=F}
-data_new_q1_1 <- tibble(mage = 24, death = 0) # %>% factor_death()
-data_new_q1_2 <- tibble(mage = 28, death = 1) # %>% factor_death()
+```{r data_new_q1, include=T, echo=T, eval=T}
+data_new_q1_1 <- tibble(mage = 24, death = 0)
+data_new_q1_2 <- tibble(mage = 28, death = 1)
 ```
 
-```{r preds_lm_q1, echo=F, echo=F, eval=F}
+```{r preds_lm_q1, include=F, echo=F, eval=F}
 fit_lm_q1 %>% predict(data_new_q1_1)
 fit_lm_q1 %>% predict(data_new_q1_2)
 ```
 
-```{r preds_pois_q1, echo=F, echo=F, eval=F}
+```{r preds_pois_q1, include=F, echo=F, eval=F}
 fit_pois_q1 %>% predict(data_new_q1_1)
 fit_pois_q1 %>% predict(data_new_q1_2)
 ```
 
-```{r preds_pois_q1_response, echo=F, echo=F, eval=F}
+```{r preds_predict_q1, include=T, echo=T, eval=T}
+fit_lm_q1 %>% predict(data_new_q1_1, interval = 'prediction')
+fit_lm_q1 %>% predict(data_new_q1_2, interval = 'prediction')
+```
+
+```{r preds_conf_q1, include=F, echo=F, eval=F}
+fit_lm_q1 %>% predict(data_new_q1_1, interval = 'confidence')
+fit_lm_q1 %>% predict(data_new_q1_2, interval = 'confidence')
+```
+
+```{r preds_pois_q1_response, include=F, echo=F, eval=F}
 fit_pois_q1 %>% predict(data_new_q1_1, type = 'response')
 fit_pois_q1 %>% predict(data_new_q1_2, type = 'response')
 ```
 
-```{r confints_pois_q1}
+```{r confints_lm_q1, include=F, echo=F, eval=F}
+data_new_q1_1 %>% ciTools::add_ci(fit_lm_q1)
+data_new_q1_2 %>% ciTools::add_ci(fit_lm_q1)
+```
+
+```{r confints_pois_q1, include=F, echo=F, eval=F}
 data_new_q1_1 %>% ciTools::add_ci(fit_pois_q1)
 data_new_q1_2 %>% ciTools::add_ci(fit_pois_q1)
 ```
-
 
 # 2.
 
@@ -210,7 +308,7 @@ data_new_q1_2 %>% ciTools::add_ci(fit_pois_q1)
 
 ## Response
 
-We will implement a comprehensive Bayesian additive two-way NAOVA analysis on the response `diff` to estimate and test the effects of factors `season` and `seeded`.
+We implement a comprehensive Bayesian additive two-way ANOVA analysis on the response `diff` to estimate and test the effects of factors `season` and `seeded`.
 
 ```{r data_list_q2, include=F, echo=F}
 data_raw_q2 <- 
@@ -366,7 +464,6 @@ export_png <-
   )
 
 visualize_cs <- function(data, ...) {
-  browser()
   data %>% 
     filter(var %>% str_detect('^c')) %>% 
     mutate(
@@ -436,11 +533,11 @@ knitr::include_graphics(path_viz_q2a)
 
 We observe the following:
 
-+ The three `season` comparison terms involving "Winter" are significantly positive: (1) `cb[1, 4]` (i.e. the difference between "Spring" and "Winter"); (2) `cb[2, 4]` (i.e. the difference between "Summer" and "Winter"); (3) `cb[3, 4]` (i.e. the difference between "Autumn" and "Winter").
++ The three `season` comparison terms involving "Winter" are significantly positive: (1) `cb[1, 4]` (i.e. the difference between "Spring" and "Winter"); (2) `cb[2, 4]` (i.e. the difference between "Summer" and "Winter"); (3) `cb[3, 4]` (i.e. the difference between "Autumn" and "Winter"). We may say that 
 
-+ Two terms have negative posterior meansm but are not significant: `ca[1, 2]` and `cb[1, 2]`.
++ Two terms have negative posterior means but are not significant: `ca[1, 2]` and `cb[1, 2]`.
  
-+ The remaining two terms---involving `season` comparisons with "Fall"---have positive posterior meansm but are not significant: `cb[1, 3]` and `cb[2, 3]`.
++ The remaining two terms---involving `season` comparisons with "Fall"---have positive posterior means but are not significant: `cb[1, 3]` and `cb[2, 3]`.
 
 
 #### b
@@ -585,7 +682,7 @@ data_list_q3 <-
 data_list_q3
 ```
 
-```{r data_list_q3, include=F, echo=F}
+```{r data_list_q3_datapasta, include=F, echo=F}
 # data_list_q3$customers %>% datapasta::vector_paste()
 # data_list_q3$hunits %>% {./ 1000} %>% datapasta::vector_paste()
 # data_list_q3$aveinc %>% {./ 10000} %>% datapasta::vector_paste()
@@ -646,25 +743,11 @@ Below is a summary of the output.
 res_sim_output_q3
 ```
 
-```{r .pull_est, include=F, echo=F}
-.pull_est <- function(data, .var) {
-  data %>% filter(var == .var) %>% pull(mean)
-}
-.pull_est_q3 <- purrr::partial(.pull_est, data = res_sim_output_q3, ... = )
-# .pull_xy_est <- function(data, prefix = c('x', 'y'), idx) {
-#   prefix <- match.arg(prefix)
-#   data %>% filter(var == sprintf('%s[%s]', prefix, idx)) %>% pull(mean)
-# }
-# .pull_x_est_q3 <- purrr::partial(.pull_xy_est, data = res_sim_output_q3, prefix = 'x', ... = )
-# .pull_y_est_q3 <- purrr::partial(.pull_xy_est, data = res_sim_output_q3, prefix = 'y', ... = )
-.pull_b_est <- function(data, idx) {
-  data %>% filter(var == sprintf('b%d', idx)) %>% pull(mean)
-}
+```{r pull_b_est_q3, include=F, echo=F}
 .pull_b_est_q3 <- purrr::partial(.pull_b_est, data = res_sim_output_q3, ... = )
 ```
 
 ### a
-
 
 ```{r b_ests_q3, include=F, echo=F}
 b_1_q3 <- .pull_b_est_q3(1)
@@ -701,7 +784,7 @@ $$
 \end{array}
 $$
 
-where $p_i$ is the probability that the variable $x_i$ is in the model. Note that the indicator $\delta_i$ terms are used simply to determine whether a $\beta_i$ term is included in a given model---if $\delta_i = 0$, then $\beta_i$ is not included; and if $\delta_i = 1$, then $\beta_i$ is included in the model and its estimate is that of $\alpha_i$. In the end, we chooose the model with the greatest a posteriori probability.
+where $p_i$ is the probability that the variable $x_i$ is in the model. Note that the indicator $\delta_i$ terms are used simply to determine whether a $\beta_i$ term is included in a given model---if $\delta_i = 0$, then $\beta_i$ is not included; and if $\delta_i = 1$, then $\beta_i$ is included in the model and its estimate is that of $\alpha_i$. In the end, we choose the model with the greatest a posteriori probability.
 
 ```{r data_list_q3b, include=F, echo=F}
 data_q3b <-
@@ -772,7 +855,7 @@ Note the following about the model.
 
 + For the sake of convenience, we rename the features `hunits`, ..., `diststore` to be `x[,1]`, ..., `x[,5]` with corresponding $\beta$ estimates `b1`, ..., `b5`.
 
-+  For our implementation, we define $\tau = 0.01$ (shown in the stochastic process equations above) so that the $\alpha_i$ estimates are relatively noninformatives. (This maintains the premise that we should not make our priors "too noninformative".)
++  For our implementation, we define $\tau = 0.01$ (shown in the stochastic process equations above) so that the $\alpha_i$ estimates are relatively noninformative. (This maintains the premise that we should not make our priors "too noninformative".)
 
 + We center the data---creating the set of `x.c[]` variables. This is a standard pre-processing step in most variable selection procedures.
 
@@ -796,8 +879,7 @@ Below is a summary of the output.
 res_sim_output_q3b1
 ```
 
-
-```{r b_ests_q3, include=F, echo=F}
+```{r ex_q3b1, include=F, echo=F}
 .pull_est_q3b1 <- purrr::partial(.pull_est, data = res_sim_output_q3b1, ... = )
 delta_ex_q3b1 <- .pull_est_q3b1('delta[1]')
 model_ex_q3b1 <- .pull_est_q3b1('model[2,2,1,2,2]')
@@ -809,9 +891,9 @@ There is quite a bit to look at here. To provide some guidance for interpreting 
 
 + Note that `delta[1]` has a posterior `mean` estimate of `r delta_ex_q3b1`. This means that the `x1` term (for `hunits`) was selected `r scales::percent(model_ex_q3b1)` of the time by the MCMC procedure.
 
-Overall, we observe that there are many model combinations with posterior `mean` estimates (of probability) equal to 0. Since the only combinations that have nonzero probabilities inlcude three or more terms, we must repeat the SSVS process. Since the `delta` terms corresponding to `x[,2]`, `x[,4]`, `x[,5]` equally have the highest posterior `mean`s, we reduce our data set to just these three terms.
+Overall, we observe that there are many model combinations with posterior `mean` estimates (of probability) equal to 0. Since the only combinations that have nonzero probabilities include three or more terms, we must repeat the SSVS process. Since the `delta` terms corresponding to `x[,2]`, `x[,4]`, `x[,5]` equally have the highest posterior `mean`s, we reduce our data set to just these three terms.
 
-Since the model code is nearly identical, it is not shown here. The only non-trivial change to note is that the terms `x[,2]`, `x[,4]`, `x[,5]` are "re-indexed" to `x[,1]`, `x[,2]`, `x[,3]` , `xPlease consult the "q3b2.odc" file to see the implementation.
+Since the model code is nearly identical, it is not shown here. The only non-trivial change to note is that the terms `x[,2]`, `x[,4]`, `x[,5]` are "re-indexed" to `x[,1]`, `x[,2]`, `x[,3]`. Please consult the "q3b2.odc" file to see the implementation.
 
 
 ```{r res_sim_output_manual_q3b2, include=F, echo=F}
@@ -882,15 +964,15 @@ We see from the trace that the first two variables that are added to the trivial
 
 ### c
 
-
 The posterior estimate of the mean and the 95% CS of the mean response for the new store data (`hunits = 720`, `aveinc = 70000`, `aveage = 6`, `distcomp = 4.1`, and `diststore = 8`) correspond to `lambdastar` from the output shown above (a).
 
 ```{r pred1_mean_q3c, include=F, echo=F}
+.pull_est_q3 <- purrr::partial(.pull_est, data = res_sim_output_q3, ... = )
 .var <- 'lambdastar'
-pred1_mean_q3 <- res_sim_output_q3 %>% filter(var == .var)
-pred1_mean_q3
-credible_set_pred1_mean_q3 <- c(pred1_mean_q3$val2.5pc, pred1_mean_q3$val97.5pc)
-credible_set_pred1_mean_q3
+pred1_mean_q3c <- res_sim_output_q3 %>% filter(var == .var)
+pred1_mean_q3c
+cs_pred1_mean_q3c <- c(pred1_mean_q3c$val2.5pc, pred1_mean_q3c$val97.5pc)
+cs_pred1_mean_q3c
 est_pred1_mean_q3c <- .pull_est_q3(.var)
 est_pred1_mean_q3c
 ```
@@ -898,14 +980,14 @@ est_pred1_mean_q3c
 ```{r pred1_q3c, include=F, echo=F}
 .var <- 'pred1'
 pred1_q3c <- res_sim_output_q3 %>% filter(var == .var)
-credible_set_pred1_q3c <- c(pred1_q3c$val2.5pc, pred1_q3c$val97.5pc)
-credible_set_pred1_q3c
+cs_pred1_q3c <- c(pred1_q3c$val2.5pc, pred1_q3c$val97.5pc)
+cs_pred1_q3c
 est_pred1_q3c <- .pull_est_q3(.var)
 est_pred1_q3c
 ```
 
 <response>
-From the output shown above, we see that the mean response is `r pred1_mean_q3` with 95% CS is [`r credible_set_pred1_mean_q3[1]`, `r credible_set_pred1_mean_q3[2]`]. The prediction is `r pred1_q3` with 95% CS is [`r credible_set_pred1_q3[1]`, `r credible_set_pred1_q3[2]`].
+From the output shown above, we see that the mean response is `r pred1_mean_q3c` with 95% CS is [`r cs_pred1_mean_q3c[1]`, `r cs_pred1_mean_q3c[2]`]. The prediction is `r pred1_q3c` with 95% CS is [`r cs_pred1_q3c[1]`, `r cs_pred1_q3c[2]`].
 </response> Note that the prediction has a larger CS than than of the mean response. This is because the prediction's CS accounts for additional prediction---the uncertainty of a point estimate prediction. (We explored this concept in question 2(c) of HW6.)
 
 <hide>
