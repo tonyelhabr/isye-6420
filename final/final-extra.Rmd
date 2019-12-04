@@ -1,0 +1,160 @@
+
+# 1.
+
+## Response
+
+### d
+
+#### Aside
+
+As an aside, we can create the same kind of model using a "traditional" (i.e. non-Bayesian) approach using `R`. Overall, we achieve similar results. 
+
++ The estimates of all $\beta$'s are similar. Specifically, we note that $\beta_1$ and $\beta_2$ are estimated to be negative, as is found above. However, the magnitude of these estimates is a bit different from what is found above.
+
++ The prediction for Helga is in the 900s, as us found in the (c); and the prediction intervals for both Helga and Emma have wide 95% prediction intervals.
+
+```{r factor_death, include=F, echo=F, eval=F}
+# Note that factoring `death` makes no difference.
+# factor_death <- function(data, ...) {
+#   data %>% mutate_at(vars(death), ~factor(., levels = 0:1))
+# }
+```
+
+```{r fit_lm_q1, include=T, echo=T, eval=T}
+fit_lm_q1 <-
+  data_q1 %>% 
+  lm(formula(time ~ mage + death), data = .)
+fit_lm_q1
+fit_lm_q1 %>% summary()
+```
+
+```{r fit_pois_q1, include=F, echo=F, eval=F}
+fit_pois_q1 <-
+  data_q1 %>% 
+  glm(formula(time ~ mage + death), data = ., family = 'poisson')
+fit_pois_q1
+fit_pois_q1 %>% summary()
+```
+
+```{r data_new_q1, include=T, echo=T, eval=T}
+data_new_q1_1 <- tibble(mage = 24, death = 0)
+data_new_q1_2 <- tibble(mage = 28, death = 1)
+```
+
+```{r preds_lm_q1, include=F, echo=F, eval=F}
+fit_lm_q1 %>% predict(data_new_q1_1)
+fit_lm_q1 %>% predict(data_new_q1_2)
+```
+
+```{r preds_pois_q1, include=F, echo=F, eval=F}
+fit_pois_q1 %>% predict(data_new_q1_1)
+fit_pois_q1 %>% predict(data_new_q1_2)
+```
+
+```{r preds_predict_q1, include=T, echo=T, eval=T}
+fit_lm_q1 %>% predict(data_new_q1_1, interval = 'prediction')
+fit_lm_q1 %>% predict(data_new_q1_2, interval = 'prediction')
+```
+
+```{r preds_conf_q1, include=F, echo=F, eval=F}
+fit_lm_q1 %>% predict(data_new_q1_1, interval = 'confidence')
+fit_lm_q1 %>% predict(data_new_q1_2, interval = 'confidence')
+```
+
+```{r preds_pois_q1_response, include=F, echo=F, eval=F}
+fit_pois_q1 %>% predict(data_new_q1_1, type = 'response')
+fit_pois_q1 %>% predict(data_new_q1_2, type = 'response')
+```
+
+```{r confints_lm_q1, include=F, echo=F, eval=F}
+data_new_q1_1 %>% ciTools::add_ci(fit_lm_q1)
+data_new_q1_2 %>% ciTools::add_ci(fit_lm_q1)
+```
+
+```{r confints_pois_q1, include=F, echo=F, eval=F}
+data_new_q1_1 %>% ciTools::add_ci(fit_pois_q1)
+data_new_q1_2 %>% ciTools::add_ci(fit_pois_q1)
+```
+
+# 3.
+
+## Response
+
+### b
+
+
+#### Aside
+
+As an aside, we can implement a forwards-stepwise regression using `R` and reach the same conclusion about "best" two-covariate model.
+
+```{r fit_step_q3, , include=T, echo=T, eval=T}
+fmla_step_l_1 <- formula(customers ~ 1)
+fmla_step_u_1 <- formula(customers ~ .)
+fit_step_l_1 <- lm(fmla_step_l_1, data = data_q3)
+fit_step_u_1 <- lm(fmla_step_u_1, data = data_q3)
+fit_step <-
+  function(fit_l,
+           fit_u,
+           direction = c('both', 'backward', 'forward'),
+           fit = NULL,
+           ...) {
+    direction <- match.arg(direction)
+    if (is.null(fit)) {
+      if (direction == 'forward') {
+        fit <- fit_l
+      } else {
+        fit <- fit_u
+      }
+    }
+    step(fit, scope = list(lower = fit_l, upper = fit_u), ...)
+  }
+
+
+fit_step_partial <-
+  purrr::partial(
+    fit_step,
+    fit_l = fit_step_l_1,
+    fit_u = fit_step_u_1,
+    ... =
+  )
+
+fit_step_f_partial <-
+  purrr::partial(
+    fit_step_partial,
+    trace = TRUE,
+    direction = 'forward',
+    ... =
+  )
+
+fit_step_f_1 <- fit_step_l_1 %>% fit_step_f_partial()
+fit_step_f_1
+```
+
+We see from the trace that the first two variables that are added to the trivial intercept-only model are `diststore` and `distcomp`.
+
+
+#### Aside
+
+As a "sanity check" on our OpenBUGs output for the mean response `lambdastar`, we can compute the Frequentist prediction estimate and CS for the same new data. Note that these are not exactly directly analogous with the mean response estimate from above, but, in nearly all cases, we should expect these values to be similar to that of `lambdastar`.
+
+```{r pred_1_q3}
+fit_q3 <-
+  data_q3 %>% 
+  glm(formula(customers ~ .), data = ., family = 'poisson')
+fit_q3
+
+data_new_q3 <- tibble(
+  hunits = 720,
+  aveinc = 70000,
+  avehage = 6,
+  distcomp = 4.1,
+  diststore = 8
+)
+
+pred_1_q3 <- fit_q3 %>% predict(newdata = data_new_q3, type = 'response')
+pred_1_q3
+confint_pred_1_q3 <- data_new_q3 %>% ciTools::add_ci(fit_q3)
+confint_pred_1_q3
+```
+
+Indeed, the prediction estimate and confidence interval are very similar to those found with OpenBUGs.

@@ -46,7 +46,7 @@ format_num <- function(x, digits = 4) {
 }
 ```
 
-# 1. 
+# 1. Time to Second Birth.
 
 ## Instructions
 
@@ -61,12 +61,12 @@ format_num <- function(x, digits = 4) {
 We fit the following linear regression model.
 
 $$
-\begin{array}{rcl}
-\text{time} & = & \beta_0 + \beta_1 \text{death} + \beta_2 \text{mage}.
+\begin{array}{c}
+\text{ time } = \beta_0 + \beta_1 \text{ death } + \beta_2 \text{ mage }.
 \end{array}
 $$
 
-The model code below is written so as to answer all parts of the question. The full model can be found in "q1.odc". (Although one might wonder whether we need to do anything "special" for the indicator variable `death`, i.e. transform its values to a 1-2 binary pair, it was found that the results are consistent.)
+The model code below is written so as to answer all parts of the question. The full model can be found in "q1.odc". (Note that we need to do anything "special" for the indicator variable `death`, i.e. transform its values to a 1-2 binary pair. It was found that the results are consistent either way.)
 
 ```{r setup-2}
 library(tidyverse)
@@ -156,17 +156,13 @@ b_2_q1 <- .pull_b_est_q1(2)
 ```
 
 $$
-\begin{array}{rcl}
-\text{time} & = & `r b_0_q1` + r b_1_q1` \text{death} + r `b_2_q1` \text{mage}.
+\begin{array}{c}
+\text{ time } = (`r b_0_q1`) + (`r b_1_q1`) \text{ death } + (`r b_2_q1`) \text {mage }.
 \end{array}
 $$
 
 
 ### a
-
-<response>
-The slope (i.e. the posterior estimate of the mean) of $\beta_2$ (for $\text{mage}$) is and the 95% CS of the mean response for the new store data 
-</response>
 
 ```{r b_2_q1, include=F, echo=F}
 .var <- 'b2'
@@ -178,8 +174,8 @@ cs_b_2_q1
 ```
 
 <response>
-From the output shown above, we see that the slope (i.e. the posterior estimate of the mean) of $\beta_2$ (for $\text{death}$) is `r b_2_q1`. Its 95% CS is [`r cs_b_2_q1[1]`, `r cs_b_2_q1[2]`]. This variable is significant because its 95% CS is completely negative.
-</response> 
+From the output shown above, we see that the slope (i.e. the posterior estimate of the mean) of $\beta_2$ (for $\text{death}$) is `r b_2_q1`. Its 95% CS is [`r cs_b_2_q1[1]`, `r cs_b_2_q1[2]`]. This variable is significant (in this case, significantly negative) because its 95% CS does not contain zero. 
+</response> (Yes, this is not exactly the most robust manner in which to determine significance, but it is usually a very good heuristic.)
 
 ### b
 
@@ -192,7 +188,7 @@ cs_b_1_q1
 ```
 
 <response>
-We observe that the posterior estimate of the mean of $\beta_1$ (for $\text{mage}$) is `r b_1_q1`,and that its 95% CS is [`r cs_b_1_q1[1]`, `r cs_b_1_q1[2]`]. We may say that this variable is not significant (with respect to its relationship with $\text{time}$  because its 95% CS is not completely negative. Even though its posterior mean is negative, less than 95% of simulated estimates are negative---this is one way of interpreting a 95% CS---which fails our traditional criteria for ascertaining significance.
+We observe that the posterior estimate of the mean of $\beta_1$ (for $\text{mage}$) is `r b_1_q1`, and that its 95% CS is [`r cs_b_1_q1[1]`, `r cs_b_1_q1[2]`]. We may say that this variable is not significant (with respect to its relationship with $\text{time}$) because its 95% CS is not completely negative.<hide>Even though its posterior mean is negative, less than 95% of simulated estimates are negative---this is one way of interpreting a 95% CS---which fails our traditional criteria for ascertaining significance.</hide>
 </response> 
 
 
@@ -208,7 +204,7 @@ est_pred1_q1
 ```
 
 <response>
-From the output shown above, we see that the predicted time between births for Helga (corresponding to `pred1`) is `r est_pred1_q1` with 95% CS is [`r cs_pred1_q1[1]`, `r cs_pred1_q1[2]`].
+From the output shown above, we see that the predicted time between births for Helga (corresponding to `pred1`) is `r est_pred1_q1` with a 95% CS of [`r cs_pred1_q1[1]`, `r cs_pred1_q1[2]`].
 </response> Notably, this CS is very wide, but it does not include zero, so we can be somewhat confident in it (and be mindful of its imprecision).
 
 ### d
@@ -224,80 +220,9 @@ est_pred2_q1
 
 <response>
 From the output shown above, we see that the predicted time between births for Emma (corresponding to `pred2`) is `r est_pred2_q1` with 95% CS is [`r cs_pred2_q1[1]`, `r cs_pred2_q1[2]`].
-</response> Notably, this CS is very wide. It even includes zero (which does not make sense in the context of this problem)! Thus, we should be wary of the lack of robustness of this prediction.
+</response> As with the prediction for Helga, this prediction's CS is very wide. It even includes zero (which does not make sense in the context of this problem)! Thus, we should be wary of the lack of robustness of this prediction.
 
-### Aside
-
-As an aside, we can create the same kind of model using a "traditional" (i.e. non-Bayesian) approach in `R`. Overall, we achieve similar results. 
-
-+ The estimates of all $\beta$'s are similar. Specifically, we note that $\beta_1$ and $\beta_2$ are estimated to be negative, as is found above.
-
-+ The prediction for Helga is in the 900s, as us found in the (c); and the prediction intervals for both Helga and Emma have wide 95% prediction intervals, as is found above.
-
-```{r factor_death, include=F, echo=F, eval=F}
-# Note that factoring `death` makes no difference.
-# factor_death <- function(data, ...) {
-#   data %>% mutate_at(vars(death), ~factor(., levels = 0:1))
-# }
-```
-
-```{r fit_lm_q1, include=T, echo=T, eval=T}
-fit_lm_q1 <-
-  data_q1 %>% 
-  lm(formula(time ~ mage + death), data = .)
-fit_lm_q1
-fit_lm_q1 %>% summary()
-```
-
-```{r fit_pois_q1, include=F, echo=F, eval=F}
-fit_pois_q1 <-
-  data_q1 %>% 
-  glm(formula(time ~ mage + death), data = ., family = 'poisson')
-fit_pois_q1
-fit_pois_q1 %>% summary()
-```
-
-```{r data_new_q1, include=T, echo=T, eval=T}
-data_new_q1_1 <- tibble(mage = 24, death = 0)
-data_new_q1_2 <- tibble(mage = 28, death = 1)
-```
-
-```{r preds_lm_q1, include=F, echo=F, eval=F}
-fit_lm_q1 %>% predict(data_new_q1_1)
-fit_lm_q1 %>% predict(data_new_q1_2)
-```
-
-```{r preds_pois_q1, include=F, echo=F, eval=F}
-fit_pois_q1 %>% predict(data_new_q1_1)
-fit_pois_q1 %>% predict(data_new_q1_2)
-```
-
-```{r preds_predict_q1, include=T, echo=T, eval=T}
-fit_lm_q1 %>% predict(data_new_q1_1, interval = 'prediction')
-fit_lm_q1 %>% predict(data_new_q1_2, interval = 'prediction')
-```
-
-```{r preds_conf_q1, include=F, echo=F, eval=F}
-fit_lm_q1 %>% predict(data_new_q1_1, interval = 'confidence')
-fit_lm_q1 %>% predict(data_new_q1_2, interval = 'confidence')
-```
-
-```{r preds_pois_q1_response, include=F, echo=F, eval=F}
-fit_pois_q1 %>% predict(data_new_q1_1, type = 'response')
-fit_pois_q1 %>% predict(data_new_q1_2, type = 'response')
-```
-
-```{r confints_lm_q1, include=F, echo=F, eval=F}
-data_new_q1_1 %>% ciTools::add_ci(fit_lm_q1)
-data_new_q1_2 %>% ciTools::add_ci(fit_lm_q1)
-```
-
-```{r confints_pois_q1, include=F, echo=F, eval=F}
-data_new_q1_1 %>% ciTools::add_ci(fit_pois_q1)
-data_new_q1_2 %>% ciTools::add_ci(fit_pois_q1)
-```
-
-# 2.
+# 2. Tasmanian Clouds.
 
 ## Instructions
 
@@ -346,7 +271,7 @@ data_list_q2 <-
 
 ### a
 
-Below is the model code, not including any interaction term between `seeded` and `season`. (As before, the data is excerpted for the sake of readability.) The full model can be found in "q2a.odc".
+Below is the model code, not including any interaction term between `seeded` and `season`. The full model can be found in "q2a.odc".
 
 ```
 model{
@@ -391,6 +316,8 @@ list(
   tau = 1
 )
 
+# data
+...
 ```
 
 Note the following about the model.
@@ -463,7 +390,7 @@ export_png <-
     'Not Significant'
   )
 
-visualize_cs <- function(data, ...) {
+visualize_cs_c <- function(data, ...) {
   data %>% 
     filter(var %>% str_detect('^c')) %>% 
     mutate(
@@ -500,47 +427,126 @@ visualize_cs <- function(data, ...) {
       x = NULL, y = NULL
     )
 }
+
+visualize_cs_ab <- function(data, ...) {
+  data %>% 
+    filter(var %>% str_detect('^(alpha|beta|mu0)')) %>% 
+    mutate(
+      descr = case_when(
+        val2.5pc > 0 ~ .lvls_boxplot[1],
+        val97.5pc < 0 ~ .lvls_boxplot[1],
+        mean > 0 ~ .lvls_boxplot[2],
+        # mean <= 0 ~ .lvls_boxplot[4]
+        mean <= 0 ~ .lvls_boxplot[2]
+      )
+    ) %>% 
+    mutate_at(vars(descr), ~ordered(., .lvls_boxplot)) %>% 
+    ggplot() +
+    aes(x = var, y = mean, color = descr) +
+    geom_pointrange(
+      aes(ymin = val2.5pc, ymax = val97.5pc),
+      # fatten = 5
+      size = 2,
+      fill = 'grey90'
+    ) +
+    # scale_color_brewer(palette = 'RdYlGn') +
+    # scale_x_reverse() +
+    scale_color_manual(values = c('blue', 'grey50')) +
+    guides(color = guide_legend(override.aes = list(size = 3))) +
+    geom_hline(aes(yintercept = 0), size = 2) +
+    theme_custom() +
+    theme(
+      legend.title = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank()
+    ) +
+    coord_flip() +
+    labs(
+      x = NULL, y = NULL
+    )
+}
 ```
 
-To assist with interpreting the comparison terms, below is a plot illustrating the means and 95% CS of the two-way paired comparisons. (The interior crossbars illustrate the mean and the box bounds illustrate the 95% CS range.)
+To assist with interpreting the comparison terms, below is a plot illustrating the posterior means and 95% CS of the two-way paired comparisons. (The interior crossbars illustrate the mean and the box bounds illustrate the 95% CS range.)
 
-```{r path_viz_q2a, include=F, echo=F}
-path_viz_q2a <- 'viz_q2a.png'
-eval_viz_q2a <- !fs::file_exists(path_viz_q2a)
+```{r path_viz_q2a_1, include=F, echo=F}
+path_viz_q2a_1 <- 'viz_q2a_1.png'
+eval_viz_q2a_1 <- !fs::file_exists(path_viz_q2a_1)
 ```
 
-```{r viz_q2a, echo=F, include=F, eval=T, fig.show=F}
-.lab_title_q2a <- 'Two-Way ANOVA Comparison Without Interaction Term'
-viz_q2a <-
+```{r viz_q2a_1, echo=F, include=F, eval=T, fig.show=F}
+.lab_title_q2a_1 <- 'Comparison Terms, Two-Way ANOVA Without Interaction Term'
+viz_q2a_1 <-
   res_sim_output_q2a %>% 
-  visualize_cs() +
+  visualize_cs_c() +
   labs(
-    subtitle = .lab_title_q2a
+    subtitle = .lab_title_q2a_1
   )
-viz_q2a
+viz_q2a_1
 ```
 
-```{r viz_q2a_export, include=F, echo=F, eval=eval_viz_q2a}
+```{r viz_q2a_1-export, include=F, echo=F, eval=eval_viz_q2a_1}
 export_png(
-  viz_q2a,
-  path = path_viz_q2a,
+  viz_q2a_1,
+  path = path_viz_q2a_1,
 )
 ```
 
 ```{r viz_q2a-show, include=T, echo=F}
-knitr::include_graphics(path_viz_q2a)
+knitr::include_graphics(path_viz_q2a_1)
+```
+<response>
+We observe the following:
+</response>
+
++ <response>The three `season` comparison terms involving "Winter" are significantly positive: (1) `cb[1,4]` (i.e. the difference between "Spring" and "Winter"); (2) `cb[2 4]` (i.e. the difference between "Summer" and "Winter"); (3) `cb[3,4]` (i.e. the difference between "Autumn" and "Winter").</response>
+
++ <response>Two terms have negative posterior means but are not significant: `ca[1,2]` and `cb[1,2]`.</response>
+ 
++ <response>The remaining two terms---involving `season` comparisons with "Autumn"---have positive posterior means but are not significant: `cb[1,3]` and `cb[2,3]`.</response>
+
+Of course, we should also look at the estimates of the `alpha` and `beta` terms, corresponding to `seeded` and `season` respectively.
+
+```{r path_viz_q2a_2, include=F, echo=F}
+path_viz_q2a_2 <- 'viz_q2a_2.png'
+eval_viz_q2a_2 <- !fs::file_exists(path_viz_q2a_2)
 ```
 
-We observe the following:
+```{r viz_q2a_2, echo=F, include=F, eval=T, fig.show=F}
+.lab_title_q2a_2 <- .lab_title_q2a_1 %>% str_replace('Comparison Terms, ', 'Coefficient Terms, ')
+viz_q2a_2 <-
+  res_sim_output_q2a %>% 
+  visualize_cs_ab() +
+  labs(
+    subtitle = .lab_title_q2a_2
+  )
+viz_q2a_2
+```
 
-+ The three `season` comparison terms involving "Winter" are significantly positive: (1) `cb[1, 4]` (i.e. the difference between "Spring" and "Winter"); (2) `cb[2, 4]` (i.e. the difference between "Summer" and "Winter"); (3) `cb[3, 4]` (i.e. the difference between "Autumn" and "Winter"). We may say that 
+```{r viz_q2a_2-export, include=F, echo=F, eval=eval_viz_q2a_2}
+export_png(
+  viz_q2a_2,
+  path = path_viz_q2a_2,
+)
+```
 
-+ Two terms have negative posterior means but are not significant: `ca[1, 2]` and `cb[1, 2]`.
- 
-+ The remaining two terms---involving `season` comparisons with "Fall"---have positive posterior means but are not significant: `cb[1, 3]` and `cb[2, 3]`.
+```{r viz_q2a_2-show, include=T, echo=F}
+knitr::include_graphics(path_viz_q2a_2)
+```
 
+<response>
+We observe the following.
+</response>
 
-#### b
++ <response>The `alpha` terms are insignificant because the CS includes zero. Also, note that `alpha[1]` and `alpha[2]`---representing "U" (unseeded) and "S" (seeded) respectively---are essentially inverses of one another.</response>
+
++ <response>Three `beta` terms are significant. `beta[1]` and `beta[1]`---representing "Spring" and "Summer" respectively---are significantly positive; `beta[4]`--- representing "Winter---is significantly negative.</response>
+
++ <response>`beta[3]`---representing "Autumn"---is close to zero and is insignificant. Still, it is significantly different from `beta[4]`, as indicated before with `cb[3,4]`. (Note that its CS does not overlap with that of `beta[4]`.)</response>
+
++ <response>The intercept term `mu0` is nearly zero and is insignificant.</response>
+
+### b
 
 Below is the code for the model including the interaction term (i.e. `alpha.beta`). The full model can be found in "q2b.odc".
 
@@ -623,33 +629,11 @@ Below is a summary of the output.
 res_sim_output_q2b
 ```
 
-```{r path_viz_q2b, include=F, echo=F}
-path_viz_q2b <- 'viz_q2b.png'
-eval_viz_q2b <- !fs::file_exists(path_viz_q2b)
-```
+<response>
+We observe the that all interaction terms are insignificant. (Each interaction term's CS includes zero.) Also, we see that the posterior means and 95% CS of all the `seeded` and `season` terms are only trivially affected. (There is no use in re-creating the same plots shown in (a).)
+</response>
 
-```{r viz_q2b, echo=F, include=F, eval=T, fig.show=F}
-viz_q2b <-
-  res_sim_output_q2b %>% 
-  visualize_cs() +
-  labs(
-    subtitle = .lab_title_q2a %>% str_replace('Without', 'With')
-  )
-viz_q2b
-```
-
-```{r viz_q2b_export, include=F, echo=F, eval=eval_viz_q2b}
-export_png(
-  viz_q2b,
-  path = path_viz_q2b,
-)
-```
-
-```{r viz_q2b-show, include=T, echo=F}
-knitr::include_graphics(path_viz_q2b)
-```
-
-# 3.
+# 3. Miller Lumber Company Customer Survey.
 
 ## Instructions
 
@@ -664,12 +648,12 @@ We fit the following Poisson regression model.
 
 $$
 \begin{array}{rcl}
-\log(\text{customers}) & \sim & \beta_0 + \beta_1 \times \text{hunits} + \beta_2 \times \text{aveinc} + \\
-& & \beta_3 \times \text{aveage} + \beta_4 \times \text{distcomp} + \beta_5 \times \text{diststore}
+\log(\text{customers}) & \sim & \beta_0 + \beta_1 \text{ hunits } + \beta_2 \text{ aveinc } + \\
+& & \beta_3 \text{ aveage } + \beta_4 \text{ distcomp } + \beta_5 \text{ diststore }
 \end{array}
 $$
 
-The model code below is written so as to answer parts (a) and (c). (In particular, `lambdastar` and `pred1` correspond to the mean response and prediction asked for in (c).) (Again, the data is excerpted for the sake of readability.) The full model can be found in "q3ac.odc".
+The model code below is written so as to answer parts (a) and (c). (In particular, `lambdastar` and `pred1` correspond to the mean response and prediction asked for in (c). The full model can be found in "q3ac.odc".
 
 ```{r data_list_q3, include=F, echo=F}
 data_q3 <- 
@@ -757,7 +741,7 @@ b_4_q3 <- .pull_b_est_q3(4)
 b_5_q3 <- .pull_b_est_q3(5)
 ```
 
-As shown in the output above (a), <response>the estimates (of the posterior means) are as follows.</response>
+As shown in the output above, <response>the coefficient estimates (i.e. the $\beta$ posterior means) are as follows.</response>
 
 + $\beta_{1}$ = `r b_1_q3`
 
@@ -773,7 +757,7 @@ All terms seem to be significant, given that their 95% CS are either completely 
 
 ### b
 
-In order to identify the "best" two covariates from the set of five, we implement stochastic search variable selection (SSVS0, as discussed in Unit 9 and exemplified in "Haldssvs" from the Unit 9 exercises. The theory behind this process is as follows (specified for Poisson regression instead of traditional linear regression).
+In order to identify the "best" two covariates from the set of five, we implement stochastic search variable selection (SSVS), as discussed in Unit 9 and exemplified in "Haldssvs" from the Unit 9 exercises. The theory behind this process is as follows (specified for Poisson regression instead of traditional linear regression).
 
 $$
 \begin{array}{rcl}
@@ -784,7 +768,7 @@ $$
 \end{array}
 $$
 
-where $p_i$ is the probability that the variable $x_i$ is in the model. Note that the indicator $\delta_i$ terms are used simply to determine whether a $\beta_i$ term is included in a given model---if $\delta_i = 0$, then $\beta_i$ is not included; and if $\delta_i = 1$, then $\beta_i$ is included in the model and its estimate is that of $\alpha_i$. In the end, we choose the model with the greatest a posteriori probability.
+where $p_i$ is the probability that the variable $x_i$ is in the model. Note that the indicator $\delta_i$ terms are used simply to determine whether a $\beta_i$ term is included in a given model. That is, if $\delta_i = 0$, then $\beta_i$ is not included; and if $\delta_i = 1$, then $\beta_i$ is included in the model and its estimate is that of $\alpha_i$. In the end, we choose the model with the greatest a posteriori probability.
 
 ```{r data_list_q3b, include=F, echo=F}
 data_q3b <-
@@ -802,7 +786,7 @@ data_q3b %>%
   export_tsv('q3b2-data.txt')
 ```
 
-The (initial) model code is shown below. (This is actually a two-step process, given the ambiguity of the initial results.) As with the model code for parts (a) and (c), the data is excerpted here, but is shown in the full model files "q3b1.odc" and "q3b2.odc".
+The (initial) model code is shown below. (This is actually a two-step process, given the ambiguity of the initial results.) The full model files are "q3b1.odc" and "q3b2.odc".
 
 ```
 model {
@@ -855,7 +839,7 @@ Note the following about the model.
 
 + For the sake of convenience, we rename the features `hunits`, ..., `diststore` to be `x[,1]`, ..., `x[,5]` with corresponding $\beta$ estimates `b1`, ..., `b5`.
 
-+  For our implementation, we define $\tau = 0.01$ (shown in the stochastic process equations above) so that the $\alpha_i$ estimates are relatively noninformative. (This maintains the premise that we should not make our priors "too noninformative".)
++  For our implementation, we define $\tau = 0.01$ (shown in the stochastic process equations above) so that the $\alpha_i$ estimates are relatively noninformative. (This maintains the premise that we should make our priors "not too noninformative".)
 
 + We center the data---creating the set of `x.c[]` variables. This is a standard pre-processing step in most variable selection procedures.
 
@@ -887,9 +871,9 @@ model_ex_q3b1 <- .pull_est_q3b1('model[2,2,1,2,2]')
 
 There is quite a bit to look at here. To provide some guidance for interpreting these results, take the following examples. 
 
-+ Note that `model[2, 2, 1, 2, 2]` has a posterior `mean` estimate of `r model_ex_q3b1`. This tells us that the model with `x[,1]` (for `hunits` and corresponding to the first `2`), with `x[,2]`(for `aveinc` and corresponding to the second `2`), without `x[,3]` (for `avehage` and corresponding the `1`), with `x[,4]` (for `distcomp` and corresponding to the third `2`) and with `x[,5]` (for `diststore` and corresponding to the fourth `2`) is visited `r scales::percent(model_ex_q3b1)` of the time by the MCMC procedure.
++ Note that `model[2, 2, 1, 2, 2]` has a posterior `mean` estimate of `r model_ex_q3b1`. This tells us that the model with `x[,1]` (for `hunits`, corresponding to the first `2`), with `x[,2]`(for `aveinc`, corresponding to the second `2`), without `x[,3]` (for `avehage`, corresponding the `1`), with `x[,4]` (for `distcomp`, corresponding to the third `2`) and with `x[,5]` (for `diststore`, corresponding to the fourth `2`) is visited `r scales::percent(model_ex_q3b1)` of the time by the MCMC procedure.
 
-+ Note that `delta[1]` has a posterior `mean` estimate of `r delta_ex_q3b1`. This means that the `x1` term (for `hunits`) was selected `r scales::percent(model_ex_q3b1)` of the time by the MCMC procedure.
++ Note that `delta[1]` has a posterior `mean` estimate of `r delta_ex_q3b1`. This means that the `x1` term (for `hunits`) is selected `r scales::percent(delta_ex_q3b1)` of the time by the MCMC procedure.
 
 Overall, we observe that there are many model combinations with posterior `mean` estimates (of probability) equal to 0. Since the only combinations that have nonzero probabilities include three or more terms, we must repeat the SSVS process. Since the `delta` terms corresponding to `x[,2]`, `x[,4]`, `x[,5]` equally have the highest posterior `mean`s, we reduce our data set to just these three terms.
 
@@ -912,59 +896,9 @@ Below are the results of this second SSVS procedure.
 
 We have exactly one two-covariate model---`model[1,2,2]`---with a nonzero posterior `mean`, which makes our choice of two-covariate model straightforward. (Of course, if we were able to choose three variables, then we could have chosen all three.). <response>The terms included in this "best" model (according to SSVS) are `distcomp` and `diststore`.</response>
 
-
-#### Aside
-
-As an aside, we can implement a forwards-stepwise regression using `R` and reach the same conclusion about "best" two-covariate model.
-
-```{r fit_step_q3, , include=T, echo=T, eval=T}
-fmla_step_l_1 <- formula(customers ~ 1)
-fmla_step_u_1 <- formula(customers ~ .)
-fit_step_l_1 <- lm(fmla_step_l_1, data = data_q3)
-fit_step_u_1 <- lm(fmla_step_u_1, data = data_q3)
-fit_step <-
-  function(fit_l,
-           fit_u,
-           direction = c('both', 'backward', 'forward'),
-           fit = NULL,
-           ...) {
-    direction <- match.arg(direction)
-    if (is.null(fit)) {
-      if (direction == 'forward') {
-        fit <- fit_l
-      } else {
-        fit <- fit_u
-      }
-    }
-    step(fit, scope = list(lower = fit_l, upper = fit_u), ...)
-  }
-
-
-fit_step_partial <-
-  purrr::partial(
-    fit_step,
-    fit_l = fit_step_l_1,
-    fit_u = fit_step_u_1,
-    ... =
-  )
-
-fit_step_f_partial <-
-  purrr::partial(
-    fit_step_partial,
-    trace = TRUE,
-    direction = 'forward',
-    ... =
-  )
-
-fit_step_f_1 <- fit_step_l_1 %>% fit_step_f_partial()
-fit_step_f_1
-```
-
-We see from the trace that the first two variables that are added to the trivial intercept-only model are `diststore` and `distcomp`.
-
 ### c
 
-The posterior estimate of the mean and the 95% CS of the mean response for the new store data (`hunits = 720`, `aveinc = 70000`, `aveage = 6`, `distcomp = 4.1`, and `diststore = 8`) correspond to `lambdastar` from the output shown above (a).
+The mean response for the new data (`hunits = 720`, `aveinc = 70000`, `aveage = 6`, `distcomp = 4.1`, and `diststore = 8`) correspond to `lambdastar` from the output shown above (a). Similarly, the prediction corresponds to `pred1`.
 
 ```{r pred1_mean_q3c, include=F, echo=F}
 .pull_est_q3 <- purrr::partial(.pull_est, data = res_sim_output_q3, ... = )
@@ -987,35 +921,9 @@ est_pred1_q3c
 ```
 
 <response>
-From the output shown above, we see that the mean response is `r pred1_mean_q3c` with 95% CS is [`r cs_pred1_mean_q3c[1]`, `r cs_pred1_mean_q3c[2]`]. The prediction is `r pred1_q3c` with 95% CS is [`r cs_pred1_q3c[1]`, `r cs_pred1_q3c[2]`].
-</response> Note that the prediction has a larger CS than than of the mean response. This is because the prediction's CS accounts for additional prediction---the uncertainty of a point estimate prediction. (We explored this concept in question 2(c) of HW6.)
+There we see that the mean response is `r est_pred1_mean_q3c` with a 95% CS of [`r cs_pred1_mean_q3c[1]`, `r cs_pred1_mean_q3c[2]`]. The prediction is `r est_pred1_q3c` with a 95% CS of [`r cs_pred1_q3c[1]`, `r cs_pred1_q3c[2]`].
+</response> Note that the prediction has a larger CS than that of the mean response. This is because the prediction's CS accounts for additional prediction---the uncertainty of a point estimate prediction. (We explored this concept in question 2(c) of HW6.)
 
 <hide>
 See p. 187 at https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/bugsbook_chapter9.pdf for more about this explanation.
 </hide>
-
-#### Aside
-
-As a "sanity check" on our OpenBUGs output for the prediction `pred1`, we can compute the Frequentist prediction estimate and CS for the same new store data. Note that these do not necessarily directly analogous with the `pred1` estimate from above, but, in nearly all cases, we should expect these values to be similar to that of `pred1`.
-
-```{r pred_1_q3}
-fit_q3 <-
-  data_q3 %>% 
-  glm(formula(customers ~ .), data = ., family = 'poisson')
-fit_q3
-
-data_new_q3 <- tibble(
-  hunits = 720,
-  aveinc = 70000,
-  avehage = 6,
-  distcomp = 4.1,
-  diststore = 8
-)
-
-pred_1_q3 <- fit_q3 %>% predict(newdata = data_new_q3, type = 'response')
-pred_1_q3
-confint_pred_1_q3 <- data_new_q3 %>% ciTools::add_ci(fit_q3)
-confint_pred_1_q3
-```
-
-Indeed, the prediction estimate and confidence interval are very similar to those found with OpenBUGs.
